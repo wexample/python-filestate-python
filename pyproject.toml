@@ -21,6 +21,7 @@ dependencies = [
     "python-dotenv",
     "pydantic",
     "wexample-filestate",
+    "wexample-filestate-git",
     "wexample-app",
 ]
 
