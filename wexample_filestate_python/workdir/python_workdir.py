@@ -47,7 +47,17 @@ class PythonWorkdir(AppWorkdir):
         config.update({
             "children": [
                 {
-                    'name': 'setup.py',
+                    'name': 'pyproject.toml',
+                    'type': DiskItemType.FILE,
+                    'should_exist': True,
+                },
+                {
+                    'name': 'requirements.in',
+                    'type': DiskItemType.FILE,
+                    'should_exist': True,
+                },
+                {
+                    'name': 'requirements.txt',
                     'type': DiskItemType.FILE,
                     'should_exist': True,
                 },
