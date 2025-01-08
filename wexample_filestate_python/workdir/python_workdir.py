@@ -52,6 +52,11 @@ class PythonWorkdir(AppWorkdir):
                     'should_exist': True,
                 },
                 {
+                    'name': '.gitignore',
+                    'type': DiskItemType.FILE,
+                    'should_exist': True,
+                },
+                {
                     'name': 'requirements.in',
                     'type': DiskItemType.FILE,
                     'should_exist': True,
