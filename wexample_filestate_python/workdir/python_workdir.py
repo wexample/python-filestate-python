@@ -1,9 +1,6 @@
 from typing import Optional, List, Type, TYPE_CHECKING
 
-from wexample_filestate.config_option.children_file_factory_config_option import ChildrenFileFactoryConfigOption
-from wexample_filestate.const.globals import NAME_PATTERN_NO_LEADING_DOT
 from wexample_wex_addon_app.workdir.app_workdir import AppWorkdir
-from wexample_config.config_value.callback_render_config_value import CallbackRenderConfigValue
 from wexample_config.const.types import DictConfig
 from wexample_config.options_provider.abstract_options_provider import AbstractOptionsProvider
 from wexample_helpers.helpers.string import string_to_snake_case
@@ -40,7 +37,6 @@ class PythonWorkdir(AppWorkdir):
 
     def prepare_value(self, config: Optional[DictConfig] = None) -> DictConfig:
         from wexample_filestate.const.disk import DiskItemType
-        from wexample_filestate_python.const.name_pattern import NAME_PATTERN_PYTHON_NOT_PYCACHE
 
         config = super().prepare_value(config)
 
@@ -77,19 +73,6 @@ class PythonWorkdir(AppWorkdir):
                     'name': 'dist',
                     'type': DiskItemType.DIRECTORY,
                     'should_exist': False,
-                },
-                {
-                    'name': CallbackRenderConfigValue(raw=self._create_package_name_snake),
-                    'type': DiskItemType.DIRECTORY,
-                    'should_exist': True,
-                    "children": [
-                        ChildrenFileFactoryConfigOption(pattern={
-                            "name": "__init__.py",
-                            "type": DiskItemType.FILE,
-                            "recursive": True,
-                            "name_pattern": [NAME_PATTERN_PYTHON_NOT_PYCACHE, NAME_PATTERN_NO_LEADING_DOT],
-                        })
-                    ]
                 }
             ]
         })

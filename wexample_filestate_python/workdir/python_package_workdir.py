@@ -7,6 +7,10 @@ from wexample_helpers.helpers.array import array_dict_get_by
 class PythonPackageWorkdir(PythonWorkdir):
     def prepare_value(self, config: Optional[DictConfig] = None) -> DictConfig:
         from wexample_filestate.const.disk import DiskItemType
+        from wexample_filestate_python.const.name_pattern import NAME_PATTERN_PYTHON_NOT_PYCACHE
+        from wexample_filestate.config_option.children_file_factory_config_option import ChildrenFileFactoryConfigOption
+        from wexample_filestate.const.globals import NAME_PATTERN_NO_LEADING_DOT
+        from wexample_config.config_value.callback_render_config_value import CallbackRenderConfigValue
 
         config = super().prepare_value(config)
 
@@ -63,6 +67,22 @@ class PythonPackageWorkdir(PythonWorkdir):
                 'name': 'pyproject.toml',
                 'type': DiskItemType.FILE,
                 'should_exist': True,
+            }
+        )
+
+        config["children"].append(
+            {
+                'name': CallbackRenderConfigValue(raw=self._create_package_name_snake),
+                'type': DiskItemType.DIRECTORY,
+                'should_exist': True,
+                "children": [
+                    ChildrenFileFactoryConfigOption(pattern={
+                        "name": "__init__.py",
+                        "type": DiskItemType.FILE,
+                        "recursive": True,
+                        "name_pattern": [NAME_PATTERN_PYTHON_NOT_PYCACHE, NAME_PATTERN_NO_LEADING_DOT],
+                    })
+                ]
             }
         )
 
