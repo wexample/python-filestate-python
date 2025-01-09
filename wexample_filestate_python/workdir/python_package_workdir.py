@@ -1,5 +1,4 @@
-from typing import Optional, List
-
+from typing import Optional
 from wexample_filestate_python.workdir.python_workdir import PythonWorkdir
 from wexample_config.const.types import DictConfig
 from wexample_helpers.helpers.array import array_dict_get_by
@@ -14,12 +13,50 @@ class PythonPackageWorkdir(PythonWorkdir):
         # Retrieve the '.gitignore' configuration or create it if it doesn't exist
         config_gitignore = array_dict_get_by('name', '.gitignore', config["children"])
         if config_gitignore is not None:
-            # Use setdefault to initialize 'should_contain_lines' if not already present
+            generic_gitignore_rules = {
+                "Python artifacts": [
+                    "*.egg-info",
+                    "__pycache__/",
+                    "*.py[cod]",
+                    "*.pyo",
+                ],
+                "Build directories": [
+                    "/build/",
+                    "/dist/",
+                    "/pip-wheel-metadata/",
+                ],
+                "Virtual environments": [
+                    ".env",
+                    ".venv",
+                    "venv/",
+                ],
+                "Test and coverage artifacts": [
+                    ".tox/",
+                    ".mypy_cache/",
+                    "pytest_cache/",
+                    ".coverage",
+                    "htmlcov/",
+                ],
+                "Editor and IDE settings": [
+                    ".vscode/",
+                    ".idea/",
+                    "*.swp",
+                    "*~",
+                ],
+            }
+
             should_contain_lines = config_gitignore.setdefault("should_contain_lines", [])
-            if isinstance(should_contain_lines, list):
-                should_contain_lines.append("*.egg-info")
-            else:
+            if not isinstance(should_contain_lines, list):
                 raise ValueError("'should_contain_lines' must be a list")
+
+            for category, rules in generic_gitignore_rules.items():
+                category_header = f"# {category}"
+                if category_header not in should_contain_lines:
+                    should_contain_lines.append(category_header)
+
+                for rule in rules:
+                    if rule not in should_contain_lines:
+                        should_contain_lines.append(rule)
 
         config["children"].append(
             {
