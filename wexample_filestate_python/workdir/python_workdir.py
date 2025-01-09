@@ -47,11 +47,6 @@ class PythonWorkdir(AppWorkdir):
         config.update({
             "children": [
                 {
-                    'name': 'pyproject.toml',
-                    'type': DiskItemType.FILE,
-                    'should_exist': True,
-                },
-                {
                     'name': '.gitignore',
                     'type': DiskItemType.FILE,
                     'should_exist': True,
