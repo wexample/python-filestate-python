@@ -18,8 +18,10 @@ classifiers = [
 ]
 
 dependencies = [
+    "pip-tools",
     "python-dotenv",
     "pydantic",
+    "pytest",
     "wexample-filestate",
     "wexample-filestate-git",
     "wexample-app",

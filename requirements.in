@@ -1,5 +1,7 @@
 pip-tools
+python-dotenv
 pydantic
 pytest
+wexample_filestate
 wexample_filestate_git
-wexample_filestate_dev
+wexample_app
