@@ -1,8 +1,8 @@
 from typing import Optional, List, Type, TYPE_CHECKING
 
-from wexample_wex_addon_app.workdir.app_workdir import AppWorkdir
 from wexample_config.const.types import DictConfig
 from wexample_config.options_provider.abstract_options_provider import AbstractOptionsProvider
+from wexample_filestate_dev.workdir.framework_package_workdir import FrameworkPackageWorkdir
 from wexample_helpers.helpers.string import string_to_snake_case
 
 if TYPE_CHECKING:
@@ -10,7 +10,7 @@ if TYPE_CHECKING:
     from wexample_filestate.config_option.mixin.item_config_option_mixin import ItemTreeConfigOptionMixin
 
 
-class PythonWorkdir(AppWorkdir):
+class PythonWorkdir(FrameworkPackageWorkdir):
     def get_options_providers(self) -> List[Type["AbstractOptionsProvider"]]:
         from wexample_filestate.options_provider.default_options_provider import DefaultOptionsProvider
         from wexample_filestate_git.options_provider.git_options_provider import GitOptionsProvider

@@ -1,0 +1,5 @@
+from wexample_filestate_dev.workdir.framework_packages_suite_workdir import FrameworkPackageSuiteWorkdir
+
+
+class PythonPackagesSuiteWorkdir(FrameworkPackageSuiteWorkdir):
+    pass
