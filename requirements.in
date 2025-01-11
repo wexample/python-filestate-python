@@ -2,3 +2,4 @@ pip-tools
 pydantic
 pytest
 wexample_filestate_git
+wexample_filestate_dev
