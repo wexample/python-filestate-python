@@ -4,4 +4,4 @@ pydantic
 pytest
 wexample-filestate==0.0.19
 wexample-filestate-git==0.0.11
-wexample-app==0.0.15
+wexample-app==0.0.16
