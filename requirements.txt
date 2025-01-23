@@ -5,37 +5,37 @@
 #    pip-compile requirements.in
 #
 annotated-types==0.7.0
-    # via pydantic
+# via pydantic
 build==1.2.2.post1
-    # via pip-tools
+# via pip-tools
 click==8.1.8
-    # via pip-tools
+# via pip-tools
 iniconfig==2.0.0
-    # via pytest
+# via pytest
 packaging==24.2
-    # via
-    #   build
-    #   pytest
+# via
+#   build
+#   pytest
 pip-tools==7.4.1
-    # via -r requirements.in
+# via -r requirements.in
 pluggy==1.5.0
-    # via pytest
+# via pytest
 pydantic==2.10.4
-    # via -r requirements.in
+# via -r requirements.in
 pydantic-core==2.27.2
-    # via pydantic
+# via pydantic
 pyproject-hooks==1.2.0
-    # via
-    #   build
-    #   pip-tools
+# via
+#   build
+#   pip-tools
 pytest==8.3.4
-    # via -r requirements.in
+# via -r requirements.in
 typing-extensions==4.12.2
-    # via
-    #   pydantic
-    #   pydantic-core
+# via
+#   pydantic
+#   pydantic-core
 wheel==0.45.1
-    # via pip-tools
+# via pip-tools
 
 # The following packages are considered to be unsafe in a requirements file:
 # pip
