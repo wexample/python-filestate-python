@@ -2,6 +2,6 @@ pip-tools
 python-dotenv
 pydantic
 pytest
-wexample_filestate
-wexample_filestate_git
-wexample_app
+wexample-filestate
+wexample-filestate-git
+wexample-app
