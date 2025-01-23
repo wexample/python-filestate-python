@@ -40,41 +40,39 @@ class PythonWorkdir(FrameworkPackageWorkdir):
 
         config = super().prepare_value(config)
 
-        config.update({
-            "children": [
-                {
-                    'name': '.gitignore',
-                    'type': DiskItemType.FILE,
-                    'should_exist': True,
-                },
-                {
-                    'name': 'requirements.in',
-                    'type': DiskItemType.FILE,
-                    'should_exist': True,
-                },
-                {
-                    'name': 'requirements.txt',
-                    'type': DiskItemType.FILE,
-                    'should_exist': True,
-                },
-                {
-                    'name': 'tests',
-                    'type': DiskItemType.DIRECTORY,
-                    'should_exist': True,
-                },
-                # Remove unwanted files
-                # Should only be created during deployment
-                {
-                    'name': 'build',
-                    'type': DiskItemType.DIRECTORY,
-                    'should_exist': False,
-                },
-                {
-                    'name': 'dist',
-                    'type': DiskItemType.DIRECTORY,
-                    'should_exist': False,
-                }
-            ]
-        })
+        config['children'] += [
+            {
+                'name': '.gitignore',
+                'type': DiskItemType.FILE,
+                'should_exist': True,
+            },
+            {
+                'name': 'requirements.in',
+                'type': DiskItemType.FILE,
+                'should_exist': True,
+            },
+            {
+                'name': 'requirements.txt',
+                'type': DiskItemType.FILE,
+                'should_exist': True,
+            },
+            {
+                'name': 'tests',
+                'type': DiskItemType.DIRECTORY,
+                'should_exist': True,
+            },
+            # Remove unwanted files
+            # Should only be created during deployment
+            {
+                'name': 'build',
+                'type': DiskItemType.DIRECTORY,
+                'should_exist': False,
+            },
+            {
+                'name': 'dist',
+                'type': DiskItemType.DIRECTORY,
+                'should_exist': False,
+            }
+        ]
 
         return config
