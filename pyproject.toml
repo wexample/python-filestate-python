@@ -20,12 +20,12 @@ classifiers = [
 ]
 dependencies = [
     "pip-tools",
-    "python-dotenv",
     "pydantic",
     "pytest",
-    "wexample-filestate==0.0.18",
-    "wexample-filestate-git==0.0.10",
+    "python-dotenv",
     "wexample-app==0.0.14",
+    "wexample-filestate-git==0.0.10",
+    "wexample-filestate==0.0.18",
 ]
 
 [project.readme]
