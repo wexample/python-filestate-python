@@ -48,6 +48,7 @@ class PythonPackageReadmeContentConfigValue(ReadmeContentConfigValue):
             f'# {self.build_package_name()}\n\n'
             f'{description}\n\n'
             f'Version: {version}\n\n'
+            f'{self._add_section_if_exists("features")}'
             '## Requirements\n\n'
             f'- Python {python_version}\n\n'
             '## Dependencies\n\n'
