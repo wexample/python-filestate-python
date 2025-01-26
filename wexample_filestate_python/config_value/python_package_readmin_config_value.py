@@ -10,36 +10,10 @@ class PythonPackageReadmeContentConfigValue(ReadmeContentConfigValue):
     vendor: Optional[str]
 
     def get_templates(self) -> Optional[List[str]]:
-        project_info = self.workdir.get_project_info()
-        project = project_info.get('project', {})
-        
-        # Extract information
-        description = project.get('description', '')
-        python_version = project.get('requires-python', '')
-        dependencies = project.get('dependencies', [])
-        homepage = project.get('urls', {}).get('homepage', '')
-        license_info = project.get('license', {}).get('text', '')
-        version = project.get('version', '')
-        
-        # Format dependencies list
-        deps_list = '\n'.join([f'- {dep}' for dep in dependencies])
-
         return [
             f'# {self.build_package_name()}\n\n'
-            f'{description}\n\n'
-            f'Version: {version}\n\n'
-            '## Requirements\n\n'
-            f'- Python {python_version}\n\n'
-            '## Dependencies\n\n'
-            f'{deps_list}\n\n'
-            '## Installation\n\n'
-            '```bash\n'
-            f'pip install {project.get("name", "")}\n'
-            '```\n\n'
-            '## Links\n\n'
-            f'- Homepage: {homepage}\n\n'
-            '## License\n\n'
-            f'{license_info}'
+            '## Introduction',
+            '## License'
         ]
 
     def build_package_name(self) -> str:
@@ -58,3 +32,4 @@ class PythonPackageReadmeContentConfigValue(ReadmeContentConfigValue):
         package_name = ' '.join(word.title() for word in project_name.split('-'))
 
         return package_name
+
