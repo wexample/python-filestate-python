@@ -1,21 +1,16 @@
 from typing import Optional
 
-
 from wexample_config.const.types import DictConfig
 from wexample_filestate_python.workdir.python_workdir import PythonWorkdir
 from wexample_helpers.helpers.array import array_dict_get_by
 
 
-
 class PythonPackageWorkdir(PythonWorkdir):
     _project_info_cache = None
 
-    def get_project_info(self, force: bool = False) -> dict:
+    def get_project_info(self, force: bool = False, default: dict = {}) -> dict:
         """
         Fetch the data from the pyproject.toml file.
-
-        :param force: If True, forces reloading the data even if it was previously cached.
-        :return: A dictionary representing the contents of pyproject.toml.
         """
         # Return cached data if available and force is False
         if not force and self._project_info_cache is not None:
@@ -23,7 +18,6 @@ class PythonPackageWorkdir(PythonWorkdir):
 
         from wexample_helpers.helpers.file import file_read
         import tomli
-
 
         project_path = self.get_resolved()
         pyproject_file = f"{project_path}pyproject.toml"
@@ -35,8 +29,7 @@ class PythonPackageWorkdir(PythonWorkdir):
             # Store in cache
             self._project_info_cache = pyproject_data
         except FileNotFoundError:
-            self.io.error(f"pyproject.toml file not found at {pyproject_file}", fatal=True)
-            return {}
+            return default
 
         return pyproject_data
 
