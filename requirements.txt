@@ -126,7 +126,7 @@ wexample-helpers-git==0.0.26
 # via wexample-filestate-git
 wexample-helpers-yaml==0.0.25
 # via wexample-app
-wexample-prompt==0.0.25
+wexample-prompt==0.0.27
 # via
 #   wexample-app
 #   wexample-filestate
