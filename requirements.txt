@@ -101,39 +101,39 @@ urllib3==2.3.0
 # via requests
 wcwidth==0.2.13
 # via prompt-toolkit
-wexample-app==0.0.26
+wexample-app==0.0.27
 # via
 #   -r /home/weeger/Desktop/WIP/WEB/WEXAMPLE/PIP/pip/filestate-python/requirements.in
 #   wexample-wex-core
-wexample-config==0.0.29
+wexample-config==0.0.30
 # via wexample-filestate
-wexample-filestate==0.0.29
+wexample-filestate==0.0.30
 # via
 #   -r /home/weeger/Desktop/WIP/WEB/WEXAMPLE/PIP/pip/filestate-python/requirements.in
 #   wexample-app
 #   wexample-filestate-git
 #   wexample-wex-core
-wexample-filestate-git==0.0.21
+wexample-filestate-git==0.0.22
 # via -r /home/weeger/Desktop/WIP/WEB/WEXAMPLE/PIP/pip/filestate-python/requirements.in
-wexample-helpers==0.0.29
+wexample-helpers==0.0.30
 # via
 #   wexample-app
 #   wexample-config
 #   wexample-filestate
 #   wexample-filestate-git
 #   wexample-helpers-yaml
-wexample-helpers-git==0.0.29
+wexample-helpers-git==0.0.30
 # via wexample-filestate-git
-wexample-helpers-yaml==0.0.28
+wexample-helpers-yaml==0.0.29
 # via wexample-app
-wexample-prompt==0.0.30
+wexample-prompt==0.0.31
 # via
 #   wexample-app
 #   wexample-filestate
 #   wexample-filestate-git
-wexample-wex-addon-app==0.0.23
+wexample-wex-addon-app==0.0.24
 # via wexample-app
-wexample-wex-core==6.0.24
+wexample-wex-core==6.0.25
 # via wexample-wex-addon-app
 wheel==0.45.1
 # via pip-tools

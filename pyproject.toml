@@ -7,7 +7,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "wexample-filestate-python"
-version = "0.0.21"
+version = "0.0.22"
 description = "Helpers for Python."
 authors = [
     { name = "weeger", email = "contact@wexample.com" },
@@ -23,9 +23,9 @@ dependencies = [
     "pydantic",
     "pytest",
     "python-dotenv",
-    "wexample-app==0.0.26",
-    "wexample-filestate-git==0.0.21",
-    "wexample-filestate==0.0.29",
+    "wexample-app==0.0.27",
+    "wexample-filestate-git==0.0.22",
+    "wexample-filestate==0.0.30",
 ]
 
 [project.readme]
