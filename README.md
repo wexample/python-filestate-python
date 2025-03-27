@@ -2,7 +2,7 @@
 
 Helpers for Python.
 
-Version: 0.0.22
+Version: 0.0.23
 
 ## Requirements
 
@@ -14,9 +14,9 @@ Version: 0.0.22
 - pydantic
 - pytest
 - python-dotenv
-- wexample-app==0.0.27
-- wexample-filestate-git==0.0.22
-- wexample-filestate==0.0.30
+- wexample-app==0.0.28
+- wexample-filestate-git==0.0.23
+- wexample-filestate==0.0.31
 
 ## Installation
 
