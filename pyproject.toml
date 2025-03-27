@@ -24,7 +24,6 @@ dependencies = [
     "pytest",
     "python-dotenv",
     "wexample-app==0.0.28",
-    "wexample-filestate==0.0.31",
     "wexample-filestate-git==0.0.23",
 ]
 
