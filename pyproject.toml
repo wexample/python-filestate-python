@@ -23,7 +23,7 @@ dependencies = [
     "pydantic",
     "pytest",
     "python-dotenv",
-    "wexample-filestate-git==0.0.23",
+    "wexample-filestate-git>=0.0.23",
 ]
 
 [project.readme]
