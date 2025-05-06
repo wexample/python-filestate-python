@@ -2,5 +2,5 @@ pip-tools
 python-dotenv
 pydantic
 pytest
-wexample-filestate-dev==0.0.20
-wexample-filestate-git==0.0.25
+wexample-filestate-dev==0.0.21
+wexample-filestate-git==0.0.26

@@ -5,107 +5,107 @@
 #    pip-compile /home/weeger/Desktop/WIP/WEB/WEXAMPLE/PIP/pip/filestate-python/requirements.in
 #
 annotated-types==0.7.0
-    # via pydantic
+# via pydantic
 build==1.2.2.post1
-    # via pip-tools
+# via pip-tools
 certifi==2024.12.14
-    # via requests
+# via requests
 charset-normalizer==3.4.1
-    # via requests
+# via requests
 click==8.1.8
-    # via pip-tools
+# via pip-tools
 colorama==0.4.6
-    # via wexample-prompt
+# via wexample-prompt
 gitdb==4.0.12
-    # via gitpython
+# via gitpython
 gitpython==3.1.44
-    # via wexample-helpers-git
+# via wexample-helpers-git
 idna==3.10
-    # via requests
+# via requests
 iniconfig==2.0.0
-    # via pytest
+# via pytest
 inquirerpy==0.3.4
-    # via wexample-prompt
+# via wexample-prompt
 packaging==24.2
-    # via
-    #   build
-    #   pytest
+# via
+#   build
+#   pytest
 pfzy==0.3.4
-    # via inquirerpy
+# via inquirerpy
 pip-tools==7.4.1
-    # via
-    #   -r /home/weeger/Desktop/WIP/WEB/WEXAMPLE/PIP/pip/filestate-python/requirements.in
-    #   wexample-config
-    #   wexample-filestate
-    #   wexample-filestate-dev
-    #   wexample-filestate-git
-    #   wexample-helpers
-    #   wexample-helpers-git
-    #   wexample-prompt
+# via
+#   -r /home/weeger/Desktop/WIP/WEB/WEXAMPLE/PIP/pip/filestate-python/requirements.in
+#   wexample-config
+#   wexample-filestate
+#   wexample-filestate-dev
+#   wexample-filestate-git
+#   wexample-helpers
+#   wexample-helpers-git
+#   wexample-prompt
 pluggy==1.5.0
-    # via pytest
+# via pytest
 prompt-toolkit==3.0.50
-    # via inquirerpy
+# via inquirerpy
 pydantic==2.10.4
-    # via
-    #   -r /home/weeger/Desktop/WIP/WEB/WEXAMPLE/PIP/pip/filestate-python/requirements.in
-    #   wexample-config
-    #   wexample-filestate
-    #   wexample-filestate-dev
-    #   wexample-filestate-git
-    #   wexample-helpers
-    #   wexample-helpers-git
-    #   wexample-prompt
+# via
+#   -r /home/weeger/Desktop/WIP/WEB/WEXAMPLE/PIP/pip/filestate-python/requirements.in
+#   wexample-config
+#   wexample-filestate
+#   wexample-filestate-dev
+#   wexample-filestate-git
+#   wexample-helpers
+#   wexample-helpers-git
+#   wexample-prompt
 pydantic-core==2.27.2
-    # via pydantic
+# via pydantic
 pyproject-hooks==1.2.0
-    # via
-    #   build
-    #   pip-tools
+# via
+#   build
+#   pip-tools
 pytest==8.3.4
-    # via
-    #   -r /home/weeger/Desktop/WIP/WEB/WEXAMPLE/PIP/pip/filestate-python/requirements.in
-    #   wexample-config
-    #   wexample-filestate
-    #   wexample-filestate-dev
-    #   wexample-filestate-git
-    #   wexample-helpers
-    #   wexample-helpers-git
-    #   wexample-prompt
+# via
+#   -r /home/weeger/Desktop/WIP/WEB/WEXAMPLE/PIP/pip/filestate-python/requirements.in
+#   wexample-config
+#   wexample-filestate
+#   wexample-filestate-dev
+#   wexample-filestate-git
+#   wexample-helpers
+#   wexample-helpers-git
+#   wexample-prompt
 python-dotenv==1.0.1
-    # via -r /home/weeger/Desktop/WIP/WEB/WEXAMPLE/PIP/pip/filestate-python/requirements.in
+# via -r /home/weeger/Desktop/WIP/WEB/WEXAMPLE/PIP/pip/filestate-python/requirements.in
 requests==2.32.3
-    # via wexample-filestate-git
+# via wexample-filestate-git
 smmap==5.0.2
-    # via gitdb
+# via gitdb
 typing-extensions==4.12.2
-    # via
-    #   pydantic
-    #   pydantic-core
+# via
+#   pydantic
+#   pydantic-core
 urllib3==2.3.0
-    # via requests
+# via requests
 wcwidth==0.2.13
-    # via prompt-toolkit
-wexample-config==0.0.36
-    # via wexample-filestate
-wexample-filestate==0.0.35
-    # via
-    #   wexample-filestate-dev
-    #   wexample-filestate-git
-wexample-filestate-dev==0.0.20
-    # via -r /home/weeger/Desktop/WIP/WEB/WEXAMPLE/PIP/pip/filestate-python/requirements.in
-wexample-filestate-git==0.0.25
-    # via -r /home/weeger/Desktop/WIP/WEB/WEXAMPLE/PIP/pip/filestate-python/requirements.in
-wexample-helpers==0.0.53
-    # via
-    #   wexample-config
-    #   wexample-filestate
-wexample-helpers-git==0.0.34
-    # via wexample-filestate-git
-wexample-prompt==0.0.34
-    # via wexample-filestate
+# via prompt-toolkit
+wexample-config==0.0.37
+# via wexample-filestate
+wexample-filestate==0.0.36
+# via
+#   wexample-filestate-dev
+#   wexample-filestate-git
+wexample-filestate-dev==0.0.21
+# via -r /home/weeger/Desktop/WIP/WEB/WEXAMPLE/PIP/pip/filestate-python/requirements.in
+wexample-filestate-git==0.0.26
+# via -r /home/weeger/Desktop/WIP/WEB/WEXAMPLE/PIP/pip/filestate-python/requirements.in
+wexample-helpers==0.0.54
+# via
+#   wexample-config
+#   wexample-filestate
+wexample-helpers-git==0.0.36
+# via wexample-filestate-git
+wexample-prompt==0.0.35
+# via wexample-filestate
 wheel==0.45.1
-    # via pip-tools
+# via pip-tools
 
 # The following packages are considered to be unsafe in a requirements file:
 # pip
