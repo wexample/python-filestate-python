@@ -7,7 +7,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "wexample-filestate-python"
-version = "0.0.32"
+version = "0.0.33"
 description = "Helpers for Python."
 authors = [
     { name = "weeger", email = "contact@wexample.com" },
