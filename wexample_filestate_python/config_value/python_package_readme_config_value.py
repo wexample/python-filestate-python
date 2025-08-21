@@ -2,7 +2,7 @@ from typing import Optional, List
 import os
 
 from wexample_filestate.config_value.readme_content_config_value import ReadmeContentConfigValue
-from wexample_filestate_python.workdir.python_package_workdir import PythonPackageWorkdir
+from wexample_wex_addon_dev_python.workdir.python_package_workdir import PythonPackageWorkdir
 from wexample_helpers.helpers.string import string_remove_prefix
 
 
