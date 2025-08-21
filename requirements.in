@@ -7,3 +7,4 @@ wexample-filestate-dev
 wexample-filestate-git
 isort
 pyupgrade
+flynt

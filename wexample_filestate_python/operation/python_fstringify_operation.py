@@ -75,9 +75,6 @@ class PythonFStringifyOperation(FileManipulationOperationMixin, AbstractOperatio
         return result
 
     def apply(self) -> None:
-        from flynt.api import fstringify_code  # type: ignore
-        from flynt.state import State  # type: ignore
-
         result = PythonFStringifyOperation.rectify(
             content=self.target.get_local_file().read(),
         )
