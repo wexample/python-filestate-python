@@ -46,16 +46,13 @@ class PythonAddReturnTypesOperation(FileManipulationOperationMixin, AbstractOper
             source_annotate_simple_returns,
         )
 
-        # simple, optimistic applicability as requested
         if not isinstance(option, PythonConfigOption):
             return False
-        local = target.get_local_file()
-        if (
-            not target.is_file()
-            or not local.path.exists()
-            or local.path.suffix != ".py"
-        ):
+
+        local_file = target.get_local_file()
+        if not target.is_file() or not local_file.path.exists():
             return False
+
         value = option.get_value()
         if value is None or not value.has_item_in_list(
             PythonConfigOption.OPTION_NAME_ADD_RETURN_TYPES
@@ -63,7 +60,7 @@ class PythonAddReturnTypesOperation(FileManipulationOperationMixin, AbstractOper
             return False
 
         try:
-            src = local.read()
+            src = local_file.read()
             preview = source_annotate_simple_returns(src)
             return preview != src
         except Exception:
