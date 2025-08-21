@@ -39,7 +39,7 @@ class PythonFStringifyOperation(FileManipulationOperationMixin, AbstractOperatio
         if not isinstance(option, PythonConfigOption):
             return False
         lf = target.get_local_file()
-        if not target.is_file() or not lf.path.exists() or lf.path.suffix != ".py":
+        if not target.is_file() or not lf.path.exists():
             return False
         value = option.get_value()
         return value is not None and value.has_item_in_list(
