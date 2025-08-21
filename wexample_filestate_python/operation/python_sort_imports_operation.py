@@ -39,8 +39,9 @@ class PythonSortImportsOperation(FileManipulationOperationMixin, AbstractOperati
         option: "AbstractConfigOption",
     ) -> bool:
         from isort import code as isort_code
+        from isort.settings import Config
 
-        # Only files, must exist, must be .py, and option must include "format"
+        # Only files, must exist, must be .py, and option must include "sort_imports"
         if not isinstance(option, PythonConfigOption):
             return False
 
@@ -57,7 +58,8 @@ class PythonSortImportsOperation(FileManipulationOperationMixin, AbstractOperati
 
         try:
             src = local_file.read()
-            formatted = isort_code(src)
+            config = Config(profile="black")
+            formatted = isort_code(src, config=config)
             return formatted != src
         except Exception:
             return False
@@ -73,9 +75,11 @@ class PythonSortImportsOperation(FileManipulationOperationMixin, AbstractOperati
 
     def apply(self) -> None:
         from isort import code as isort_code  # type: ignore
+        from isort.settings import Config
 
         src = self.target.get_local_file().read()
-        formatted = isort_code(src)
+        config = Config(profile="black")
+        formatted = isort_code(src, config=config)
         if formatted != src:
             self._target_file_write(content=formatted)
 
