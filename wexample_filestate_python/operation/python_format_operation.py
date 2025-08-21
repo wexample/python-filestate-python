@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Union, List, Type
 
+import black
+
 from wexample_config.config_option.abstract_config_option import AbstractConfigOption
 from wexample_filestate.enum.scopes import Scope
 from wexample_filestate.operation.abstract_operation import AbstractOperation
@@ -42,33 +44,22 @@ class PythonFormatOperation(FileManipulationOperationMixin, AbstractOperation):
         if not isinstance(option, PythonConfigOption):
             return False
 
-        if not target.is_file():
+        local_file = target.get_local_file()
+        if not target.is_file() or not local_file.path.exists():
             return False
-
-        local = target.get_local_file()
-        path = local.path
-        if not path.exists() or path.suffix != ".py":
-            return False
-
-        # Try to import black; if unavailable, skip applicability
-        try:
-            import black  # type: ignore
-        except Exception:
-            return False
-
         value = option.get_value()
-        try:
-            entries = value.get_list()
-        except Exception:
+        if value is None:
             return False
 
-        if "format" not in entries:
+        if not value.has_item_in_list("format"):
             return False
+
+        mode = black.Mode()
 
         # Preview: check if formatting would change content
         try:
-            mode = black.Mode(line_length=PythonFormatOperation._line_length)
-            src = local.read()
+
+            src = local_file.read()
             # black.format_file_contents is stable for formatting a string
             formatted = black.format_file_contents(src, fast=False, mode=mode)
             return formatted != src
