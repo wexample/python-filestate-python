@@ -16,5 +16,4 @@ class PythonOptionsProvider(AbstractOptionsProvider):
     def get_options(cls) -> List[Type["AbstractConfigOption"]]:
         return [
             PythonConfigOption,
-
         ]

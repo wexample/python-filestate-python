@@ -51,7 +51,7 @@ class PythonFormatOperation(FileManipulationOperationMixin, AbstractOperation):
         if value is None:
             return False
 
-        if not value.has_item_in_list("format"):
+        if not value.has_item_in_list(PythonConfigOption.OPTION_NAME_FORMAT):
             return False
 
         mode = black.Mode()
