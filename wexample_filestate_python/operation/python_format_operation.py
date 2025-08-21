@@ -54,7 +54,7 @@ class PythonFormatOperation(FileManipulationOperationMixin, AbstractOperation):
         if not value.has_item_in_list(PythonConfigOption.OPTION_NAME_FORMAT):
             return False
 
-        mode = black.Mode(line_length=PythonFormatOperation._line_length)
+        mode = black.Mode()
 
         # Preview: check if formatting would change content
         try:
