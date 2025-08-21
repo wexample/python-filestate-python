@@ -2,6 +2,7 @@ from typing import Optional, List, Type, TYPE_CHECKING
 
 from wexample_config.const.types import DictConfig
 from wexample_config.options_provider.abstract_options_provider import AbstractOptionsProvider
+from wexample_filestate.config_option.children_filter_config_option import ChildrenFilterConfigOption
 from wexample_filestate_dev.workdir.framework_package_workdir import FrameworkPackageWorkdir
 from wexample_helpers.helpers.string import string_to_snake_case
 
@@ -72,7 +73,12 @@ class PythonWorkdir(FrameworkPackageWorkdir):
                 'name': 'dist',
                 'type': DiskItemType.DIRECTORY,
                 'should_exist': False,
-            }
+            },
+            ChildrenFilterConfigOption(pattern={
+                'name_pattern': r'^.*\.egg-info$',
+                'type': DiskItemType.DIRECTORY,
+                'should_exist': False,
+            }),
         ]
 
         return config
