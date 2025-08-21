@@ -54,17 +54,18 @@ class PythonFormatOperation(FileManipulationOperationMixin, AbstractOperation):
         if not value.has_item_in_list(PythonConfigOption.OPTION_NAME_FORMAT):
             return False
 
-        mode = black.Mode()
+        mode = black.Mode(line_length=PythonFormatOperation._line_length)
 
         # Preview: check if formatting would change content
         try:
-
             src = local_file.read()
-            # black.format_file_contents is stable for formatting a string
+            # black.format_file_contents may raise NothingChanged when no diff
             formatted = black.format_file_contents(src, fast=False, mode=mode)
             return formatted != src
+        except black.NothingChanged:
+            return False
         except Exception:
-            # Any error in preview means we skip
+            # Any other error in preview means we skip
             return False
 
     def describe_before(self) -> str:
@@ -88,7 +89,10 @@ class PythonFormatOperation(FileManipulationOperationMixin, AbstractOperation):
 
         mode = black.Mode(line_length=self._line_length)
         src = self.target.get_local_file().read()
-        formatted = black.format_file_contents(src, fast=False, mode=mode)
+        try:
+            formatted = black.format_file_contents(src, fast=False, mode=mode)
+        except black.NothingChanged:
+            return
         if formatted != src:
             self._target_file_write(content=formatted)
 
