@@ -26,7 +26,8 @@ dependencies = [
     "python-dotenv",
     "wexample-filestate-dev",
     "wexample-filestate-git",
-    "isort"
+    "pyupgrade",
+    "isort",
 ]
 
 [project.readme]

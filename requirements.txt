@@ -30,6 +30,8 @@ iniconfig==2.1.0
     # via pytest
 inquirerpy==0.3.4
     # via wexample-prompt
+isort==6.0.1
+    # via -r requirements.in
 mypy-extensions==1.1.0
     # via black
 packaging==25.0
@@ -90,10 +92,14 @@ pytest==8.4.1
     #   wexample-prompt
 python-dotenv==1.1.1
     # via -r requirements.in
+pyupgrade==3.20.0
+    # via -r requirements.in
 requests==2.32.4
     # via wexample-filestate-git
 smmap==5.0.2
     # via gitdb
+tokenize-rt==6.2.0
+    # via pyupgrade
 typing-extensions==4.14.1
     # via
     #   pydantic
