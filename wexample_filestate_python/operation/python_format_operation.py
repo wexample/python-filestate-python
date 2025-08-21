@@ -39,8 +39,8 @@ class PythonFormatOperation(FileManipulationOperationMixin, AbstractOperation):
 
     @staticmethod
     def applicable_option(
-            target: Union["ItemTargetDirectory", "ItemTargetFile"],
-            option: "AbstractConfigOption",
+        target: Union["ItemTargetDirectory", "ItemTargetFile"],
+        option: "AbstractConfigOption",
     ) -> bool:
         import black
 
@@ -53,7 +53,7 @@ class PythonFormatOperation(FileManipulationOperationMixin, AbstractOperation):
 
         value = option.get_value()
         if value is None or not value.has_item_in_list(
-                PythonConfigOption.OPTION_NAME_FORMAT
+            PythonConfigOption.OPTION_NAME_FORMAT
         ):
             return False
 
