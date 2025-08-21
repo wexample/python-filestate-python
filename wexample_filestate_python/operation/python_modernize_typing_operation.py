@@ -36,3 +36,12 @@ class PythonModernizeTypingOperation(AbstractModernizeOperation):
     def get_pyupgrade_args(self) -> List[str]:
         # pyupgrade will handle PEP585/604 under --py312-plus
         return ["--py312-plus"]
+
+    def describe_before(self) -> str:
+        return "The file uses legacy typing syntax that can be modernized for Python 3.12."
+
+    def describe_after(self) -> str:
+        return "Typing syntax has been modernized to Python 3.12 style (PEP 585/604)."
+
+    def description(self) -> str:
+        return "Modernize typing syntax (PEP 585/604) using pyupgrade for Python 3.12."

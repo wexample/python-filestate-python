@@ -36,3 +36,12 @@ class PythonCleanupPy2CompatOperation(AbstractModernizeOperation):
     def get_pyupgrade_args(self) -> List[str]:
         # Target modern python; pyupgrade will drop py2 shims, old patterns, future imports unnecessary, etc.
         return ["--py312-plus"]
+
+    def describe_before(self) -> str:
+        return "The file may contain outdated Python 2 compatibility shims or legacy patterns."
+
+    def describe_after(self) -> str:
+        return "Python 2 compatibility code and legacy patterns have been removed for Python 3.12."
+
+    def description(self) -> str:
+        return "Clean up Python 2 compatibility and legacy patterns using pyupgrade for Python 3.12."
