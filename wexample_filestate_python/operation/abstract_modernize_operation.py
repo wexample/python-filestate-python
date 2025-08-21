@@ -1,24 +1,20 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, List, Type, Union
-import subprocess
+from typing import List, Tuple, Type, Optional
 
-from wexample_config.config_option.abstract_config_option import AbstractConfigOption
 from wexample_filestate.enum.scopes import Scope
 from wexample_filestate.operation.abstract_operation import AbstractOperation
 from wexample_filestate.operation.mixin.file_manipulation_operation_mixin import (
     FileManipulationOperationMixin,
 )
 
-if TYPE_CHECKING:
-    from wexample_filestate.item.item_target_directory import ItemTargetDirectory
-    from wexample_filestate.item.item_target_file import ItemTargetFile
-
 
 class AbstractModernizeOperation(FileManipulationOperationMixin, AbstractOperation):
-    """Abstract base for modernizing Python source using external codemods (e.g., pyupgrade).
+    """Abstract base for modernizing Python source in-memory.
 
-    Subclasses must provide pyupgrade arguments via get_pyupgrade_args().
+    Uses the pyupgrade library programmatically (no shell) to preview and apply
+    transformations. Subclasses should override `get_min_version()` to control
+    the target Python version for upgrades.
     """
 
     @classmethod
@@ -30,33 +26,26 @@ class AbstractModernizeOperation(FileManipulationOperationMixin, AbstractOperati
 
         return [FileCreateOperation]
 
-    # --- Hooks for subclasses ---
-    def get_pyupgrade_args(self) -> List[str]:  # override
-        return ["--py312-plus"]
+    @classmethod
+    def get_min_version(cls) -> Tuple[int, int]:
+        """Return the minimum target Python version as a (major, minor) tuple.
 
-    # --- Helpers ---
-    def _run_pyupgrade_inplace(self, path_str: str) -> None:
-        cmd = [
-            "pyupgrade",
-            *self.get_pyupgrade_args(),
-            path_str,
-        ]
-        # Run and raise if it fails so pipeline can surface it.
-        proc = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-        if proc.returncode != 0:
-            raise RuntimeError(
-                f"pyupgrade failed ({proc.returncode}) on {path_str}:\n{proc.stderr}"
-            )
+        Defaults to (3, 12). Subclasses can override.
+        """
+        return (3, 12)
 
-    def apply(self) -> None:
-        # Save for undo
-        original = self.target.get_local_file().read()
-        path = str(self.target.get_local_file().path)
-        self._run_pyupgrade_inplace(path)
-        updated = self.target.get_local_file().read()
-        if updated != original:
-            # ensure undo can restore exact content
-            self._target_file_write(content=updated)
+    @classmethod
+    def _modernize_source(cls, src: str) -> Optional[str]:
+        try:
+            # pyupgrade does not have a stable public API, but this usage is
+            # commonly adopted and avoids shelling out.
+            from pyupgrade._main import _fix_plugins, Settings  # type: ignore
+
+            settings = Settings(min_version=cls.get_min_version())
+            new_src, changed = _fix_plugins(src, settings=settings)
+            return new_src
+        except Exception:
+            return None
 
     def undo(self) -> None:
         self._restore_target_file()

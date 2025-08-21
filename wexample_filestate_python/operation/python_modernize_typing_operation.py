@@ -1,9 +1,8 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, List, Type, Union
+from typing import TYPE_CHECKING, Union
 
 from wexample_config.config_option.abstract_config_option import AbstractConfigOption
-from wexample_filestate.operation.abstract_operation import AbstractOperation
 from wexample_filestate_python.config_option.python_config_option import PythonConfigOption
 from .abstract_modernize_operation import AbstractModernizeOperation
 
@@ -18,24 +17,28 @@ class PythonModernizeTypingOperation(AbstractModernizeOperation):
     Triggered by: {"python": ["modernize_typing"]}
     """
 
-    @staticmethod
+    @classmethod
     def applicable_option(
-        target: Union["ItemTargetDirectory", "ItemTargetFile"],
-        option: "AbstractConfigOption",
+            cls,
+            target: Union["ItemTargetDirectory", "ItemTargetFile"],
+            option: "AbstractConfigOption",
     ) -> bool:
+        # Validate option and target
         if not isinstance(option, PythonConfigOption):
             return False
-        lf = target.get_local_file()
-        if not target.is_file() or not lf.path.exists():
+        local_file = target.get_local_file()
+        if not target.is_file() or not local_file.path.exists():
             return False
         value = option.get_value()
-        return value is not None and value.has_item_in_list(
-            PythonConfigOption.OPTION_NAME_MODERNIZE_TYPING
-        )
+        if value is None or not value.has_item_in_list(
+                PythonConfigOption.OPTION_NAME_MODERNIZE_TYPING
+        ):
+            return False
 
-    def get_pyupgrade_args(self) -> List[str]:
-        # pyupgrade will handle PEP585/604 under --py312-plus
-        return ["--py312-plus"]
+        src = local_file.read()
+        updated = PythonModernizeTypingOperation._modernize_source(src)
+        # Preview transformation: only applicable if change would occur
+        return updated is not None and updated != src
 
     def describe_before(self) -> str:
         return "The file uses legacy typing syntax that can be modernized for Python 3.12."
@@ -45,3 +48,9 @@ class PythonModernizeTypingOperation(AbstractModernizeOperation):
 
     def description(self) -> str:
         return "Modernize typing syntax (PEP 585/604) using pyupgrade for Python 3.12."
+
+    def apply(self) -> None:
+        src = self.target.get_local_file().read()
+        updated, changed = self._modernize_source(src)
+        if changed and updated != src:
+            self._target_file_write(content=updated)
