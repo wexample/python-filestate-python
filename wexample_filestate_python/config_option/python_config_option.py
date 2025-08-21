@@ -1,7 +1,6 @@
 from typing import Any, ClassVar, List
 
-from wexample_config.config_option.abstract_config_option import \
-    AbstractConfigOption
+from wexample_config.config_option.abstract_config_option import AbstractConfigOption
 
 
 class PythonConfigOption(AbstractConfigOption):

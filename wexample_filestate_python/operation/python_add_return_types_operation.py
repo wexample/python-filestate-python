@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, List, Type, Union
 import ast
+from typing import TYPE_CHECKING, List, Type, Union
 
 from wexample_config.config_option.abstract_config_option import AbstractConfigOption
 from wexample_filestate.enum.scopes import Scope
@@ -9,7 +9,9 @@ from wexample_filestate.operation.abstract_operation import AbstractOperation
 from wexample_filestate.operation.mixin.file_manipulation_operation_mixin import (
     FileManipulationOperationMixin,
 )
-from wexample_filestate_python.config_option.python_config_option import PythonConfigOption
+from wexample_filestate_python.config_option.python_config_option import (
+    PythonConfigOption,
+)
 
 if TYPE_CHECKING:
     from wexample_filestate.item.item_target_directory import ItemTargetDirectory
@@ -30,7 +32,9 @@ class PythonAddReturnTypesOperation(FileManipulationOperationMixin, AbstractOper
         return Scope.CONTENT
 
     def dependencies(self) -> List[Type["AbstractOperation"]]:
-        from wexample_filestate.operation.file_create_operation import FileCreateOperation
+        from wexample_filestate.operation.file_create_operation import (
+            FileCreateOperation,
+        )
 
         return [FileCreateOperation]
 
@@ -43,10 +47,16 @@ class PythonAddReturnTypesOperation(FileManipulationOperationMixin, AbstractOper
         if not isinstance(option, PythonConfigOption):
             return False
         local = target.get_local_file()
-        if not target.is_file() or not local.path.exists() or local.path.suffix != ".py":
+        if (
+            not target.is_file()
+            or not local.path.exists()
+            or local.path.suffix != ".py"
+        ):
             return False
         value = option.get_value()
-        if value is None or not value.has_item_in_list(PythonConfigOption.OPTION_NAME_ADD_RETURN_TYPES):
+        if value is None or not value.has_item_in_list(
+            PythonConfigOption.OPTION_NAME_ADD_RETURN_TYPES
+        ):
             return False
 
         try:
@@ -72,7 +82,9 @@ class PythonAddReturnTypesOperation(FileManipulationOperationMixin, AbstractOper
             new_src = _annotate_simple_returns(src)
         except Exception as e:
             # If parsing or transform fails, surface clearly
-            raise RuntimeError("Failed to add return type annotations: " + str(e)) from e
+            raise RuntimeError(
+                "Failed to add return type annotations: " + str(e)
+            ) from e
         if new_src != src:
             self._target_file_write(content=new_src)
 
@@ -80,7 +92,9 @@ class PythonAddReturnTypesOperation(FileManipulationOperationMixin, AbstractOper
         self._restore_target_file()
 
 
-def _infer_simple_return_type(node: Union[ast.FunctionDef, ast.AsyncFunctionDef]) -> str | None:
+def _infer_simple_return_type(
+    node: Union[ast.FunctionDef, ast.AsyncFunctionDef],
+) -> str | None:
     # Collect all return value nodes
     returns: List[ast.Return] = [n for n in ast.walk(node) if isinstance(n, ast.Return)]
 
@@ -128,7 +142,10 @@ def _annotate_simple_returns(src: str) -> str:
     # Collect function names that need annotation with their inferred type
     targets: list[tuple[str, str]] = []
     for node in ast.walk(tree):
-        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)) and node.returns is None:
+        if (
+            isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))
+            and node.returns is None
+        ):
             t = _infer_simple_return_type(node)
             if t is not None:
                 targets.append((node.name, t))
