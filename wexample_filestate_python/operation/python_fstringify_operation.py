@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from typing import TYPE_CHECKING, List, Type, Union
-import subprocess
 
 from wexample_config.config_option.abstract_config_option import AbstractConfigOption
 from wexample_filestate.enum.scopes import Scope
@@ -14,6 +13,7 @@ from wexample_filestate_python.config_option.python_config_option import PythonC
 if TYPE_CHECKING:
     from wexample_filestate.item.item_target_directory import ItemTargetDirectory
     from wexample_filestate.item.item_target_file import ItemTargetFile
+    from flynt.api import FstringifyResult
 
 
 class PythonFStringifyOperation(FileManipulationOperationMixin, AbstractOperation):
@@ -31,32 +31,61 @@ class PythonFStringifyOperation(FileManipulationOperationMixin, AbstractOperatio
 
         return [FileCreateOperation]
 
-    @staticmethod
+    @classmethod
     def applicable_option(
-        target: Union["ItemTargetDirectory", "ItemTargetFile"],
-        option: "AbstractConfigOption",
+            cls,
+            target: Union["ItemTargetDirectory", "ItemTargetFile"],
+            option: "AbstractConfigOption",
     ) -> bool:
         if not isinstance(option, PythonConfigOption):
             return False
-        lf = target.get_local_file()
-        if not target.is_file() or not lf.path.exists():
+        local_file = target.get_local_file()
+        if not target.is_file() or not local_file.path.exists():
             return False
         value = option.get_value()
-        return value is not None and value.has_item_in_list(
-            PythonConfigOption.OPTION_NAME_FSTRINGIFY
+        if value is None or not value.has_item_in_list(
+                PythonConfigOption.OPTION_NAME_FSTRINGIFY
+        ):
+            return False
+
+        src = local_file.read()
+
+        result = cls.rectify(
+            content=src
         )
 
+        # Preview change using Flynt API (no shell)
+        return result is not None and result.content != src
+
+    @classmethod
+    def rectify(cls, content: str) -> FstringifyResult | None:
+        from flynt.api import fstringify_code  # type: ignore
+        from flynt.state import State  # type: ignore
+
+        state = State(
+            aggressive=False,
+            multiline=False,
+            len_limit=120,
+        )
+
+        try:
+            result = fstringify_code(content, state=state)
+        except:
+            result = None
+        return result
+
     def apply(self) -> None:
-        path = str(self.target.get_local_file().path)
-        # flynt modifies files in-place
-        cmd = ["flynt", "--fail-on-change", path]
-        proc = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-        # flynt returns non-zero if it changed things with --fail-on-change; re-run without it to actually apply
-        if proc.returncode != 0:
-            cmd_apply = ["flynt", path]
-            proc2 = subprocess.run(cmd_apply, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-            if proc2.returncode != 0:
-                raise RuntimeError(f"flynt failed on {path}:\n{proc2.stderr}")
+        from flynt.api import fstringify_code  # type: ignore
+        from flynt.state import State  # type: ignore
+
+        result = PythonFStringifyOperation.rectify(
+            content=self.target.get_local_file().read(),
+        )
+
+        if result is not None:
+            self._target_file_write(
+                content=result.content
+            )
 
     def undo(self) -> None:
         self._restore_target_file()
