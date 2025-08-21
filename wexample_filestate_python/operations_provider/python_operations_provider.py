@@ -20,9 +20,21 @@ class PythonOperationsProvider(AbstractOperationsProvider):
         from wexample_filestate_python.operation.python_sort_imports_operation import (
             PythonSortImportsOperation,
         )
+        from wexample_filestate_python.operation.python_modernize_typing_operation import (
+            PythonModernizeTypingOperation,
+        )
+        from wexample_filestate_python.operation.python_fstringify_operation import (
+            PythonFStringifyOperation,
+        )
+        from wexample_filestate_python.operation.python_cleanup_py2_compat_operation import (
+            PythonCleanupPy2CompatOperation,
+        )
 
         return [
             PythonFormatOperation,
             PythonSortImportsOperation,
             PythonAddReturnTypesOperation,
+            PythonModernizeTypingOperation,
+            PythonFStringifyOperation,
+            PythonCleanupPy2CompatOperation,
         ]
