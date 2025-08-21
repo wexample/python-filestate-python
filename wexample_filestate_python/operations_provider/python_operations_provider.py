@@ -26,9 +26,6 @@ class PythonOperationsProvider(AbstractOperationsProvider):
         from wexample_filestate_python.operation.python_fstringify_operation import (
             PythonFStringifyOperation,
         )
-        from wexample_filestate_python.operation.python_cleanup_py2_compat_operation import (
-            PythonCleanupPy2CompatOperation,
-        )
 
         return [
             PythonFormatOperation,
@@ -36,5 +33,4 @@ class PythonOperationsProvider(AbstractOperationsProvider):
             PythonAddReturnTypesOperation,
             PythonModernizeTypingOperation,
             PythonFStringifyOperation,
-            PythonCleanupPy2CompatOperation,
         ]
