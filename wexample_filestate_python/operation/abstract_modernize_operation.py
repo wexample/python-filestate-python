@@ -36,16 +36,9 @@ class AbstractModernizeOperation(FileManipulationOperationMixin, AbstractOperati
 
     @classmethod
     def _modernize_source(cls, src: str) -> Optional[str]:
-        try:
-            # pyupgrade does not have a stable public API, but this usage is
-            # commonly adopted and avoids shelling out.
-            from pyupgrade._main import _fix_plugins, Settings  # type: ignore
-
-            settings = Settings(min_version=cls.get_min_version())
-            new_src, changed = _fix_plugins(src, settings=settings)
-            return new_src
-        except Exception:
-            return None
+        from pyupgrade._main import _fix_plugins, Settings  # type: ignore
+        settings = Settings(min_version=cls.get_min_version())
+        return _fix_plugins(src, settings=settings)
 
     def undo(self) -> None:
         self._restore_target_file()

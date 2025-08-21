@@ -51,6 +51,6 @@ class PythonModernizeTypingOperation(AbstractModernizeOperation):
 
     def apply(self) -> None:
         src = self.target.get_local_file().read()
-        updated, changed = self._modernize_source(src)
-        if changed and updated != src:
+        updated = self._modernize_source(src)
+        if updated is not None and updated != src:
             self._target_file_write(content=updated)
