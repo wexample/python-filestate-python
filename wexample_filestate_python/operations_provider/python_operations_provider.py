@@ -10,21 +10,21 @@ if TYPE_CHECKING:
 
 class PythonOperationsProvider(AbstractOperationsProvider):
     @staticmethod
-    def get_operations() -> List[Type["AbstractOperation"]]:
+    def get_operations() -> list[type["AbstractOperation"]]:
         from wexample_filestate_python.operation.python_add_return_types_operation import (
             PythonAddReturnTypesOperation,
         )
         from wexample_filestate_python.operation.python_format_operation import (
             PythonFormatOperation,
         )
-        from wexample_filestate_python.operation.python_sort_imports_operation import (
-            PythonSortImportsOperation,
+        from wexample_filestate_python.operation.python_fstringify_operation import (
+            PythonFStringifyOperation,
         )
         from wexample_filestate_python.operation.python_modernize_typing_operation import (
             PythonModernizeTypingOperation,
         )
-        from wexample_filestate_python.operation.python_fstringify_operation import (
-            PythonFStringifyOperation,
+        from wexample_filestate_python.operation.python_sort_imports_operation import (
+            PythonSortImportsOperation,
         )
 
         return [

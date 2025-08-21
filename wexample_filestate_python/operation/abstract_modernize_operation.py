@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import List, Tuple, Type, Optional
+from typing import List, Optional, Tuple, Type
 
 from wexample_filestate.enum.scopes import Scope
 from wexample_filestate.operation.abstract_operation import AbstractOperation
@@ -21,13 +21,15 @@ class AbstractModernizeOperation(FileManipulationOperationMixin, AbstractOperati
     def get_scope(cls) -> Scope:
         return Scope.CONTENT
 
-    def dependencies(self) -> List[Type["AbstractOperation"]]:
-        from wexample_filestate.operation.file_create_operation import FileCreateOperation
+    def dependencies(self) -> list[type[AbstractOperation]]:
+        from wexample_filestate.operation.file_create_operation import (
+            FileCreateOperation,
+        )
 
         return [FileCreateOperation]
 
     @classmethod
-    def get_min_version(cls) -> Tuple[int, int]:
+    def get_min_version(cls) -> tuple[int, int]:
         """Return the minimum target Python version as a (major, minor) tuple.
 
         Defaults to (3, 12). Subclasses can override.
@@ -35,8 +37,9 @@ class AbstractModernizeOperation(FileManipulationOperationMixin, AbstractOperati
         return (3, 12)
 
     @classmethod
-    def _modernize_source(cls, src: str) -> Optional[str]:
-        from pyupgrade._main import _fix_plugins, Settings  # type: ignore
+    def _modernize_source(cls, src: str) -> str | None:
+        from pyupgrade._main import Settings, _fix_plugins  # type: ignore
+
         settings = Settings(min_version=cls.get_min_version())
         return _fix_plugins(src, settings=settings)
 

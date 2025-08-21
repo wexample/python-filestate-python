@@ -12,7 +12,7 @@ from wexample_wex_addon_dev_python.workdir.python_package_workdir import (
 
 class PythonPackageReadmeContentConfigValue(ReadmeContentConfigValue):
     workdir: PythonPackageWorkdir
-    vendor: Optional[str]
+    vendor: str | None
 
     def _get_doc_path(self, section: str) -> str:
         """
@@ -29,13 +29,13 @@ class PythonPackageReadmeContentConfigValue(ReadmeContentConfigValue):
         doc_path = self._get_doc_path(section)
 
         if os.path.exists(doc_path):
-            with open(doc_path, "r") as file:
+            with open(doc_path) as file:
                 content = file.read()
                 return f"## {section.title()}\n\n{content}\n\n"
 
         return ""
 
-    def get_templates(self) -> Optional[List[str]]:
+    def get_templates(self) -> list[str] | None:
         project_info = self.workdir.get_project_info()
         project = project_info.get("project", {})
 

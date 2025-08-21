@@ -29,7 +29,7 @@ class PythonFormatOperation(FileManipulationOperationMixin, AbstractOperation):
     def get_scope(cls) -> Scope:
         return Scope.CONTENT
 
-    def dependencies(self) -> List[Type["AbstractOperation"]]:
+    def dependencies(self) -> list[type[AbstractOperation]]:
         # Ensure the file exists before formatting attempts
         from wexample_filestate.operation.file_create_operation import (
             FileCreateOperation,
@@ -37,12 +37,11 @@ class PythonFormatOperation(FileManipulationOperationMixin, AbstractOperation):
 
         return [FileCreateOperation]
 
-
     @classmethod
     def applicable_option(
-            cls,
-        target: Union["ItemTargetDirectory", "ItemTargetFile"],
-        option: "AbstractConfigOption",
+        cls,
+        target: ItemTargetDirectory | ItemTargetFile,
+        option: AbstractConfigOption,
     ) -> bool:
         import black
 

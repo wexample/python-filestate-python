@@ -8,12 +8,14 @@ from wexample_filestate.operation.abstract_operation import AbstractOperation
 from wexample_filestate.operation.mixin.file_manipulation_operation_mixin import (
     FileManipulationOperationMixin,
 )
-from wexample_filestate_python.config_option.python_config_option import PythonConfigOption
+from wexample_filestate_python.config_option.python_config_option import (
+    PythonConfigOption,
+)
 
 if TYPE_CHECKING:
+    from flynt.api import FstringifyResult
     from wexample_filestate.item.item_target_directory import ItemTargetDirectory
     from wexample_filestate.item.item_target_file import ItemTargetFile
-    from flynt.api import FstringifyResult
 
 
 class PythonFStringifyOperation(FileManipulationOperationMixin, AbstractOperation):
@@ -26,16 +28,18 @@ class PythonFStringifyOperation(FileManipulationOperationMixin, AbstractOperatio
     def get_scope(cls) -> Scope:
         return Scope.CONTENT
 
-    def dependencies(self) -> List[Type["AbstractOperation"]]:
-        from wexample_filestate.operation.file_create_operation import FileCreateOperation
+    def dependencies(self) -> list[type[AbstractOperation]]:
+        from wexample_filestate.operation.file_create_operation import (
+            FileCreateOperation,
+        )
 
         return [FileCreateOperation]
 
     @classmethod
     def applicable_option(
-            cls,
-            target: Union["ItemTargetDirectory", "ItemTargetFile"],
-            option: "AbstractConfigOption",
+        cls,
+        target: ItemTargetDirectory | ItemTargetFile,
+        option: AbstractConfigOption,
     ) -> bool:
         if not isinstance(option, PythonConfigOption):
             return False
@@ -44,15 +48,13 @@ class PythonFStringifyOperation(FileManipulationOperationMixin, AbstractOperatio
             return False
         value = option.get_value()
         if value is None or not value.has_item_in_list(
-                PythonConfigOption.OPTION_NAME_FSTRINGIFY
+            PythonConfigOption.OPTION_NAME_FSTRINGIFY
         ):
             return False
 
         src = local_file.read()
 
-        result = cls.rectify(
-            content=src
-        )
+        result = cls.rectify(content=src)
 
         # Preview change using Flynt API (no shell)
         return result is not None and result.content != src
@@ -80,9 +82,7 @@ class PythonFStringifyOperation(FileManipulationOperationMixin, AbstractOperatio
         )
 
         if result is not None:
-            self._target_file_write(
-                content=result.content
-            )
+            self._target_file_write(content=result.content)
 
     def undo(self) -> None:
         self._restore_target_file()

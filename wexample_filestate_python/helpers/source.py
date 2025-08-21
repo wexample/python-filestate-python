@@ -3,10 +3,10 @@ from typing import List, Union
 
 
 def source_infer_simple_return_type(
-    node: Union[ast.FunctionDef, ast.AsyncFunctionDef],
+    node: ast.FunctionDef | ast.AsyncFunctionDef,
 ) -> str | None:
     # Collect all return value nodes
-    returns: List[ast.Return] = [n for n in ast.walk(node) if isinstance(n, ast.Return)]
+    returns: list[ast.Return] = [n for n in ast.walk(node) if isinstance(n, ast.Return)]
 
     # If no return statements at all -> None
     if not returns:

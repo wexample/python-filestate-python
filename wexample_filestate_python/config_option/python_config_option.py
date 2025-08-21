@@ -12,4 +12,4 @@ class PythonConfigOption(AbstractConfigOption):
 
     @staticmethod
     def get_raw_value_allowed_type() -> Any:
-        return List[str]
+        return list[str]

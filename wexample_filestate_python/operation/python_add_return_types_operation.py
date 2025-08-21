@@ -30,7 +30,7 @@ class PythonAddReturnTypesOperation(FileManipulationOperationMixin, AbstractOper
     def get_scope(cls) -> Scope:
         return Scope.CONTENT
 
-    def dependencies(self) -> List[Type["AbstractOperation"]]:
+    def dependencies(self) -> list[type[AbstractOperation]]:
         from wexample_filestate.operation.file_create_operation import (
             FileCreateOperation,
         )
@@ -39,9 +39,9 @@ class PythonAddReturnTypesOperation(FileManipulationOperationMixin, AbstractOper
 
     @classmethod
     def applicable_option(
-            cls,
-        target: Union["ItemTargetDirectory", "ItemTargetFile"],
-        option: "AbstractConfigOption",
+        cls,
+        target: ItemTargetDirectory | ItemTargetFile,
+        option: AbstractConfigOption,
     ) -> bool:
         from wexample_filestate_python.helpers.source import (
             source_annotate_simple_returns,

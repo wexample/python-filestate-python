@@ -27,19 +27,18 @@ class PythonSortImportsOperation(FileManipulationOperationMixin, AbstractOperati
     def get_scope(cls) -> Scope:
         return Scope.CONTENT
 
-    def dependencies(self) -> List[Type["AbstractOperation"]]:
+    def dependencies(self) -> list[type[AbstractOperation]]:
         from wexample_filestate.operation.file_create_operation import (
             FileCreateOperation,
         )
 
         return [FileCreateOperation]
 
-
     @classmethod
     def applicable_option(
-            cls,
-        target: Union["ItemTargetDirectory", "ItemTargetFile"],
-        option: "AbstractConfigOption",
+        cls,
+        target: ItemTargetDirectory | ItemTargetFile,
+        option: AbstractConfigOption,
     ) -> bool:
         from isort import code as isort_code
         from isort.settings import Config

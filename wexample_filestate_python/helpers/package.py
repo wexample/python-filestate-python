@@ -5,7 +5,7 @@ from typing import Dict, List, Optional, Set, Tuple
 import tomli
 
 
-def package_parse_setup(path: Path) -> Dict:
+def package_parse_setup(path: Path) -> dict:
     """
     Parse a setup.py file to extract metadata.
     """
@@ -31,7 +31,7 @@ def package_parse_setup(path: Path) -> Dict:
     return {}
 
 
-def package_parse_toml(path: Path) -> Dict:
+def package_parse_toml(path: Path) -> dict:
     """
     Parse a pyproject.toml file to extract metadata.
     """
@@ -49,7 +49,7 @@ def package_parse_toml(path: Path) -> Dict:
     return {}
 
 
-def package_get_info(package_dir: Path) -> Optional[Tuple[str, Set[str]]]:
+def package_get_info(package_dir: Path) -> tuple[str, set[str]] | None:
     """
     Get package name and its dependencies from setup.py or pyproject.toml.
     """
@@ -73,7 +73,7 @@ def package_get_info(package_dir: Path) -> Optional[Tuple[str, Set[str]]]:
     return name, set(deps)
 
 
-def package_get_dependencies(root_dir: str | Path) -> Dict[str, Set[str]]:
+def package_get_dependencies(root_dir: str | Path) -> dict[str, set[str]]:
     """
     Get dependencies between packages in a directory.
     """
@@ -108,7 +108,7 @@ def package_get_dependencies(root_dir: str | Path) -> Dict[str, Set[str]]:
     return dependencies
 
 
-def package_list_sorted(root_dir: str | Path) -> List[str]:
+def package_list_sorted(root_dir: str | Path) -> list[str]:
     """
     Get a list of package names sorted by dependency order.
     """
@@ -121,7 +121,7 @@ def package_list_sorted(root_dir: str | Path) -> List[str]:
     # Convert dependencies dict to list for sorting
     packages = list(dependencies.keys())
 
-    def get_deps(pkg: str) -> Set[str]:
+    def get_deps(pkg: str) -> set[str]:
         return dependencies[pkg]
 
     return dependencies_sort(packages, get_deps)
