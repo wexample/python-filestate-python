@@ -51,8 +51,8 @@ class PythonAddReturnTypesOperation(FileManipulationOperationMixin, AbstractOper
 
         try:
             src = local.read()
-            tree = ast.parse(src)
-            return any(_function_needs_and_can_get_simple_return(node) for node in ast.walk(tree) if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)))
+            preview = _annotate_simple_returns(src)
+            return preview != src
         except Exception:
             return False
 
@@ -78,13 +78,6 @@ class PythonAddReturnTypesOperation(FileManipulationOperationMixin, AbstractOper
 
     def undo(self) -> None:
         self._restore_target_file()
-
-
-def _function_needs_and_can_get_simple_return(node: Union[ast.FunctionDef, ast.AsyncFunctionDef]) -> bool:
-    if node.returns is not None:
-        return False
-    inferred = _infer_simple_return_type(node)
-    return inferred is not None
 
 
 def _infer_simple_return_type(node: Union[ast.FunctionDef, ast.AsyncFunctionDef]) -> str | None:
