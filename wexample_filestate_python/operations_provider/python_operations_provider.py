@@ -14,7 +14,11 @@ class PythonOperationsProvider(AbstractOperationsProvider):
         from wexample_filestate_python.operation.python_format_operation import (
             PythonFormatOperation,
         )
+        from wexample_filestate_python.operation.python_sort_imports_operation import (
+            PythonSortImportsOperation,
+        )
 
         return [
             PythonFormatOperation,
+            PythonSortImportsOperation,
         ]

@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Union, List, Type
 
-import black
 
 from wexample_config.config_option.abstract_config_option import AbstractConfigOption
 from wexample_filestate.enum.scopes import Scope
@@ -44,6 +43,8 @@ class PythonFormatOperation(FileManipulationOperationMixin, AbstractOperation):
         target: Union["ItemTargetDirectory", "ItemTargetFile"],
         option: "AbstractConfigOption",
     ) -> bool:
+        import black
+
         # Only files, must exist, must be .py, and option must include "format"
         if not isinstance(option, PythonConfigOption):
             return False
@@ -51,6 +52,7 @@ class PythonFormatOperation(FileManipulationOperationMixin, AbstractOperation):
         local_file = target.get_local_file()
         if not target.is_file() or not local_file.path.exists():
             return False
+
         value = option.get_value()
         if value is None:
             return False

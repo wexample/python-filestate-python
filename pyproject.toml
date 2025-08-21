@@ -26,6 +26,7 @@ dependencies = [
     "python-dotenv",
     "wexample-filestate-dev",
     "wexample-filestate-git",
+    "isort"
 ]
 
 [project.readme]

@@ -5,3 +5,4 @@ pydantic
 pytest
 wexample-filestate-dev
 wexample-filestate-git
+isort
