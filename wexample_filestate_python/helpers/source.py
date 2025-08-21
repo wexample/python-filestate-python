@@ -1,9 +1,9 @@
 import ast
-from typing import Union, List
+from typing import List, Union
 
 
 def source_infer_simple_return_type(
-        node: Union[ast.FunctionDef, ast.AsyncFunctionDef],
+    node: Union[ast.FunctionDef, ast.AsyncFunctionDef],
 ) -> str | None:
     # Collect all return value nodes
     returns: List[ast.Return] = [n for n in ast.walk(node) if isinstance(n, ast.Return)]
@@ -53,8 +53,8 @@ def source_annotate_simple_returns(src: str) -> str:
     targets: list[tuple[str, str]] = []
     for node in ast.walk(tree):
         if (
-                isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))
-                and node.returns is None
+            isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))
+            and node.returns is None
         ):
             t = source_infer_simple_return_type(node)
             if t is not None:

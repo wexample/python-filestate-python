@@ -39,24 +39,26 @@ class PythonAddReturnTypesOperation(FileManipulationOperationMixin, AbstractOper
 
     @staticmethod
     def applicable_option(
-            target: Union["ItemTargetDirectory", "ItemTargetFile"],
-            option: "AbstractConfigOption",
+        target: Union["ItemTargetDirectory", "ItemTargetFile"],
+        option: "AbstractConfigOption",
     ) -> bool:
-        from wexample_filestate_python.helpers.source import source_annotate_simple_returns
+        from wexample_filestate_python.helpers.source import (
+            source_annotate_simple_returns,
+        )
 
         # simple, optimistic applicability as requested
         if not isinstance(option, PythonConfigOption):
             return False
         local = target.get_local_file()
         if (
-                not target.is_file()
-                or not local.path.exists()
-                or local.path.suffix != ".py"
+            not target.is_file()
+            or not local.path.exists()
+            or local.path.suffix != ".py"
         ):
             return False
         value = option.get_value()
         if value is None or not value.has_item_in_list(
-                PythonConfigOption.OPTION_NAME_ADD_RETURN_TYPES
+            PythonConfigOption.OPTION_NAME_ADD_RETURN_TYPES
         ):
             return False
 
@@ -77,7 +79,9 @@ class PythonAddReturnTypesOperation(FileManipulationOperationMixin, AbstractOper
         return "Add simple return type annotations (None/bool/str/int/float) when trivially inferable."
 
     def apply(self) -> None:
-        from wexample_filestate_python.helpers.source import source_annotate_simple_returns
+        from wexample_filestate_python.helpers.source import (
+            source_annotate_simple_returns,
+        )
 
         local = self.target.get_local_file()
         src = local.read()
