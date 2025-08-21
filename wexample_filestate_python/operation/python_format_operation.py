@@ -10,7 +10,9 @@ from wexample_filestate.operation.abstract_operation import AbstractOperation
 from wexample_filestate.operation.mixin.file_manipulation_operation_mixin import (
     FileManipulationOperationMixin,
 )
-from wexample_filestate_python.config_option.python_config_option import PythonConfigOption
+from wexample_filestate_python.config_option.python_config_option import (
+    PythonConfigOption,
+)
 
 if TYPE_CHECKING:
     from wexample_filestate.item.item_target_directory import ItemTargetDirectory
@@ -31,14 +33,16 @@ class PythonFormatOperation(FileManipulationOperationMixin, AbstractOperation):
 
     def dependencies(self) -> List[Type["AbstractOperation"]]:
         # Ensure the file exists before formatting attempts
-        from wexample_filestate.operation.file_create_operation import FileCreateOperation
+        from wexample_filestate.operation.file_create_operation import (
+            FileCreateOperation,
+        )
 
         return [FileCreateOperation]
 
     @staticmethod
     def applicable_option(
-            target: Union["ItemTargetDirectory", "ItemTargetFile"],
-            option: "AbstractConfigOption",
+        target: Union["ItemTargetDirectory", "ItemTargetFile"],
+        option: "AbstractConfigOption",
     ) -> bool:
         # Only files, must exist, must be .py, and option must include "format"
         if not isinstance(option, PythonConfigOption):

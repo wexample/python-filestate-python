@@ -14,15 +14,18 @@ def package_parse_setup(path: Path) -> Dict:
 
     tree = ast.parse(content)
     for node in ast.walk(tree):
-        if isinstance(node, ast.Call) and isinstance(node.func, ast.Name) and node.func.id == 'setup':
+        if (
+            isinstance(node, ast.Call)
+            and isinstance(node.func, ast.Name)
+            and node.func.id == "setup"
+        ):
             result = {}
             for kw in node.keywords:
                 if isinstance(kw.value, ast.Str):
                     result[kw.arg] = kw.value.s
                 elif isinstance(kw.value, ast.List):
                     result[kw.arg] = [
-                        elt.s for elt in kw.value.elts
-                        if isinstance(elt, ast.Str)
+                        elt.s for elt in kw.value.elts if isinstance(elt, ast.Str)
                     ]
             return result
     return {}
@@ -39,7 +42,7 @@ def package_parse_toml(path: Path) -> Dict:
                 project_data = data["project"]
                 return {
                     "name": project_data.get("name"),
-                    "install_requires": project_data.get("dependencies", [])
+                    "install_requires": project_data.get("dependencies", []),
                 }
     except Exception as e:
         print(f"Error parsing {path}: {e}")
@@ -100,10 +103,7 @@ def package_get_dependencies(root_dir: str | Path) -> Dict[str, Set[str]]:
             name, deps = package_info
             if name in dependencies:
                 # Only keep dependencies that are local packages
-                dependencies[name] = {
-                    dep for dep in deps
-                    if dep in dependencies
-                }
+                dependencies[name] = {dep for dep in deps if dep in dependencies}
 
     return dependencies
 
