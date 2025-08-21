@@ -1,3 +1,7 @@
+import ast
+from typing import Union, List
+
+
 def source_infer_simple_return_type(
         node: Union[ast.FunctionDef, ast.AsyncFunctionDef],
 ) -> str | None:
