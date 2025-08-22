@@ -57,7 +57,7 @@ class PythonFStringifyOperation(FileManipulationOperationMixin, AbstractOperatio
         return result is not None and result.content != src
 
     @classmethod
-    def rectify(cls, content: str) -> Optional["FstringifyResult"]:
+    def rectify(cls, content: str) -> FstringifyResult | None:
         from flynt.api import fstringify_code  # type: ignore
         from flynt.state import State  # type: ignore
 

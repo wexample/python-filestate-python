@@ -17,7 +17,7 @@ if TYPE_CHECKING:
 
 class PythonOptionsProvider(AbstractOptionsProvider):
     @classmethod
-    def get_options(cls) -> list[type["AbstractConfigOption"]]:
+    def get_options(cls) -> list[type[AbstractConfigOption]]:
         return [
             PythonConfigOption,
         ]

@@ -12,7 +12,10 @@ if TYPE_CHECKING:
 
 class PythonOperationsProvider(AbstractOperationsProvider):
     @staticmethod
-    def get_operations() -> List[Type["AbstractOperation"]]:
+    def get_operations() -> list[type[AbstractOperation]]:
+        from wexample_filestate_python.operation.python_add_future_annotations_operation import (
+            PythonAddFutureAnnotationsOperation,
+        )
         from wexample_filestate_python.operation.python_add_return_types_operation import (
             PythonAddReturnTypesOperation,
         )
@@ -28,14 +31,11 @@ class PythonOperationsProvider(AbstractOperationsProvider):
         from wexample_filestate_python.operation.python_remove_unused_imports_operation import (
             PythonRemoveUnusedImportsOperation,
         )
-        from wexample_filestate_python.operation.python_add_future_annotations_operation import (
-            PythonAddFutureAnnotationsOperation,
+        from wexample_filestate_python.operation.python_sort_imports_operation import (
+            PythonSortImportsOperation,
         )
         from wexample_filestate_python.operation.python_unquote_annotations_operation import (
             PythonUnquoteAnnotationsOperation,
-        )
-        from wexample_filestate_python.operation.python_sort_imports_operation import (
-            PythonSortImportsOperation,
         )
 
         return [

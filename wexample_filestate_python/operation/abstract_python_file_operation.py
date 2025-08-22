@@ -1,13 +1,13 @@
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
+from wexample_config.config_option.abstract_config_option import AbstractConfigOption
 from wexample_filestate.enum.scopes import Scope
 from wexample_filestate.operation.abstract_operation import AbstractOperation
 from wexample_filestate.operation.mixin.file_manipulation_operation_mixin import (
     FileManipulationOperationMixin,
 )
-from typing import TYPE_CHECKING
-
-from wexample_config.config_option.abstract_config_option import AbstractConfigOption
 from wexample_filestate_python.config_option.python_config_option import (
     PythonConfigOption,
 )
@@ -29,7 +29,9 @@ class AbstractPythonFileOperation(FileManipulationOperationMixin, AbstractOperat
         raise NotImplementedError
 
     @classmethod
-    def preview_source_change(cls, src: str) -> str:  # pragma: no cover - abstract contract
+    def preview_source_change(
+        cls, src: str
+    ) -> str:  # pragma: no cover - abstract contract
         """Return updated source if a change is needed, else return original src."""
         raise NotImplementedError
 

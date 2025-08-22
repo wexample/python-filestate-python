@@ -19,8 +19,9 @@ class PythonUnquoteAnnotationsOperation(AbstractPythonFileOperation):
 
     @classmethod
     def preview_source_change(cls, src: str) -> str:
-        import libcst as cst
         import json
+
+        import libcst as cst
 
         class _Unquoter(cst.CSTTransformer):
             @staticmethod
@@ -35,7 +36,9 @@ class PythonUnquoteAnnotationsOperation(AbstractPythonFileOperation):
                     return None
 
             @staticmethod
-            def _process_annotation(ann: cst.Annotation | None) -> cst.Annotation | None:
+            def _process_annotation(
+                ann: cst.Annotation | None,
+            ) -> cst.Annotation | None:
                 if ann is None:
                     return None
                 node = ann.annotation
@@ -45,16 +48,30 @@ class PythonUnquoteAnnotationsOperation(AbstractPythonFileOperation):
                         return cst.Annotation(annotation=expr)
                 return ann
 
-            def leave_Param(self, original_node: cst.Param, updated_node: cst.Param) -> cst.Param:
-                return updated_node.with_changes(annotation=self._process_annotation(updated_node.annotation))
+            def leave_Param(
+                self, original_node: cst.Param, updated_node: cst.Param
+            ) -> cst.Param:
+                return updated_node.with_changes(
+                    annotation=self._process_annotation(updated_node.annotation)
+                )
 
-            def leave_FunctionDef(self, original_node: cst.FunctionDef, updated_node: cst.FunctionDef) -> cst.FunctionDef:
-                return updated_node.with_changes(returns=self._process_annotation(updated_node.returns))
+            def leave_FunctionDef(
+                self, original_node: cst.FunctionDef, updated_node: cst.FunctionDef
+            ) -> cst.FunctionDef:
+                return updated_node.with_changes(
+                    returns=self._process_annotation(updated_node.returns)
+                )
 
-            def leave_AnnAssign(self, original_node: cst.AnnAssign, updated_node: cst.AnnAssign) -> cst.AnnAssign:
-                return updated_node.with_changes(annotation=self._process_annotation(updated_node.annotation))
+            def leave_AnnAssign(
+                self, original_node: cst.AnnAssign, updated_node: cst.AnnAssign
+            ) -> cst.AnnAssign:
+                return updated_node.with_changes(
+                    annotation=self._process_annotation(updated_node.annotation)
+                )
 
-            def leave_TypeAlias(self, original_node: cst.TypeAlias, updated_node: cst.TypeAlias) -> cst.TypeAlias:
+            def leave_TypeAlias(
+                self, original_node: cst.TypeAlias, updated_node: cst.TypeAlias
+            ) -> cst.TypeAlias:
                 # Python 3.12 'type X = ...' syntax
                 ann = updated_node.annotation
                 if isinstance(ann, cst.SimpleString):
