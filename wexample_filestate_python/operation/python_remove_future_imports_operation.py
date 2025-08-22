@@ -7,6 +7,7 @@ from wexample_filestate_python.config_option.python_config_option import (
 from .abstract_modernize_operation import AbstractModernizeOperation
 
 if TYPE_CHECKING:
+    from wexample_filestate.const.types_state_items import TargetFileOrDirectoryType
     from wexample_filestate.item.item_target_directory import ItemTargetDirectory
     from wexample_filestate.item.item_target_file import ItemTargetFile
 
@@ -20,8 +21,8 @@ class PythonRemoveFutureImportsOperation(AbstractModernizeOperation):
     @classmethod
     def applicable_option(
             cls,
-            target: ItemTargetDirectory | ItemTargetFile,
-            option: AbstractConfigOption,
+            target: "TargetFileOrDirectoryType",
+            option: "AbstractConfigOption"
     ) -> bool:
         from wexample_filestate_python.helpers.source import source_remove_future_imports
 

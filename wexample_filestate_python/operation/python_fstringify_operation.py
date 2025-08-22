@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional
 
 from wexample_config.config_option.abstract_config_option import AbstractConfigOption
 from wexample_filestate.enum.scopes import Scope
@@ -11,9 +11,8 @@ from wexample_filestate_python.config_option.python_config_option import (
 )
 
 if TYPE_CHECKING:
+    from wexample_filestate.const.types_state_items import TargetFileOrDirectoryType
     from flynt.api import FstringifyResult
-    from wexample_filestate.item.item_target_directory import ItemTargetDirectory
-    from wexample_filestate.item.item_target_file import ItemTargetFile
 
 
 class PythonFStringifyOperation(FileManipulationOperationMixin, AbstractOperation):
@@ -35,9 +34,9 @@ class PythonFStringifyOperation(FileManipulationOperationMixin, AbstractOperatio
 
     @classmethod
     def applicable_option(
-        cls,
-        target: ItemTargetDirectory | ItemTargetFile,
-        option: AbstractConfigOption,
+            cls,
+            target: "TargetFileOrDirectoryType",
+            option: "AbstractConfigOption"
     ) -> bool:
         if not isinstance(option, PythonConfigOption):
             return False
@@ -58,7 +57,7 @@ class PythonFStringifyOperation(FileManipulationOperationMixin, AbstractOperatio
         return result is not None and result.content != src
 
     @classmethod
-    def rectify(cls, content: str) -> FstringifyResult | None:
+    def rectify(cls, content: str) -> Optional["FstringifyResult"]:
         from flynt.api import fstringify_code  # type: ignore
         from flynt.state import State  # type: ignore
 
