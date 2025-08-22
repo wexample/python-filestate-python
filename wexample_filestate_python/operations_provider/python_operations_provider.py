@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, List, Type
+from typing import TYPE_CHECKING
 
 from wexample_filestate.operations_provider.abstract_operations_provider import (
     AbstractOperationsProvider,
@@ -10,7 +10,7 @@ if TYPE_CHECKING:
 
 class PythonOperationsProvider(AbstractOperationsProvider):
     @staticmethod
-    def get_operations() -> List[Type["AbstractOperation"]]:
+    def get_operations() -> list[type["AbstractOperation"]]:
         from wexample_filestate_python.operation.python_add_return_types_operation import (
             PythonAddReturnTypesOperation,
         )
