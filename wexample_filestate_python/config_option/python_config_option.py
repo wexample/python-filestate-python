@@ -9,6 +9,7 @@ class PythonConfigOption(AbstractConfigOption):
     OPTION_NAME_ADD_RETURN_TYPES: ClassVar[str] = "add_return_types"
     OPTION_NAME_MODERNIZE_TYPING: ClassVar[str] = "modernize_typing"
     OPTION_NAME_FSTRINGIFY: ClassVar[str] = "fstringify"
+    OPTION_NAME_REMOVE_UNUSED_IMPORTS: ClassVar[str] = "remove_unused_imports"
 
     @staticmethod
     def get_raw_value_allowed_type() -> Any:
