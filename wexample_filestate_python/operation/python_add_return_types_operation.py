@@ -30,7 +30,7 @@ class PythonAddReturnTypesOperation(AbstractPythonFileOperation):
         import re
 
         def infer_simple_return_type(
-                node: ast.FunctionDef | ast.AsyncFunctionDef,
+            node: ast.FunctionDef | ast.AsyncFunctionDef,
         ) -> str | None:
             returns: list[ast.Return] = [
                 n for n in ast.walk(node) if isinstance(n, ast.Return)
@@ -69,8 +69,8 @@ class PythonAddReturnTypesOperation(AbstractPythonFileOperation):
         targets: list[tuple[str, str]] = []
         for node in ast.walk(tree):
             if (
-                    isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))
-                    and node.returns is None
+                isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))
+                and node.returns is None
             ):
                 t = infer_simple_return_type(node)
                 if t is not None:
@@ -81,12 +81,16 @@ class PythonAddReturnTypesOperation(AbstractPythonFileOperation):
 
         new_src = src
         for func_name, rtype in targets:
-            pattern = rf"(def\s+{re.escape(func_name)}\s*\([^\)]*\))\s*(->\s*[^:]+)?\s*:"
+            pattern = (
+                rf"(def\s+{re.escape(func_name)}\s*\([^\)]*\))\s*(->\s*[^:]+)?\s*:"
+            )
             repl = rf"\1 -> {rtype}:"
             new_src, n = re.subn(pattern, repl, new_src, count=1, flags=re.MULTILINE)
             if n == 0:
                 pattern_async = rf"(async\s+def\s+{re.escape(func_name)}\s*\([^\)]*\))\s*(->\s*[^:]+)?\s*:"
-                new_src = re.sub(pattern_async, repl, new_src, count=1, flags=re.MULTILINE)
+                new_src = re.sub(
+                    pattern_async, repl, new_src, count=1, flags=re.MULTILINE
+                )
 
         return new_src
 
