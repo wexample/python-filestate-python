@@ -78,6 +78,7 @@ def source_annotate_simple_returns(src: str) -> str:
 
     return new_src
 
+
 def source_remove_future_imports(src: str) -> str:
     """Return source with top-level `from __future__ import ...` statements removed.
 

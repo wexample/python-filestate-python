@@ -11,8 +11,8 @@ from wexample_filestate_python.config_option.python_config_option import (
 )
 
 if TYPE_CHECKING:
-    from wexample_filestate.const.types_state_items import TargetFileOrDirectoryType
     from flynt.api import FstringifyResult
+    from wexample_filestate.const.types_state_items import TargetFileOrDirectoryType
 
 
 class PythonFStringifyOperation(FileManipulationOperationMixin, AbstractOperation):
@@ -34,9 +34,7 @@ class PythonFStringifyOperation(FileManipulationOperationMixin, AbstractOperatio
 
     @classmethod
     def applicable_option(
-            cls,
-            target: "TargetFileOrDirectoryType",
-            option: "AbstractConfigOption"
+        cls, target: "TargetFileOrDirectoryType", option: "AbstractConfigOption"
     ) -> bool:
         if not isinstance(option, PythonConfigOption):
             return False

@@ -33,9 +33,7 @@ class PythonSortImportsOperation(FileManipulationOperationMixin, AbstractOperati
 
     @classmethod
     def applicable_option(
-            cls,
-            target: "TargetFileOrDirectoryType",
-            option: "AbstractConfigOption"
+        cls, target: "TargetFileOrDirectoryType", option: "AbstractConfigOption"
     ) -> bool:
         from isort import code as isort_code
         from isort.settings import Config

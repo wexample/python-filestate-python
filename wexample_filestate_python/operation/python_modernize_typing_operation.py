@@ -19,9 +19,7 @@ class PythonModernizeTypingOperation(AbstractModernizeOperation):
 
     @classmethod
     def applicable_option(
-            cls,
-            target: "TargetFileOrDirectoryType",
-            option: "AbstractConfigOption"
+        cls, target: "TargetFileOrDirectoryType", option: "AbstractConfigOption"
     ) -> bool:
         # Validate option and target
         if not isinstance(option, PythonConfigOption):

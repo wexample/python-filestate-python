@@ -23,11 +23,11 @@ class PythonOperationsProvider(AbstractOperationsProvider):
         from wexample_filestate_python.operation.python_modernize_typing_operation import (
             PythonModernizeTypingOperation,
         )
-        from wexample_filestate_python.operation.python_remove_unused_imports_operation import (
-            PythonRemoveUnusedImportsOperation,
-        )
         from wexample_filestate_python.operation.python_remove_future_imports_operation import (
             PythonRemoveFutureImportsOperation,
+        )
+        from wexample_filestate_python.operation.python_remove_unused_imports_operation import (
+            PythonRemoveUnusedImportsOperation,
         )
         from wexample_filestate_python.operation.python_sort_imports_operation import (
             PythonSortImportsOperation,

@@ -35,9 +35,7 @@ class PythonRemoveUnusedImportsOperation(
 
     @classmethod
     def applicable_option(
-            cls,
-            target: "TargetFileOrDirectoryType",
-            option: "AbstractConfigOption"
+        cls, target: "TargetFileOrDirectoryType", option: "AbstractConfigOption"
     ) -> bool:
         from autoflake import fix_code
 
