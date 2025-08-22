@@ -8,3 +8,4 @@ wexample-filestate-git
 isort
 pyupgrade
 flynt
+autoflake

@@ -28,7 +28,8 @@ dependencies = [
     "wexample-filestate-git",
     "pyupgrade",
     "isort",
-    "flynt"
+    "flynt",
+    "autoflake"
 ]
 
 [project.readme]
