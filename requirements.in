@@ -4,7 +4,6 @@ flynt
 isort
 pip-tools
 pydantic
-pytest
 python-dotenv
 pyupgrade
 wexample-filestate-dev
