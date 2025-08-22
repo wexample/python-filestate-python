@@ -3,7 +3,7 @@ from __future__ import annotations
 from .abstract_python_file_operation import AbstractPythonFileOperation
 
 
-class PythonRemoveUnusedImportsOperation(AbstractPythonFileOperation):
+class PythonRemoveUnusedOperation(AbstractPythonFileOperation):
     """Remove unused Python imports using autoflake.
 
     Triggered by config: { "python": ["remove_unused_imports"] }
@@ -15,7 +15,7 @@ class PythonRemoveUnusedImportsOperation(AbstractPythonFileOperation):
             PythonConfigOption,
         )
 
-        return PythonConfigOption.OPTION_NAME_REMOVE_UNUSED_IMPORTS
+        return PythonConfigOption.OPTION_NAME_REMOVE_UNUSED
 
     @classmethod
     def preview_source_change(cls, src: str) -> str:
@@ -24,9 +24,9 @@ class PythonRemoveUnusedImportsOperation(AbstractPythonFileOperation):
         return fix_code(
             src,
             remove_all_unused_imports=True,
-            expand_star_imports=False,
-            remove_duplicate_keys=False,
-            remove_unused_variables=False,
+            expand_star_imports=True,
+            remove_duplicate_keys=True,
+            remove_unused_variables=True,
         )
 
     def describe_before(self) -> str:

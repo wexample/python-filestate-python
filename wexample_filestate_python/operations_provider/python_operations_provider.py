@@ -29,7 +29,7 @@ class PythonOperationsProvider(AbstractOperationsProvider):
             PythonModernizeTypingOperation,
         )
         from wexample_filestate_python.operation.python_remove_unused_imports_operation import (
-            PythonRemoveUnusedImportsOperation,
+            PythonRemoveUnusedOperation,
         )
         from wexample_filestate_python.operation.python_sort_imports_operation import (
             PythonSortImportsOperation,
@@ -44,7 +44,7 @@ class PythonOperationsProvider(AbstractOperationsProvider):
             PythonAddReturnTypesOperation,
             PythonModernizeTypingOperation,
             PythonFStringifyOperation,
-            PythonRemoveUnusedImportsOperation,
+            PythonRemoveUnusedOperation,
             PythonAddFutureAnnotationsOperation,
             PythonUnquoteAnnotationsOperation,
         ]

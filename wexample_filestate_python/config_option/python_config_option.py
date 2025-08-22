@@ -9,7 +9,7 @@ class PythonConfigOption(AbstractConfigOption):
     OPTION_NAME_ADD_RETURN_TYPES: ClassVar[str] = "add_return_types"
     OPTION_NAME_MODERNIZE_TYPING: ClassVar[str] = "modernize_typing"
     OPTION_NAME_FSTRINGIFY: ClassVar[str] = "fstringify"
-    OPTION_NAME_REMOVE_UNUSED_IMPORTS: ClassVar[str] = "remove_unused_imports"
+    OPTION_NAME_REMOVE_UNUSED: ClassVar[str] = "remove_unused"
     # New preferred option name to add `from __future__ import annotations`
     OPTION_NAME_ADD_FUTURE_ANNOTATIONS: ClassVar[str] = "add_future_annotations"
     # New policy: unquote annotations (remove string annotations)
