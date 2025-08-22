@@ -1,44 +1,32 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from .abstract_python_file_operation import AbstractPythonFileOperation
 
-from wexample_config.config_option.abstract_config_option import AbstractConfigOption
-from wexample_filestate_python.config_option.python_config_option import (
-    PythonConfigOption,
-)
-
-from .abstract_modernize_operation import AbstractModernizeOperation
-
-if TYPE_CHECKING:
-    from wexample_filestate.const.types_state_items import TargetFileOrDirectoryType
-
-
-class PythonModernizeTypingOperation(AbstractModernizeOperation):
+class PythonModernizeTypingOperation(AbstractPythonFileOperation):
     """Modernize typing syntax (PEP 585/604) to Python 3.12 style.
 
     Triggered by: {"python": ["modernize_typing"]}
     """
 
     @classmethod
-    def applicable_option(
-        cls, target: TargetFileOrDirectoryType, option: AbstractConfigOption
-    ) -> bool:
-        # Validate option and target
-        if not isinstance(option, PythonConfigOption):
-            return False
-        local_file = target.get_local_file()
-        if not target.is_file() or not local_file.path.exists():
-            return False
-        value = option.get_value()
-        if value is None or not value.has_item_in_list(
-            PythonConfigOption.OPTION_NAME_MODERNIZE_TYPING
-        ):
-            return False
+    def get_option_name(cls) -> str:
+        from wexample_filestate_python.config_option.python_config_option import (
+            PythonConfigOption,
+        )
 
-        src = local_file.read()
-        updated = PythonModernizeTypingOperation._modernize_source(src)
-        # Preview transformation: only applicable if change would occur
-        return updated is not None and updated != src
+        return PythonConfigOption.OPTION_NAME_MODERNIZE_TYPING
+
+    @classmethod
+    def preview_source_change(cls, src: str) -> str:
+        from pyupgrade._main import Settings, _fix_plugins  # type: ignore
+
+        try:
+            settings = Settings(min_version=(3, 12))
+            updated = _fix_plugins(src, settings=settings)
+            # _fix_plugins returns a string; return as-is
+            return updated
+        except Exception:
+            return src
 
     def describe_before(self) -> str:
         return (
@@ -53,6 +41,6 @@ class PythonModernizeTypingOperation(AbstractModernizeOperation):
 
     def apply(self) -> None:
         src = self.target.get_local_file().read()
-        updated = self._modernize_source(src)
-        if updated is not None and updated != src:
+        updated = self.preview_source_change(src)
+        if updated != src:
             self._target_file_write(content=updated)
