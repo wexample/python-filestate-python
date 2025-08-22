@@ -12,7 +12,8 @@ class PythonConfigOption(AbstractConfigOption):
     OPTION_NAME_REMOVE_UNUSED_IMPORTS: ClassVar[str] = "remove_unused_imports"
     # New preferred option name to add `from __future__ import annotations`
     OPTION_NAME_ADD_FUTURE_ANNOTATIONS: ClassVar[str] = "add_future_annotations"
-    OPTION_NAME_QUOTE_ANNOTATIONS: ClassVar[str] = "quote_annotations"
+    # New policy: unquote annotations (remove string annotations)
+    OPTION_NAME_UNQUOTE_ANNOTATIONS: ClassVar[str] = "unquote_annotations"
 
     @staticmethod
     def get_raw_value_allowed_type() -> Any:

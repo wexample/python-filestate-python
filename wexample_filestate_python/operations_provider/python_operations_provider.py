@@ -31,8 +31,8 @@ class PythonOperationsProvider(AbstractOperationsProvider):
         from wexample_filestate_python.operation.python_add_future_annotations_operation import (
             PythonAddFutureAnnotationsOperation,
         )
-        from wexample_filestate_python.operation.python_quote_annotations_operation import (
-            PythonQuoteAnnotationsOperation,
+        from wexample_filestate_python.operation.python_unquote_annotations_operation import (
+            PythonUnquoteAnnotationsOperation,
         )
         from wexample_filestate_python.operation.python_sort_imports_operation import (
             PythonSortImportsOperation,
@@ -46,5 +46,5 @@ class PythonOperationsProvider(AbstractOperationsProvider):
             PythonFStringifyOperation,
             PythonRemoveUnusedImportsOperation,
             PythonAddFutureAnnotationsOperation,
-            PythonQuoteAnnotationsOperation,
+            PythonUnquoteAnnotationsOperation,
         ]
