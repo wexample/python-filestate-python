@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-from wexample_filestate.enum.scopes import Scope
-from .abstract_python_file_operation import AbstractPythonFileOperation
 from typing import ClassVar
+
+from .abstract_python_file_operation import AbstractPythonFileOperation
 
 
 class PythonFormatOperation(AbstractPythonFileOperation):
