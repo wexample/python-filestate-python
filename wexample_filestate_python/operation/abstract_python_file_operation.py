@@ -15,6 +15,10 @@ if TYPE_CHECKING:
 
 
 class AbstractPythonFileOperation(FileManipulationOperationMixin, AbstractOperation):
+    @classmethod
+    def get_scope(cls) -> Scope:
+        return Scope.CONTENT
+
     def undo(self) -> None:
         self._restore_target_file()
 
@@ -48,5 +52,10 @@ class AbstractPythonFileOperation(FileManipulationOperationMixin, AbstractOperat
 
         # Preview transformation
         src = local_file.read()
+
+        # Ignore empty files.
+        if src.strip() == "":
+            return False
+
         updated = cls.preview_source_change(src)
         return updated != src
