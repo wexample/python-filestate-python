@@ -232,17 +232,39 @@ def source_quote_annotations(src: str) -> str:
             # If there are no names at all (e.g., literal None), don't quote
             return False
 
+        class _ExprQuoter(cst.CSTTransformer):
+            def leave_Name(self, original_node: cst.Name, updated_node: cst.Name):
+                name = updated_node.value
+                if name not in _Transformer.ALLOWED_SIMPLE and name not in _Transformer.TYPING_NAMES:
+                    return cst.SimpleString(json.dumps(name))
+                return updated_node
+
+            def leave_Attribute(self, original_node: cst.Attribute, updated_node: cst.Attribute):
+                # If attribute contains a non-whitelisted name anywhere, quote the whole attribute
+                if _Transformer._should_quote(original_node):
+                    code = cst.Module([]).code_for_node(original_node)
+                    return cst.SimpleString(json.dumps(code))
+                return updated_node
+
+            def leave_Subscript(self, original_node: cst.Subscript, updated_node: cst.Subscript):
+                # Recurse into value and slices (handled by transformer automatically)
+                return updated_node
+
+            def leave_BinaryOperation(self, original_node: cst.BinaryOperation, updated_node: cst.BinaryOperation):
+                # PEP 604 A | B etc.: if any side has non-whitelisted names, quote the full expr to avoid mixing
+                if _Transformer._should_quote(original_node):
+                    code = cst.Module([]).code_for_node(original_node)
+                    return cst.SimpleString(json.dumps(code))
+                return updated_node
+
         @staticmethod
         def _quote_ann(ann: cst.Annotation | None) -> cst.Annotation | None:
             if ann is None:
                 return None
             node = ann.annotation
-            # Only quote if rule says so
-            if _Transformer._should_quote(node):
-                code = cst.Module([]).code_for_node(node)
-                # Use json.dumps to ensure double quotes
-                return cst.Annotation(annotation=cst.SimpleString(json.dumps(code)))
-            return ann
+            # Transform expression to quote only inner offending names
+            new_expr = node.visit(_Transformer._ExprQuoter())
+            return cst.Annotation(annotation=new_expr)
 
         def leave_Param(self, original_node: cst.Param, updated_node: cst.Param) -> cst.Param:
             return updated_node.with_changes(annotation=self._quote_ann(updated_node.annotation))
