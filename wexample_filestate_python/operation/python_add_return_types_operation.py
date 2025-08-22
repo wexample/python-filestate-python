@@ -38,7 +38,7 @@ class PythonAddReturnTypesOperation(FileManipulationOperationMixin, AbstractOper
 
     @classmethod
     def applicable_option(
-        cls, target: "TargetFileOrDirectoryType", option: "AbstractConfigOption"
+        cls, target: TargetFileOrDirectoryType, option: AbstractConfigOption
     ) -> bool:
         from wexample_filestate_python.helpers.source import (
             source_annotate_simple_returns,

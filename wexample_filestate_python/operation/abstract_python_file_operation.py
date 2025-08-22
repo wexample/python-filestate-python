@@ -35,7 +35,7 @@ class AbstractPythonFileOperation(FileManipulationOperationMixin, AbstractOperat
 
     @classmethod
     def applicable_option(
-        cls, target: "TargetFileOrDirectoryType", option: "AbstractConfigOption"
+        cls, target: TargetFileOrDirectoryType, option: AbstractConfigOption
     ) -> bool:
         """Generic applicability for Python file transforms controlled by a single option name."""
         # Option type

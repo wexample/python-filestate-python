@@ -36,7 +36,7 @@ class PythonFStringifyOperation(FileManipulationOperationMixin, AbstractOperatio
 
     @classmethod
     def applicable_option(
-        cls, target: "TargetFileOrDirectoryType", option: "AbstractConfigOption"
+        cls, target: TargetFileOrDirectoryType, option: AbstractConfigOption
     ) -> bool:
         if not isinstance(option, PythonConfigOption):
             return False
