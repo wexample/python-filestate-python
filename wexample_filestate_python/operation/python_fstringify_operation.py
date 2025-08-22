@@ -1,88 +1,41 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
-from wexample_config.config_option.abstract_config_option import AbstractConfigOption
-from wexample_filestate.enum.scopes import Scope
-from wexample_filestate.operation.abstract_operation import AbstractOperation
-from wexample_filestate.operation.mixin.file_manipulation_operation_mixin import (
-    FileManipulationOperationMixin,
-)
-from wexample_filestate_python.config_option.python_config_option import (
-    PythonConfigOption,
-)
-
-if TYPE_CHECKING:
-    from flynt.api import FstringifyResult
-    from wexample_filestate.const.types_state_items import TargetFileOrDirectoryType
+from .abstract_python_file_operation import AbstractPythonFileOperation
 
 
-class PythonFStringifyOperation(FileManipulationOperationMixin, AbstractOperation):
+class PythonFStringifyOperation(AbstractPythonFileOperation):
     """Convert string formatting to f-strings using flynt.
 
     Triggered by: {"python": ["fstringify"]}
     """
 
     @classmethod
-    def get_scope(cls) -> Scope:
-        return Scope.CONTENT
-
-    def dependencies(self) -> list[type[AbstractOperation]]:
-        from wexample_filestate.operation.file_create_operation import (
-            FileCreateOperation,
+    def get_option_name(cls) -> str:
+        from wexample_filestate_python.config_option.python_config_option import (
+            PythonConfigOption,
         )
 
-        return [FileCreateOperation]
+        return PythonConfigOption.OPTION_NAME_FSTRINGIFY
 
     @classmethod
-    def applicable_option(
-        cls, target: TargetFileOrDirectoryType, option: AbstractConfigOption
-    ) -> bool:
-        if not isinstance(option, PythonConfigOption):
-            return False
-        local_file = target.get_local_file()
-        if not target.is_file() or not local_file.path.exists():
-            return False
-        value = option.get_value()
-        if value is None or not value.has_item_in_list(
-            PythonConfigOption.OPTION_NAME_FSTRINGIFY
-        ):
-            return False
-
-        src = local_file.read()
-
-        result = cls.rectify(content=src)
-
-        # Preview change using Flynt API (no shell)
-        return result is not None and result.content != src
-
-    @classmethod
-    def rectify(cls, content: str) -> FstringifyResult | None:
+    def preview_source_change(cls, src: str) -> str:
         from flynt.api import fstringify_code  # type: ignore
         from flynt.state import State  # type: ignore
 
-        state = State(
-            aggressive=False,
-            multiline=False,
-            len_limit=120,
-        )
-
+        state = State(aggressive=False, multiline=False, len_limit=120)
         try:
-            result = fstringify_code(content, state=state)
-        except:
-            result = None
-        return result
+            result = fstringify_code(src, state=state)
+        except Exception:
+            return src
+        if result is None:
+            return src
+        return result.content
 
     def apply(self) -> None:
-        result = PythonFStringifyOperation.rectify(
-            content=self.target.get_local_file().read(),
-        )
-
-        if result is not None:
-            self._target_file_write(content=result.content)
-
-    def undo(self) -> None:
-        self._restore_target_file()
+        src = self.target.get_local_file().read()
+        updated = self.preview_source_change(src)
+        if updated != src:
+            self._target_file_write(content=updated)
 
     def describe_before(self) -> str:
         return "The file uses legacy string formatting ('%'/format) that can be upgraded to f-strings."
