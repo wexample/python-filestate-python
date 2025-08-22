@@ -26,8 +26,8 @@ class PythonOperationsProvider(AbstractOperationsProvider):
         from wexample_filestate_python.operation.python_remove_unused_imports_operation import (
             PythonRemoveUnusedImportsOperation,
         )
-        from wexample_filestate_python.operation.python_remove_future_imports_operation import (
-            PythonRemoveFutureImportsOperation,
+        from wexample_filestate_python.operation.python_add_future_annotations_operation import (
+            PythonAddFutureAnnotationsOperation,
         )
         from wexample_filestate_python.operation.python_quote_annotations_operation import (
             PythonQuoteAnnotationsOperation,
@@ -43,6 +43,6 @@ class PythonOperationsProvider(AbstractOperationsProvider):
             PythonModernizeTypingOperation,
             PythonFStringifyOperation,
             PythonRemoveUnusedImportsOperation,
-            PythonRemoveFutureImportsOperation,
+            PythonAddFutureAnnotationsOperation,
             PythonQuoteAnnotationsOperation,
         ]
