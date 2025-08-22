@@ -1,4 +1,4 @@
-from typing import Any, ClassVar, List
+from typing import Any, ClassVar
 
 from wexample_config.config_option.abstract_config_option import AbstractConfigOption
 
