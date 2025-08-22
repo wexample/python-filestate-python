@@ -23,10 +23,8 @@ class PythonFStringifyOperation(AbstractPythonFileOperation):
         from flynt.state import State  # type: ignore
 
         state = State(aggressive=False, multiline=False, len_limit=120)
-        try:
-            result = fstringify_code(src, state=state)
-        except Exception:
-            return src
+        result = fstringify_code(src, state=state)
+
         if result is None:
             return src
         return result.content

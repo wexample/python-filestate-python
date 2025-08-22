@@ -33,9 +33,8 @@ class PythonFormatOperation(AbstractPythonFileOperation):
             return formatted
         except black.NothingChanged:
             return src
-        except Exception:
-            # On any error, return original
-            return src
+        except Exception as e:
+            raise e
 
     def describe_before(self) -> str:
         return "The Python file is not formatted according to Black's rules."

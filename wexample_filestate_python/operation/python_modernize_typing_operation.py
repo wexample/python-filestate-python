@@ -20,13 +20,10 @@ class PythonModernizeTypingOperation(AbstractPythonFileOperation):
     def preview_source_change(cls, src: str) -> str:
         from pyupgrade._main import Settings, _fix_plugins  # type: ignore
 
-        try:
-            settings = Settings(min_version=(3, 12))
-            updated = _fix_plugins(src, settings=settings)
-            # _fix_plugins returns a string; return as-is
-            return updated
-        except Exception:
-            return src
+        settings = Settings(min_version=(3, 12))
+        updated = _fix_plugins(src, settings=settings)
+        # _fix_plugins returns a string; return as-is
+        return updated
 
     def describe_before(self) -> str:
         return (

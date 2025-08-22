@@ -80,10 +80,7 @@ class PythonUnquoteAnnotationsOperation(AbstractPythonFileOperation):
                         return updated_node.with_changes(annotation=expr)
                 return updated_node
 
-        try:
-            module = cst.parse_module(src)
-        except Exception:
-            return src
+        module = cst.parse_module(src)
         new_mod = module.visit(_Unquoter())
         return new_mod.code
 

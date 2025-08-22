@@ -61,10 +61,7 @@ class PythonAddReturnTypesOperation(AbstractPythonFileOperation):
                 return next(iter(kinds))
             return None
 
-        try:
-            tree = ast.parse(src)
-        except Exception:
-            return src
+        tree = ast.parse(src)
 
         targets: list[tuple[str, str]] = []
         for node in ast.walk(tree):
