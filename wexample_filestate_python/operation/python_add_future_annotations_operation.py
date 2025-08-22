@@ -1,17 +1,7 @@
-from typing import TYPE_CHECKING
-
-from wexample_config.config_option.abstract_config_option import AbstractConfigOption
-from wexample_filestate_python.config_option.python_config_option import (
-    PythonConfigOption,
-)
-
-from .abstract_modernize_operation import AbstractModernizeOperation
-
-if TYPE_CHECKING:
-    from wexample_filestate.const.types_state_items import TargetFileOrDirectoryType
+from .abstract_python_file_operation import AbstractPythonFileOperation
 
 
-class PythonAddFutureAnnotationsOperation(AbstractModernizeOperation):
+class PythonAddFutureAnnotationsOperation(AbstractPythonFileOperation):
     """Ensure `from __future__ import annotations` is present at module top.
 
     Triggered by: {"python": ["add_future_annotations"]}
@@ -21,29 +11,12 @@ class PythonAddFutureAnnotationsOperation(AbstractModernizeOperation):
     """
 
     @classmethod
-    def applicable_option(
-        cls, target: "TargetFileOrDirectoryType", option: "AbstractConfigOption"
-    ) -> bool:
-        # Validate option and target
-        if not isinstance(option, PythonConfigOption):
-            return False
-        local_file = target.get_local_file()
-        if not target.is_file() or not local_file.path.exists():
-            return False
-        value = option.get_value()
-        if value is None:
-            return False
-        # Trigger if either the new or the legacy option name is present
-        if not (
-            value.has_item_in_list(PythonConfigOption.OPTION_NAME_ADD_FUTURE_ANNOTATIONS)
-            or value.has_item_in_list(PythonConfigOption.OPTION_NAME_REMOVE_FUTURE_IMPORTS)
-        ):
-            return False
+    def get_option_name(cls) -> str:
+        from wexample_filestate_python.config_option.python_config_option import (
+            PythonConfigOption,
+        )
 
-        src = local_file.read()
-        updated = cls._ensure_future_annotations(src)
-        # Preview transformation: only applicable if change would occur
-        return updated != src
+        return PythonConfigOption.OPTION_NAME_ADD_FUTURE_ANNOTATIONS
 
     def describe_before(self) -> str:
         return "The file may be missing `from __future__ import annotations` at the module top."
@@ -56,12 +29,12 @@ class PythonAddFutureAnnotationsOperation(AbstractModernizeOperation):
 
     def apply(self) -> None:
         src = self.target.get_local_file().read()
-        updated = self._ensure_future_annotations(src)
+        updated = self.preview_source_change(src)
         if updated != src:
             self._target_file_write(content=updated)
 
-    @staticmethod
-    def _ensure_future_annotations(src: str) -> str:
+    @classmethod
+    def preview_source_change(cls, src: str) -> str:
         """Return source with a `from __future__ import annotations` inserted
         in the correct place if it is not already present.
 
