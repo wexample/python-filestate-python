@@ -133,18 +133,117 @@ def source_remove_future_imports(src: str) -> str:
 
 def source_quote_annotations(src: str) -> str:
     import libcst as cst
+    import json
 
     class _Transformer(cst.CSTTransformer):
+        ALLOWED_SIMPLE: set[str] = {
+            # builtins / literals
+            "int",
+            "str",
+            "bool",
+            "float",
+            "bytes",
+            "None",
+            "object",
+            "complex",
+            "type",
+            # PEP 585 builtins used as generics
+            "list",
+            "dict",
+            "set",
+            "tuple",
+        }
+
+        # Common typing names that we consider safe to keep unquoted when alone
+        TYPING_NAMES: set[str] = {
+            "Any",
+            "Optional",
+            "Union",
+            "Callable",
+            "Iterable",
+            "Iterator",
+            "Sequence",
+            "Mapping",
+            "MutableMapping",
+            "MutableSequence",
+            "AbstractSet",
+            "Dict",
+            "List",
+            "Set",
+            "Tuple",
+            "Literal",
+            "Type",
+            "TypeVar",
+            "Generic",
+            "Protocol",
+            "Self",
+            "NoReturn",
+            "Never",
+            "Annotated",
+            "ClassVar",
+            "Final",
+            "NewType",
+            "overload",
+            "runtime_checkable",
+            "ParamSpec",
+            "Concatenate",
+            "Required",
+            "NotRequired",
+            "TypedDict",
+        }
+
+        @classmethod
+        def _collect_names(cls, node: cst.CSTNode) -> set[str]:
+            names: set[str] = set()
+            for n in node.visit(cst.CSTVisitor()):
+                pass  # placeholder, not used
+            # Manual traversal using ._visit_and_replace like pattern:
+            # Fallback: use MetadataWrapper would be heavier; instead do a simple recursion
+            def walk(e: cst.CSTNode):
+                if isinstance(e, cst.Name):
+                    names.add(e.value)
+                elif isinstance(e, cst.Attribute):
+                    # collect both left and right parts
+                    walk(e.value)
+                    if isinstance(e.attr, cst.Name):
+                        names.add(e.attr.value)
+                elif isinstance(e, cst.Subscript):
+                    walk(e.value)
+                    for si in e.slice:
+                        if isinstance(si, cst.SubscriptElement) and si.slice is not None:
+                            walk(si.slice)
+                elif isinstance(e, (cst.Index,)):
+                    walk(e.value)
+                else:
+                    for ch in e.children:
+                        if isinstance(ch, cst.CSTNode):
+                            walk(ch)
+            walk(node)
+            return names
+
+        @classmethod
+        def _should_quote(cls, expr: cst.BaseExpression) -> bool:
+            if isinstance(expr, cst.SimpleString):
+                return False
+            names = cls._collect_names(expr)
+            # If there is at least one name not in the whitelist sets, we quote
+            for name in names:
+                if name not in cls.ALLOWED_SIMPLE and name not in cls.TYPING_NAMES:
+                    return True
+            # If there are no names at all (e.g., literal None), don't quote
+            return False
+
         @staticmethod
         def _quote_ann(ann: cst.Annotation | None) -> cst.Annotation | None:
             if ann is None:
                 return None
             node = ann.annotation
-            if isinstance(node, cst.SimpleString):
-                return ann  # already quoted
-            code = cst.Module([]).code_for_node(node)
-            # Use repr to safely quote and escape
-            return cst.Annotation(annotation=cst.SimpleString(repr(code)))
+            # Only quote if rule says so
+            if _Transformer._should_quote(node):
+                code = cst.Module([]).code_for_node(node)
+                # Use json.dumps to ensure double quotes
+                return cst.Annotation(annotation=cst.SimpleString(json.dumps(code)))
+            return ann
 
         def leave_Param(self, original_node: cst.Param, updated_node: cst.Param) -> cst.Param:
             return updated_node.with_changes(annotation=self._quote_ann(updated_node.annotation))
@@ -158,8 +257,9 @@ def source_quote_annotations(src: str) -> str:
         def leave_TypeAlias(self, original_node: cst.TypeAlias, updated_node: cst.TypeAlias) -> cst.TypeAlias:
             # Python 3.12 'type X = ...' syntax
             if updated_node.annotation is not None and not isinstance(updated_node.annotation, cst.SimpleString):
-                code = cst.Module([]).code_for_node(updated_node.annotation)
-                return updated_node.with_changes(annotation=cst.SimpleString(repr(code)))
+                if _Transformer._should_quote(updated_node.annotation):
+                    code = cst.Module([]).code_for_node(updated_node.annotation)
+                    return updated_node.with_changes(annotation=cst.SimpleString(json.dumps(code)))
             return updated_node
 
     try:
