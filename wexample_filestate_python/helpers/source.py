@@ -130,3 +130,41 @@ def source_remove_future_imports(src: str) -> str:
         i += 1
 
     return "".join(keep)
+
+def source_quote_annotations(src: str) -> str:
+    import libcst as cst
+
+    class _Transformer(cst.CSTTransformer):
+        @staticmethod
+        def _quote_ann(ann: cst.Annotation | None) -> cst.Annotation | None:
+            if ann is None:
+                return None
+            node = ann.annotation
+            if isinstance(node, cst.SimpleString):
+                return ann  # already quoted
+            code = cst.Module([]).code_for_node(node)
+            # Use repr to safely quote and escape
+            return cst.Annotation(annotation=cst.SimpleString(repr(code)))
+
+        def leave_Param(self, original_node: cst.Param, updated_node: cst.Param) -> cst.Param:
+            return updated_node.with_changes(annotation=self._quote_ann(updated_node.annotation))
+
+        def leave_FunctionDef(self, original_node: cst.FunctionDef, updated_node: cst.FunctionDef) -> cst.FunctionDef:
+            return updated_node.with_changes(returns=self._quote_ann(updated_node.returns))
+
+        def leave_AnnAssign(self, original_node: cst.AnnAssign, updated_node: cst.AnnAssign) -> cst.AnnAssign:
+            return updated_node.with_changes(annotation=self._quote_ann(updated_node.annotation))
+
+        def leave_TypeAlias(self, original_node: cst.TypeAlias, updated_node: cst.TypeAlias) -> cst.TypeAlias:
+            # Python 3.12 'type X = ...' syntax
+            if updated_node.annotation is not None and not isinstance(updated_node.annotation, cst.SimpleString):
+                code = cst.Module([]).code_for_node(updated_node.annotation)
+                return updated_node.with_changes(annotation=cst.SimpleString(repr(code)))
+            return updated_node
+
+    try:
+        module = cst.parse_module(src)
+        new_mod = module.visit(_Transformer())
+        return new_mod.code
+    except Exception:
+        return src
