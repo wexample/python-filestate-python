@@ -195,8 +195,6 @@ def source_quote_annotations(src: str) -> str:
         @classmethod
         def _collect_names(cls, node: cst.CSTNode) -> set[str]:
             names: set[str] = set()
-            for n in node.visit(cst.CSTVisitor()):
-                pass  # placeholder, not used
             # Manual traversal using ._visit_and_replace like pattern:
             # Fallback: use MetadataWrapper would be heavier; instead do a simple recursion
             def walk(e: cst.CSTNode):
@@ -211,8 +209,9 @@ def source_quote_annotations(src: str) -> str:
                     walk(e.value)
                     for si in e.slice:
                         if isinstance(si, cst.SubscriptElement) and si.slice is not None:
+                            # si.slice can be Index or Slice; both are CSTNodes
                             walk(si.slice)
-                elif isinstance(e, (cst.Index,)):
+                elif isinstance(e, cst.Index):
                     walk(e.value)
                 else:
                     for ch in e.children:
@@ -262,9 +261,6 @@ def source_quote_annotations(src: str) -> str:
                     return updated_node.with_changes(annotation=cst.SimpleString(json.dumps(code)))
             return updated_node
 
-    try:
-        module = cst.parse_module(src)
-        new_mod = module.visit(_Transformer())
-        return new_mod.code
-    except Exception:
-        return src
+    module = cst.parse_module(src)
+    new_mod = module.visit(_Transformer())
+    return new_mod.code
