@@ -26,6 +26,9 @@ class PythonOperationsProvider(AbstractOperationsProvider):
         from wexample_filestate_python.operation.python_sort_imports_operation import (
             PythonSortImportsOperation,
         )
+        from wexample_filestate_python.operation.python_remove_unused_imports_operation import (
+            PythonRemoveUnusedImportsOperation,
+        )
 
         return [
             PythonFormatOperation,
@@ -33,4 +36,5 @@ class PythonOperationsProvider(AbstractOperationsProvider):
             PythonAddReturnTypesOperation,
             PythonModernizeTypingOperation,
             PythonFStringifyOperation,
+            PythonRemoveUnusedImportsOperation,
         ]
