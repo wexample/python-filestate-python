@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import os
 
 from wexample_filestate.config_value.readme_content_config_value import (

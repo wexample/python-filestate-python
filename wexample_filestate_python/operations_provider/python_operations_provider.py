@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from typing import TYPE_CHECKING, List, Type
 
 from wexample_filestate.operations_provider.abstract_operations_provider import (
