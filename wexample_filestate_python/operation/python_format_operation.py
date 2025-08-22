@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from wexample_filestate.enum.scopes import Scope
 from .abstract_python_file_operation import AbstractPythonFileOperation
+from typing import ClassVar
 
 
 class PythonFormatOperation(AbstractPythonFileOperation):
@@ -10,7 +11,8 @@ class PythonFormatOperation(AbstractPythonFileOperation):
     Triggered by config: { "python": ["format"] }
     """
 
-    _line_length: int = 88
+    # Use ClassVar to avoid Pydantic treating it as a model field/private attr
+    _line_length: ClassVar[int] = 88
 
     @classmethod
     def get_option_name(cls) -> str:
@@ -25,8 +27,9 @@ class PythonFormatOperation(AbstractPythonFileOperation):
         import black
 
         mode = black.Mode(line_length=cls._line_length)
-        formatted = black.format_file_contents(src, fast=False, mode=mode)
+
         try:
+            formatted = black.format_file_contents(src, fast=False, mode=mode)
             return formatted
         except black.NothingChanged:
             return src
