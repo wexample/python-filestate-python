@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from .abstract_python_file_operation import AbstractPythonFileOperation
 
+
 class PythonModernizeTypingOperation(AbstractPythonFileOperation):
     """Modernize typing syntax (PEP 585/604) to Python 3.12 style.
 
