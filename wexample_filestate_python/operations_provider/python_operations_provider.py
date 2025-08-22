@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, List, Type
 
 from wexample_filestate.operations_provider.abstract_operations_provider import (
     AbstractOperationsProvider,
@@ -10,7 +10,7 @@ if TYPE_CHECKING:
 
 class PythonOperationsProvider(AbstractOperationsProvider):
     @staticmethod
-    def get_operations() -> list[type["AbstractOperation"]]:
+    def get_operations() -> List[Type["AbstractOperation"]]:
         from wexample_filestate_python.operation.python_add_return_types_operation import (
             PythonAddReturnTypesOperation,
         )
@@ -26,6 +26,9 @@ class PythonOperationsProvider(AbstractOperationsProvider):
         from wexample_filestate_python.operation.python_remove_unused_imports_operation import (
             PythonRemoveUnusedImportsOperation,
         )
+        from wexample_filestate_python.operation.python_remove_future_imports_operation import (
+            PythonRemoveFutureImportsOperation,
+        )
         from wexample_filestate_python.operation.python_sort_imports_operation import (
             PythonSortImportsOperation,
         )
@@ -37,4 +40,5 @@ class PythonOperationsProvider(AbstractOperationsProvider):
             PythonModernizeTypingOperation,
             PythonFStringifyOperation,
             PythonRemoveUnusedImportsOperation,
+            PythonRemoveFutureImportsOperation,
         ]

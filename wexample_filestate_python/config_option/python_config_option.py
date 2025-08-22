@@ -1,4 +1,4 @@
-from typing import Any, ClassVar
+from typing import Any, ClassVar, List
 
 from wexample_config.config_option.abstract_config_option import AbstractConfigOption
 
@@ -10,6 +10,7 @@ class PythonConfigOption(AbstractConfigOption):
     OPTION_NAME_MODERNIZE_TYPING: ClassVar[str] = "modernize_typing"
     OPTION_NAME_FSTRINGIFY: ClassVar[str] = "fstringify"
     OPTION_NAME_REMOVE_UNUSED_IMPORTS: ClassVar[str] = "remove_unused_imports"
+    OPTION_NAME_REMOVE_FUTURE_IMPORTS: ClassVar[str] = "remove_future_imports"
 
     @staticmethod
     def get_raw_value_allowed_type() -> Any:
