@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Union
+from typing import TYPE_CHECKING
 
 from wexample_config.config_option.abstract_config_option import AbstractConfigOption
 from wexample_filestate_python.config_option.python_config_option import (

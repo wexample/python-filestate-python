@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, List, Type
+from typing import TYPE_CHECKING
 
 from wexample_filestate.operations_provider.abstract_operations_provider import (
     AbstractOperationsProvider,

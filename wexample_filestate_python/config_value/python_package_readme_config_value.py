@@ -1,5 +1,4 @@
 import os
-from typing import List, Optional
 
 from wexample_filestate.config_value.readme_content_config_value import (
     ReadmeContentConfigValue,

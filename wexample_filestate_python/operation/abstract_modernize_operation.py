@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from typing import List, Optional, Tuple, Type
 
 from wexample_filestate.enum.scopes import Scope
 from wexample_filestate.operation.abstract_operation import AbstractOperation

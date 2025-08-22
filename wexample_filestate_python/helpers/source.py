@@ -1,5 +1,4 @@
 import ast
-from typing import List, Union
 
 
 def source_infer_simple_return_type(

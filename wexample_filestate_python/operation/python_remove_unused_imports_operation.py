@@ -38,10 +38,12 @@ class PythonRemoveUnusedImportsOperation(
 
     @classmethod
     def applicable_option(
-        cls,
-        target: ItemTargetDirectory | ItemTargetFile,
-        option: AbstractConfigOption,
+            cls,
+            target: ItemTargetDirectory | ItemTargetFile,
+            option: AbstractConfigOption,
     ) -> bool:
+        from autoflake import fix_code
+
         # Only files with the correct config option
         if not isinstance(option, PythonConfigOption):
             return False
@@ -52,18 +54,12 @@ class PythonRemoveUnusedImportsOperation(
 
         value = option.get_value()
         if value is None or not value.has_item_in_list(
-            PythonConfigOption.OPTION_NAME_REMOVE_UNUSED_IMPORTS
+                PythonConfigOption.OPTION_NAME_REMOVE_UNUSED_IMPORTS
         ):
             return False
 
+        src = local_file.read()
         try:
-            from autoflake import fix_code  # type: ignore
-        except Exception:
-            # If autoflake is not available, we cannot preview
-            return False
-
-        try:
-            src = local_file.read()
             cleaned = fix_code(
                 src,
                 remove_all_unused_imports=True,
@@ -85,12 +81,7 @@ class PythonRemoveUnusedImportsOperation(
         return "Remove unused imports from the Python file using autoflake."
 
     def apply(self) -> None:
-        try:
-            from autoflake import fix_code  # type: ignore
-        except Exception as e:
-            raise RuntimeError(
-                "autoflake is required to run PythonRemoveUnusedImportsOperation. Please install it."
-            ) from e
+        from autoflake import fix_code
 
         src = self.target.get_local_file().read()
         cleaned = fix_code(
