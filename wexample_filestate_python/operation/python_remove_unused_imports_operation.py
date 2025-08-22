@@ -38,9 +38,9 @@ class PythonRemoveUnusedImportsOperation(
 
     @classmethod
     def applicable_option(
-            cls,
-            target: ItemTargetDirectory | ItemTargetFile,
-            option: AbstractConfigOption,
+        cls,
+        target: ItemTargetDirectory | ItemTargetFile,
+        option: AbstractConfigOption,
     ) -> bool:
         from autoflake import fix_code
 
@@ -54,7 +54,7 @@ class PythonRemoveUnusedImportsOperation(
 
         value = option.get_value()
         if value is None or not value.has_item_in_list(
-                PythonConfigOption.OPTION_NAME_REMOVE_UNUSED_IMPORTS
+            PythonConfigOption.OPTION_NAME_REMOVE_UNUSED_IMPORTS
         ):
             return False
 
