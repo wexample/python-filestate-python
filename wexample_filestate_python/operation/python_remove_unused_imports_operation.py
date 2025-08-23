@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from wexample_filestate.const.types_state_items import TargetFileOrDirectoryType
+
 from .abstract_python_file_operation import AbstractPythonFileOperation
 
 
@@ -19,9 +20,7 @@ class PythonRemoveUnusedOperation(AbstractPythonFileOperation):
         return PythonConfigOption.OPTION_NAME_REMOVE_UNUSED
 
     @classmethod
-    def preview_source_change(
-            cls, target: TargetFileOrDirectoryType
-    ) -> str | None:
+    def preview_source_change(cls, target: TargetFileOrDirectoryType) -> str | None:
         from autoflake import fix_code
 
         src = cls._read_current_str_or_fail(target)

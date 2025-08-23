@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from wexample_filestate.const.types_state_items import TargetFileOrDirectoryType
+
 from .abstract_python_file_operation import AbstractPythonFileOperation
 
 
@@ -19,9 +20,7 @@ class PythonSortImportsOperation(AbstractPythonFileOperation):
         return PythonConfigOption.OPTION_NAME_SORT_IMPORTS
 
     @classmethod
-    def preview_source_change(
-            cls, target: TargetFileOrDirectoryType
-    ) -> str | None:
+    def preview_source_change(cls, target: TargetFileOrDirectoryType) -> str | None:
         from isort import code as isort_code
         from isort.settings import Config
 
@@ -38,4 +37,3 @@ class PythonSortImportsOperation(AbstractPythonFileOperation):
 
     def description(self) -> str:
         return "Sort and group Python imports using isort."
-

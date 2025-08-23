@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from wexample_filestate.const.types_state_items import TargetFileOrDirectoryType
+
 from .abstract_python_file_operation import AbstractPythonFileOperation
 
 
@@ -19,9 +20,7 @@ class PythonModernizeTypingOperation(AbstractPythonFileOperation):
         return PythonConfigOption.OPTION_NAME_MODERNIZE_TYPING
 
     @classmethod
-    def preview_source_change(
-            cls, target: TargetFileOrDirectoryType
-    ) -> str | None:
+    def preview_source_change(cls, target: TargetFileOrDirectoryType) -> str | None:
         from pyupgrade._main import Settings, _fix_plugins  # type: ignore
 
         src = cls._read_current_str_or_fail(target)
@@ -40,4 +39,3 @@ class PythonModernizeTypingOperation(AbstractPythonFileOperation):
 
     def description(self) -> str:
         return "Modernize typing syntax (PEP 585/604) using pyupgrade for Python 3.12."
-

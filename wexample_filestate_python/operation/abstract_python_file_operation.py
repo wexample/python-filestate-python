@@ -4,7 +4,9 @@ from typing import TYPE_CHECKING
 
 from wexample_config.config_option.abstract_config_option import AbstractConfigOption
 from wexample_filestate.enum.scopes import Scope
-from wexample_filestate.operation.abstract_existing_file_operation import AbstractExistingFileOperation
+from wexample_filestate.operation.abstract_existing_file_operation import (
+    AbstractExistingFileOperation,
+)
 from wexample_filestate_python.config_option.python_config_option import (
     PythonConfigOption,
 )
@@ -27,7 +29,7 @@ class AbstractPythonFileOperation(AbstractExistingFileOperation):
 
     @classmethod
     def applicable_option(
-            cls, target: TargetFileOrDirectoryType, option: AbstractConfigOption
+        cls, target: TargetFileOrDirectoryType, option: AbstractConfigOption
     ) -> bool:
         """Generic applicability for Python file transforms controlled by a single option name."""
         # Option type
@@ -45,6 +47,4 @@ class AbstractPythonFileOperation(AbstractExistingFileOperation):
     def apply(self) -> None:
         changed = self.preview_source_change(self.target)
         if changed is not None:
-            self._target_file_write(
-                content=changed
-            )
+            self._target_file_write(content=changed)

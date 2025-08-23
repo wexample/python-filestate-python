@@ -1,4 +1,5 @@
 from wexample_filestate.const.types_state_items import TargetFileOrDirectoryType
+
 from .abstract_python_file_operation import AbstractPythonFileOperation
 
 
@@ -29,9 +30,7 @@ class PythonAddFutureAnnotationsOperation(AbstractPythonFileOperation):
         return "Add `from __future__ import annotations` at the proper location (after shebang/encoding and module docstring)."
 
     @classmethod
-    def preview_source_change(
-            cls, target: TargetFileOrDirectoryType
-    ) -> str | None:
+    def preview_source_change(cls, target: TargetFileOrDirectoryType) -> str | None:
         """Return source with a `from __future__ import annotations` inserted
         in the correct place if it is not already present.
 
@@ -72,10 +71,10 @@ class PythonAddFutureAnnotationsOperation(AbstractPythonFileOperation):
         else:
             body = getattr(tree, "body", [])
             if (
-                    body
-                    and isinstance(body[0], ast.Expr)
-                    and isinstance(getattr(body[0], "value", None), ast.Constant)
-                    and isinstance(body[0].value.value, str)
+                body
+                and isinstance(body[0], ast.Expr)
+                and isinstance(getattr(body[0], "value", None), ast.Constant)
+                and isinstance(body[0].value.value, str)
             ):
                 # Module docstring present; insert after its end_lineno
                 doc_end = getattr(body[0], "end_lineno", body[0].lineno)  # 1-based
