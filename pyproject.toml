@@ -19,17 +19,17 @@ classifiers = [
     "Operating System :: OS Independent",
 ]
 dependencies = [
+    "autoflake",
     "black",
+    "flynt",
+    "isort",
     "pip-tools",
     "pydantic",
     "pytest",
     "python-dotenv",
+    "pyupgrade",
     "wexample-filestate-dev",
     "wexample-filestate-git",
-    "pyupgrade",
-    "isort",
-    "flynt",
-    "autoflake"
 ]
 
 [project.readme]
