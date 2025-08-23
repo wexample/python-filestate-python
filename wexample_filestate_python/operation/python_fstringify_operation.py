@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from wexample_filestate.const.types_state_items import TargetFileOrDirectoryType
 from .abstract_python_file_operation import AbstractPythonFileOperation
 
 
@@ -18,22 +19,19 @@ class PythonFStringifyOperation(AbstractPythonFileOperation):
         return PythonConfigOption.OPTION_NAME_FSTRINGIFY
 
     @classmethod
-    def preview_source_change(cls, src: str) -> str:
+    def preview_source_change(
+            cls, target: TargetFileOrDirectoryType
+    ) -> str | None:
         from flynt.api import fstringify_code  # type: ignore
         from flynt.state import State  # type: ignore
 
+        src = cls._read_current_str_or_fail(target)
         state = State(aggressive=False, multiline=False, len_limit=120)
         result = fstringify_code(src, state=state)
 
         if result is None:
             return src
         return result.content
-
-    def apply(self) -> None:
-        src = self.target.get_local_file().read()
-        updated = self.preview_source_change(src)
-        if updated != src:
-            self._target_file_write(content=updated)
 
     def describe_before(self) -> str:
         return "The file uses legacy string formatting ('%'/format) that can be upgraded to f-strings."

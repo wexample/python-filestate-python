@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from typing import ClassVar
 
+from wexample_filestate.const.types_state_items import TargetFileOrDirectoryType
 from .abstract_python_file_operation import AbstractPythonFileOperation
 
 
@@ -23,9 +24,12 @@ class PythonFormatOperation(AbstractPythonFileOperation):
         return PythonConfigOption.OPTION_NAME_FORMAT
 
     @classmethod
-    def preview_source_change(cls, src: str) -> str:
+    def preview_source_change(
+            cls, target: TargetFileOrDirectoryType
+    ) -> str | None:
         import black
 
+        src = cls._read_current_str_or_fail(target)
         mode = black.Mode(line_length=cls._line_length)
 
         try:
@@ -45,8 +49,3 @@ class PythonFormatOperation(AbstractPythonFileOperation):
     def description(self) -> str:
         return "Format the Python file content using Black."
 
-    def apply(self) -> None:
-        src = self.target.get_local_file().read()
-        updated = self.preview_source_change(src)
-        if updated != src:
-            self._target_file_write(content=updated)

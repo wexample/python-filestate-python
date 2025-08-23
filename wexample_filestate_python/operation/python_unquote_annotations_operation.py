@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from wexample_filestate.const.types_state_items import TargetFileOrDirectoryType
 from .abstract_python_file_operation import AbstractPythonFileOperation
 
 
@@ -18,10 +19,14 @@ class PythonUnquoteAnnotationsOperation(AbstractPythonFileOperation):
         return PythonConfigOption.OPTION_NAME_UNQUOTE_ANNOTATIONS
 
     @classmethod
-    def preview_source_change(cls, src: str) -> str:
+    def preview_source_change(
+            cls, target: TargetFileOrDirectoryType
+    ) -> str | None:
         import json
 
         import libcst as cst
+
+        src = cls._read_current_str_or_fail(target)
 
         class _Unquoter(cst.CSTTransformer):
             @staticmethod
@@ -37,7 +42,7 @@ class PythonUnquoteAnnotationsOperation(AbstractPythonFileOperation):
 
             @staticmethod
             def _process_annotation(
-                ann: cst.Annotation | None,
+                    ann: cst.Annotation | None,
             ) -> cst.Annotation | None:
                 if ann is None:
                     return None
@@ -49,28 +54,28 @@ class PythonUnquoteAnnotationsOperation(AbstractPythonFileOperation):
                 return ann
 
             def leave_Param(
-                self, original_node: cst.Param, updated_node: cst.Param
+                    self, original_node: cst.Param, updated_node: cst.Param
             ) -> cst.Param:
                 return updated_node.with_changes(
                     annotation=self._process_annotation(updated_node.annotation)
                 )
 
             def leave_FunctionDef(
-                self, original_node: cst.FunctionDef, updated_node: cst.FunctionDef
+                    self, original_node: cst.FunctionDef, updated_node: cst.FunctionDef
             ) -> cst.FunctionDef:
                 return updated_node.with_changes(
                     returns=self._process_annotation(updated_node.returns)
                 )
 
             def leave_AnnAssign(
-                self, original_node: cst.AnnAssign, updated_node: cst.AnnAssign
+                    self, original_node: cst.AnnAssign, updated_node: cst.AnnAssign
             ) -> cst.AnnAssign:
                 return updated_node.with_changes(
                     annotation=self._process_annotation(updated_node.annotation)
                 )
 
             def leave_TypeAlias(
-                self, original_node: cst.TypeAlias, updated_node: cst.TypeAlias
+                    self, original_node: cst.TypeAlias, updated_node: cst.TypeAlias
             ) -> cst.TypeAlias:
                 # Python 3.12 'type X = ...' syntax
                 ann = updated_node.annotation
@@ -92,9 +97,3 @@ class PythonUnquoteAnnotationsOperation(AbstractPythonFileOperation):
 
     def description(self) -> str:
         return "Unquote type annotations (arguments, returns, variables) using LibCST."
-
-    def apply(self) -> None:
-        src = self.target.get_local_file().read()
-        updated = self.preview_source_change(src)
-        if updated != src:
-            self._target_file_write(content=updated)

@@ -1,3 +1,4 @@
+from wexample_filestate.const.types_state_items import TargetFileOrDirectoryType
 from .abstract_python_file_operation import AbstractPythonFileOperation
 
 
@@ -27,14 +28,10 @@ class PythonAddFutureAnnotationsOperation(AbstractPythonFileOperation):
     def description(self) -> str:
         return "Add `from __future__ import annotations` at the proper location (after shebang/encoding and module docstring)."
 
-    def apply(self) -> None:
-        src = self.target.get_local_file().read()
-        updated = self.preview_source_change(src)
-        if updated != src:
-            self._target_file_write(content=updated)
-
     @classmethod
-    def preview_source_change(cls, src: str) -> str:
+    def preview_source_change(
+            cls, target: TargetFileOrDirectoryType
+    ) -> str | None:
         """Return source with a `from __future__ import annotations` inserted
         in the correct place if it is not already present.
 
@@ -45,6 +42,8 @@ class PythonAddFutureAnnotationsOperation(AbstractPythonFileOperation):
         - Otherwise, insert after shebang/encoding header block.
         - If the future import already exists anywhere, return the original source.
         """
+        src = cls._read_current_str_or_fail(target)
+
         # Fast path: already present
         if "from __future__ import annotations" in src:
             return src
@@ -73,10 +72,10 @@ class PythonAddFutureAnnotationsOperation(AbstractPythonFileOperation):
         else:
             body = getattr(tree, "body", [])
             if (
-                body
-                and isinstance(body[0], ast.Expr)
-                and isinstance(getattr(body[0], "value", None), ast.Constant)
-                and isinstance(body[0].value.value, str)
+                    body
+                    and isinstance(body[0], ast.Expr)
+                    and isinstance(getattr(body[0], "value", None), ast.Constant)
+                    and isinstance(body[0].value.value, str)
             ):
                 # Module docstring present; insert after its end_lineno
                 doc_end = getattr(body[0], "end_lineno", body[0].lineno)  # 1-based

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from wexample_filestate.const.types_state_items import TargetFileOrDirectoryType
 from .abstract_python_file_operation import AbstractPythonFileOperation
 
 
@@ -21,13 +22,16 @@ class PythonAddReturnTypesOperation(AbstractPythonFileOperation):
         return PythonConfigOption.OPTION_NAME_ADD_RETURN_TYPES
 
     @classmethod
-    def preview_source_change(cls, src: str) -> str:
+    def preview_source_change(
+            cls, target: TargetFileOrDirectoryType
+    ) -> str | None:
         """Add a return annotation to def lines where a simple literal type is inferable.
 
         Logic is inlined here (previously in helpers.source.source_annotate_simple_returns).
         """
         import ast
         import re
+        src = cls._read_current_str_or_fail(target)
 
         def infer_simple_return_type(
             node: ast.FunctionDef | ast.AsyncFunctionDef,
@@ -100,9 +104,3 @@ class PythonAddReturnTypesOperation(AbstractPythonFileOperation):
     def description(self) -> str:
         return "Add simple return type annotations (None/bool/str/int/float) when trivially inferable."
 
-    def apply(self) -> None:
-        local = self.target.get_local_file()
-        src = local.read()
-        new_src = self.preview_source_change(src)
-        if new_src != src:
-            self._target_file_write(content=new_src)
