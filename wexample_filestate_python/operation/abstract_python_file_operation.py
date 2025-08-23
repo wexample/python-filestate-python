@@ -12,7 +12,7 @@ from wexample_filestate_python.config_option.python_config_option import (
 )
 
 if TYPE_CHECKING:
-    from wexample_filestate.const.types_state_items import TargetFileOrDirectoryType
+    pass
 
 
 class AbstractPythonFileOperation(AbstractExistingFileOperation):
