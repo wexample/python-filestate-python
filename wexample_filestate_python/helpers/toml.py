@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 from typing import Any
-from tomlkit import array as _tk_array, table as _tk_table
+
+from tomlkit import array as _tk_array
+from tomlkit import table as _tk_table
 from tomlkit.items import Array, String
 
 
