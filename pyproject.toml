@@ -25,7 +25,6 @@ dependencies = [
     "isort",
     "pip-tools",
     "pydantic",
-    "pytest",
     "python-dotenv",
     "pyupgrade",
     "wexample-filestate-dev",
@@ -41,3 +40,6 @@ text = "MIT"
 
 [project.urls]
 homepage = "https://github.com/wexample/python-filestate-python"
+
+[project.optional-dependencies]
+dev = ["pytest"]
