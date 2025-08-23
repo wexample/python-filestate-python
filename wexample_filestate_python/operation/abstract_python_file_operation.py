@@ -4,10 +4,7 @@ from typing import TYPE_CHECKING
 
 from wexample_config.config_option.abstract_config_option import AbstractConfigOption
 from wexample_filestate.enum.scopes import Scope
-from wexample_filestate.operation.abstract_operation import AbstractOperation
-from wexample_filestate.operation.mixin.file_manipulation_operation_mixin import (
-    FileManipulationOperationMixin,
-)
+from wexample_filestate.operation.abstract_existing_file_operation import AbstractExistingFileOperation
 from wexample_filestate_python.config_option.python_config_option import (
     PythonConfigOption,
 )
@@ -16,7 +13,7 @@ if TYPE_CHECKING:
     from wexample_filestate.const.types_state_items import TargetFileOrDirectoryType
 
 
-class AbstractPythonFileOperation(FileManipulationOperationMixin, AbstractOperation):
+class AbstractPythonFileOperation(AbstractExistingFileOperation):
     @classmethod
     def get_scope(cls) -> Scope:
         return Scope.CONTENT
@@ -30,14 +27,14 @@ class AbstractPythonFileOperation(FileManipulationOperationMixin, AbstractOperat
 
     @classmethod
     def preview_source_change(
-        cls, src: str
+            cls, src: str
     ) -> str:  # pragma: no cover - abstract contract
         """Return updated source if a change is needed, else return original src."""
         raise NotImplementedError
 
     @classmethod
     def applicable_option(
-        cls, target: TargetFileOrDirectoryType, option: AbstractConfigOption
+            cls, target: TargetFileOrDirectoryType, option: AbstractConfigOption
     ) -> bool:
         """Generic applicability for Python file transforms controlled by a single option name."""
         # Option type
