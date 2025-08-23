@@ -20,9 +20,6 @@ class AbstractPythonFileOperation(AbstractExistingFileOperation):
     def get_scope(cls) -> Scope:
         return Scope.CONTENT
 
-    def undo(self) -> None:
-        self._restore_target_file()
-
     @classmethod
     def get_option_name(cls) -> str:
         raise NotImplementedError
