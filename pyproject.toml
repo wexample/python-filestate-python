@@ -20,9 +20,7 @@ classifiers = [
 ]
 dependencies = [
     "autoflake",
-    "black", # filestate: keep
     "flynt", # filestate: keep
-    "isort", # filestate: keep
     "pydantic",
     "python-dotenv",
     "pyupgrade",
