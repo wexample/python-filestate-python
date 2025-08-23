@@ -23,6 +23,7 @@ dependencies = [
     "pyupgrade",
     "wexample-filestate-dev",
     "wexample-filestate-git",
+    "tomlkit"
 ]
 
 [project.readme]
