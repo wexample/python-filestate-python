@@ -16,10 +16,10 @@ classifiers = [
     "Operating System :: OS Independent",
 ]
 dependencies = [
-    "autoflake",  # filestate: keep
-    "black", # filestate: keep
-    "flynt", # filestate: keep
-    "isort", # filestate: keep
+    "autoflake" # filestate: keep,
+    "black" # filestate: keep,
+    "flynt" # filestate: keep,
+    "isort" # filestate: keep,
     "pydantic>=2,<3",
     "python-dotenv",
     "pyupgrade",
