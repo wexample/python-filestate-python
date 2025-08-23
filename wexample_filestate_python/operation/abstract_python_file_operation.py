@@ -43,8 +43,3 @@ class AbstractPythonFileOperation(AbstractExistingFileOperation):
 
         # Delegate change detection to the base helper
         return cls.source_need_change(target)
-
-    def apply(self) -> None:
-        changed = self.preview_source_change(self.target)
-        if changed is not None:
-            self._target_file_write(content=changed)
