@@ -25,7 +25,7 @@ class AbstractPythonFileOperation(AbstractExistingFileOperation):
         raise NotImplementedError
 
     @classmethod
-    def applicable_option(
+    def applicable_operation(
         cls, target: TargetFileOrDirectoryType, option: AbstractConfigOption
     ) -> bool:
         """Generic applicability for Python file transforms controlled by a single option name."""
