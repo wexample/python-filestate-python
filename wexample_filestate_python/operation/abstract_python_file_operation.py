@@ -24,8 +24,8 @@ class AbstractPythonFileOperation(AbstractExistingFileOperation):
     def get_option_name(cls) -> str:
         raise NotImplementedError
 
-    def applicable_operation(
-        self, target: TargetFileOrDirectoryType, option: AbstractConfigOption
+    def applicable_for_option(
+        self, option: AbstractConfigOption
     ) -> bool:
         """Generic applicability for Python file transforms controlled by a single option name."""
         # Option type
@@ -38,4 +38,4 @@ class AbstractPythonFileOperation(AbstractExistingFileOperation):
             return False
 
         # Delegate change detection to the base helper
-        return self.source_need_change(target)
+        return self.source_need_change(self.target)
