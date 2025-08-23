@@ -1,9 +1,6 @@
 [build-system]
-requires = [
-    "setuptools",
-    "wheel",
-]
-build-backend = "setuptools.build_meta"
+requires = ["pdm-backend"]
+build-backend = "pdm.backend"
 
 [project]
 name = "wexample-filestate-python"
@@ -12,7 +9,7 @@ description = "Helpers for Python."
 authors = [
     { name = "weeger", email = "contact@wexample.com" },
 ]
-requires-python = ">=3.12"
+requires-python = ">=3.10"
 classifiers = [
     "Programming Language :: Python :: 3",
     "License :: OSI Approved :: MIT License",
@@ -21,7 +18,7 @@ classifiers = [
 dependencies = [
     "autoflake",
     "flynt", # filestate: keep
-    "pydantic",
+    "pydantic>=2,<3",
     "python-dotenv",
     "pyupgrade",
     "wexample-filestate-dev",
@@ -40,3 +37,6 @@ homepage = "https://github.com/wexample/python-filestate-python"
 
 [project.optional-dependencies]
 dev = ["pytest"]
+
+[tool.pdm.build]
+includes = ["python_package_workdir/py.typed"]
