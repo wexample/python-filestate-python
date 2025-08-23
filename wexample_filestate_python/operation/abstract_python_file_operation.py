@@ -27,7 +27,7 @@ class AbstractPythonFileOperation(AbstractExistingFileOperation):
 
     @classmethod
     def preview_source_change(
-            cls, src: str
+            cls, target: TargetFileOrDirectoryType
     ) -> str:  # pragma: no cover - abstract contract
         """Return updated source if a change is needed, else return original src."""
         raise NotImplementedError
@@ -41,22 +41,11 @@ class AbstractPythonFileOperation(AbstractExistingFileOperation):
         if not isinstance(option, PythonConfigOption):
             return False
 
-        # Target must be an existing file
-        local_file = target.get_local_file()
-        if not target.is_file() or not local_file.path.exists():
-            return False
-
         # Option value must contain our specific option name
         value = option.get_value()
         if value is None or not value.has_item_in_list(cls.get_option_name()):
             return False
 
-        # Preview transformation
-        src = local_file.read()
+        # Delegate change detection to the base helper
+        return cls.source_need_change(target)
 
-        # Ignore empty files.
-        if src.strip() == "":
-            return False
-
-        updated = cls.preview_source_change(src)
-        return updated != src
