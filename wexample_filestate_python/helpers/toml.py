@@ -23,7 +23,10 @@ def toml_sort_string_array(arr: Any) -> bool:
         return False
 
     values = [i.value for i in items]
-    sorted_items = [x for _, x in sorted(zip([v.lower() for v in values], items), key=lambda t: t[0])]
+    sorted_items = [
+        x
+        for _, x in sorted(zip([v.lower() for v in values], items), key=lambda t: t[0])
+    ]
 
     if items == sorted_items:
         return False

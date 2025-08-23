@@ -16,10 +16,10 @@ classifiers = [
     "Operating System :: OS Independent",
 ]
 dependencies = [
-    "autoflake" # filestate: keep,
-    "black" # filestate: keep,
-    "flynt" # filestate: keep,
-    "isort" # filestate: keep,
+    "autoflake",
+    "black",
+    "flynt",
+    "isort",
     "pydantic>=2,<3",
     "python-dotenv",
     "pyupgrade",
@@ -43,3 +43,10 @@ dev = ["pytest"]
 
 [tool.pdm.build]
 includes = ["python_package_workdir/py.typed"]
+
+[tool.filestate]
+# These dev packages are removed from dependencies if not specified here.
+keep = [
+  "black",
+  "isort"
+]
