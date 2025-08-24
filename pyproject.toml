@@ -26,6 +26,7 @@ dependencies = [
     "tomlkit",
     "wexample-filestate-dev",
     "wexample-filestate-git",
+    "packaging"
 ]
 
 [project.readme]
