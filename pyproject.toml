@@ -42,13 +42,12 @@ homepage = "https://github.com/wexample/python-filestate-python"
 dev = ["pytest"]
 
 [tool.pdm.build]
-includes = ["src/python_package_workdir/py.typed"]
+includes = ["src/wexample_filestate_python/py.typed"]
 package-dir = "src"
 
 [[tool.pdm.build.packages]]
-include = "python_package_workdir"
+include = "wexample_filestate_python"
 from = "src"
-
 [tool.filestate]
 # These dev packages are removed from dependencies if not specified here.
 keep = [
