@@ -129,7 +129,6 @@ def package_list_sorted(root_dir: str | Path) -> list[str]:
 
 def package_normalize_name(val: str) -> str:
     import re as _re
-    
     # strip extras, versions, markers
     base = _re.split(r"[\s<>=!~;\[]", val, maxsplit=1)[0]
     return base.strip().lower()
