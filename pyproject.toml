@@ -24,7 +24,6 @@ dependencies = [
     "python-dotenv",
     "pyupgrade",
     "tomlkit",
-    "wexample-filestate-dev",
     "wexample-filestate-git",
     "packaging",
     "networkx"

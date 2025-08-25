@@ -113,7 +113,7 @@ def package_list_sorted(root_dir: str | Path) -> list[str]:
     """
     Get a list of package names sorted by dependency order.
     """
-    from wexample_filestate_dev.helpers.dependencies import dependencies_sort
+    from wexample_filestate.helpers.dependencies import dependencies_sort
 
     dependencies = package_get_dependencies(root_dir)
     if not dependencies:
