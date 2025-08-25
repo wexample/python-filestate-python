@@ -20,13 +20,13 @@ dependencies = [
     "black",
     "flynt",
     "isort",
+    "networkx",
+    "packaging",
     "pydantic>=2,<3",
     "python-dotenv",
     "pyupgrade",
     "tomlkit",
-    "wexample-filestate-git",
-    "packaging",
-    "networkx"
+    "wexample-filestate-git==0.0.35",
 ]
 
 [project.readme]
