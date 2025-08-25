@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from typing import ClassVar
 
 from wexample_filestate.item.item_target_file import ItemTargetFile
