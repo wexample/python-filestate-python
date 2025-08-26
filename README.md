@@ -1,22 +1,26 @@
-# Filestate Python
+# wexample-filestate-python
 
 Helpers for Python.
 
-Version: 0.0.23
+Version: 0.0.36
 
 ## Requirements
 
-- Python >=3.6
+- Python >=3.10
 
 ## Dependencies
 
-- pip-tools
-- pydantic
-- pytest
+- autoflake
+- black
+- flynt
+- isort
+- networkx
+- packaging
+- pydantic>=2,<3
 - python-dotenv
-- wexample-app==0.0.28
-- wexample-filestate-git==0.0.23
-- wexample-filestate==0.0.31
+- pyupgrade
+- tomlkit
+- wexample-filestate-git==0.0.35
 
 ## Installation
 
