@@ -94,7 +94,7 @@ def toml_ensure_array_multiline(tbl: Any, key: str) -> tuple[Array, bool]:
     return arr, changed
 
 
-def toml_set_array_multiline(tbl: Any, key: str, values: list[str]) -> Array:
+def toml_set_array_multiline(tbl: Any, key: str, values: list[Any]) -> Array:
     """
     Replace tbl[key] with a tomlkit array built from values and set multiline(True).
     Returns the created Array instance.
