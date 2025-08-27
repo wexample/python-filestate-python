@@ -2,7 +2,7 @@
 
 Helpers for Python.
 
-Version: 0.0.36
+Version: 0.0.37
 
 ## Requirements
 
