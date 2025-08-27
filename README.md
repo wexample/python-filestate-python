@@ -20,7 +20,7 @@ Version: 0.0.37
 - python-dotenv
 - pyupgrade
 - tomlkit
-- wexample-filestate-git==0.0.35
+- wexample-filestate-git==0.0.36
 
 ## Installation
 
