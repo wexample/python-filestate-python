@@ -1,5 +1,6 @@
-from pydantic import Field
+from __future__ import annotations
 
+from pydantic import Field
 from wexample_helpers_api.common.abstract_gateway import AbstractGateway
 
 
