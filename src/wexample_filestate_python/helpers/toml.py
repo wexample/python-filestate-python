@@ -80,3 +80,26 @@ def toml_get_string_value(item: Any) -> str:
     if isinstance(item, String):
         return item.value
     return str(item)
+
+
+def toml_ensure_array_multiline(tbl: Any, key: str) -> tuple[Array, bool]:
+    """
+    Ensure an array exists at tbl[key] and force multiline formatting.
+    Returns (array, changed_created).
+    """
+    arr, changed = toml_ensure_array(tbl, key)
+    # Force multiline for readability when dumping
+    if isinstance(arr, Array):
+        arr.multiline(True)
+    return arr, changed
+
+
+def toml_set_array_multiline(tbl: Any, key: str, values: list[str]) -> Array:
+    """
+    Replace tbl[key] with a tomlkit array built from values and set multiline(True).
+    Returns the created Array instance.
+    """
+    arr = _tk_array(values)
+    arr.multiline(True)
+    tbl[key] = arr
+    return arr
