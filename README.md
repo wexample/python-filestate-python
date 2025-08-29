@@ -2,7 +2,7 @@
 
 Helpers for Python.
 
-Version: 0.0.37
+Version: 0.0.39
 
 ## Requirements
 
@@ -20,7 +20,7 @@ Version: 0.0.37
 - python-dotenv
 - pyupgrade
 - tomlkit
-- wexample-filestate-git==0.0.36
+- wexample-filestate-git==0.0.37
 
 ## Installation
 
