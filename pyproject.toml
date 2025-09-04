@@ -16,6 +16,7 @@ classifiers = [
     "Operating System :: OS Independent",
 ]
 dependencies = [
+    "pydantic>=2,<3",
     "wexample-filestate==0.0.50",
 ]
 
@@ -39,7 +40,7 @@ distribution = true
 
 [tool.pdm.build]
 includes = [
-    "src/wexample_filestate_python/py.typed",
+    'src/wexample_filestate_python/*',
 ]
 package-dir = "src"
 

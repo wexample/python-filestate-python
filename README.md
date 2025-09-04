@@ -10,18 +10,7 @@ Version: 0.0.40
 
 ## Dependencies
 
-- autoflake
-- black
-- flynt
-- isort
-- libcst>=1.0.0,<2
-- networkx
-- packaging
-- pydantic>=2,<3
-- python-dotenv
-- pyupgrade
-- tomlkit
-- wexample-filestate-git==0.0.38
+- wexample-filestate==0.0.50
 
 ## Installation
 
