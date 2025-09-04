@@ -20,6 +20,7 @@ dependencies = [
     "black",
     "flynt",
     "isort",
+    "libcst>=1.0.0,<2",
     "networkx",
     "packaging",
     "pydantic>=2,<3",

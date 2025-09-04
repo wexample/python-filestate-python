@@ -28,72 +28,113 @@ class PythonAddReturnTypesOperation(AbstractPythonFileOperation):
 
         Logic is inlined here (previously in helpers.source.source_annotate_simple_returns).
         """
-        import ast
-        import re
+        import libcst as cst
 
         src = cls._read_current_str_or_fail(target)
 
-        def infer_simple_return_type(
-            node: ast.FunctionDef | ast.AsyncFunctionDef,
+        # We implement type inference and rewriting using LibCST to ensure
+        # robust, formatting-preserving edits. Only the simple types are
+        # inferred: None, bool, str, int, float.
+
+        def infer_simple_return_type_from_returns(
+            returns: list[cst.Return],
         ) -> str | None:
-            returns: list[ast.Return] = [
-                n for n in ast.walk(node) if isinstance(n, ast.Return)
-            ]
+            # No return statements => implicitly returns None
             if not returns:
                 return "None"
+
             kinds: set[str] = set()
-            for ret in returns:
-                val = ret.value
+            for r in returns:
+                val = r.value
                 if val is None:
                     kinds.add("None")
-                elif isinstance(val, ast.Constant):
-                    if isinstance(val.value, bool):
+                elif isinstance(val, cst.Name):
+                    # True/False/None are represented as Name in LibCST
+                    if val.value in ("True", "False"):
                         kinds.add("bool")
-                    elif isinstance(val.value, str):
-                        kinds.add("str")
-                    elif isinstance(val.value, int):
-                        kinds.add("int")
-                    elif isinstance(val.value, float):
-                        kinds.add("float")
-                    elif val.value is None:
+                    elif val.value == "None":
                         kinds.add("None")
                     else:
                         return None
+                elif isinstance(val, cst.SimpleString):
+                    kinds.add("str")
+                elif isinstance(val, cst.Integer):
+                    kinds.add("int")
+                elif isinstance(val, cst.Float):
+                    kinds.add("float")
                 else:
                     return None
+
             if len(kinds) == 1:
                 return next(iter(kinds))
             return None
 
-        tree = ast.parse(src)
+        class _ReturnCollector(cst.CSTVisitor):
+            def __init__(self) -> None:
+                self.returns: list[cst.Return] = []
 
-        targets: list[tuple[str, str]] = []
-        for node in ast.walk(tree):
-            if (
-                isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))
-                and node.returns is None
-            ):
-                t = infer_simple_return_type(node)
-                if t is not None:
-                    targets.append((node.name, t))
+            # Do not descend into nested scopes that could have their own returns
+            def visit_FunctionDef(self, node: cst.FunctionDef) -> bool:  # type: ignore[override]
+                return False
 
-        if not targets:
+            def visit_AsyncFunctionDef(self, node: cst.AsyncFunctionDef) -> bool:  # type: ignore[override]
+                return False
+
+            def visit_Lambda(self, node: cst.Lambda) -> bool:  # type: ignore[override]
+                return False
+
+            def visit_ClassDef(self, node: cst.ClassDef) -> bool:  # type: ignore[override]
+                return False
+
+            def visit_Return(self, node: cst.Return) -> None:  # type: ignore[override]
+                self.returns.append(node)
+
+        class AddReturnTypesTransformer(cst.CSTTransformer):
+            def _infer_for_function(self, func_node: cst.BaseFunctionDef) -> str | None:
+                collector = _ReturnCollector()
+                # Visit only the immediate body of the function
+                if isinstance(func_node, cst.FunctionDef):
+                    func_node.body.visit(collector)
+                elif isinstance(func_node, cst.AsyncFunctionDef):
+                    func_node.body.visit(collector)
+                else:
+                    return None
+                return infer_simple_return_type_from_returns(collector.returns)
+
+            def leave_FunctionDef(
+                self,
+                original_node: cst.FunctionDef,
+                updated_node: cst.FunctionDef,
+            ) -> cst.FunctionDef:
+                if updated_node.returns is None:
+                    rtype = self._infer_for_function(original_node)
+                    if rtype is not None:
+                        return updated_node.with_changes(
+                            returns=cst.Annotation(annotation=cst.Name(rtype))
+                        )
+                return updated_node
+
+            def leave_AsyncFunctionDef(
+                self,
+                original_node: cst.AsyncFunctionDef,
+                updated_node: cst.AsyncFunctionDef,
+            ) -> cst.AsyncFunctionDef:
+                if updated_node.returns is None:
+                    rtype = self._infer_for_function(original_node)
+                    if rtype is not None:
+                        return updated_node.with_changes(
+                            returns=cst.Annotation(annotation=cst.Name(rtype))
+                        )
+                return updated_node
+
+        try:
+            module = cst.parse_module(src)
+        except Exception:
+            # If parsing fails for any reason, return the original source unchanged
             return src
 
-        new_src = src
-        for func_name, rtype in targets:
-            pattern = (
-                rf"(def\s+{re.escape(func_name)}\s*\([^\)]*\))\s*(->\s*[^:]+)?\s*:"
-            )
-            repl = rf"\1 -> {rtype}:"
-            new_src, n = re.subn(pattern, repl, new_src, count=1, flags=re.MULTILINE)
-            if n == 0:
-                pattern_async = rf"(async\s+def\s+{re.escape(func_name)}\s*\([^\)]*\))\s*(->\s*[^:]+)?\s*:"
-                new_src = re.sub(
-                    pattern_async, repl, new_src, count=1, flags=re.MULTILINE
-                )
-
-        return new_src
+        new_module = module.visit(AddReturnTypesTransformer())
+        return new_module.code
 
     def describe_before(self) -> str:
         return "Some Python functions are missing obvious return type annotations."

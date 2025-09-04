@@ -19,6 +19,7 @@ Version: 0.0.40
 - pydantic>=2,<3
 - python-dotenv
 - pyupgrade
+- libcst>=1.0.0,<2
 - tomlkit
 - wexample-filestate-git==0.0.38
 
