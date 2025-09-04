@@ -78,6 +78,7 @@ class PythonAddReturnTypesOperation(AbstractPythonFileOperation):
             We stay conservative: only names directly available in the module namespace
             (class definitions and `from x import Name [as Alias]`).
             """
+
             def __init__(self) -> None:
                 self.known: set[str] = set()
 
@@ -101,6 +102,7 @@ class PythonAddReturnTypesOperation(AbstractPythonFileOperation):
             and call target resolves to a known type. If a variable is assigned multiple
             times to different types, it is discarded.
             """
+
             def __init__(self, known_types: set[str]) -> None:
                 self.known_types = known_types
                 self.var_type: dict[str, str] = {}
@@ -120,7 +122,9 @@ class PythonAddReturnTypesOperation(AbstractPythonFileOperation):
                             return attr_name
                 return None
 
-            def _record_assignment(self, target: cst.BaseExpression, value: cst.BaseExpression) -> None:
+            def _record_assignment(
+                self, target: cst.BaseExpression, value: cst.BaseExpression
+            ) -> None:
                 if not isinstance(target, cst.Name):
                     return
                 var = target.value
@@ -164,7 +168,9 @@ class PythonAddReturnTypesOperation(AbstractPythonFileOperation):
                 super().__init__()
                 self.known_types = known_types
 
-            def _infer_return_expr_type(self, expr: cst.BaseExpression, var_types: dict[str, str]) -> str | None:
+            def _infer_return_expr_type(
+                self, expr: cst.BaseExpression, var_types: dict[str, str]
+            ) -> str | None:
                 # Literal simple types
                 lit = _infer_literal_type(expr)
                 if lit is not None:
@@ -173,9 +179,15 @@ class PythonAddReturnTypesOperation(AbstractPythonFileOperation):
                 # Call to a known class
                 if isinstance(expr, cst.Call):
                     func = expr.func
-                    if isinstance(func, cst.Name) and func.value in self.known_types and func.value[:1].isupper():
+                    if (
+                        isinstance(func, cst.Name)
+                        and func.value in self.known_types
+                        and func.value[:1].isupper()
+                    ):
                         return func.value
-                    if isinstance(func, cst.Attribute) and isinstance(func.attr, cst.Name):
+                    if isinstance(func, cst.Attribute) and isinstance(
+                        func.attr, cst.Name
+                    ):
                         attr_name = func.attr.value
                         if attr_name in self.known_types and attr_name[:1].isupper():
                             return attr_name

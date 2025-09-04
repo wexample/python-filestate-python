@@ -14,12 +14,12 @@ Version: 0.0.40
 - black
 - flynt
 - isort
+- libcst>=1.0.0,<2
 - networkx
 - packaging
 - pydantic>=2,<3
 - python-dotenv
 - pyupgrade
-- libcst>=1.0.0,<2
 - tomlkit
 - wexample-filestate-git==0.0.38
 
