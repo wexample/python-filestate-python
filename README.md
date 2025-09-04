@@ -10,6 +10,7 @@ Version: 0.0.40
 
 ## Dependencies
 
+- pydantic>=2,<3
 - wexample-filestate==0.0.50
 
 ## Installation
