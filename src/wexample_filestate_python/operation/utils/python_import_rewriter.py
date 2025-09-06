@@ -1,8 +1,9 @@
 from __future__ import annotations
-from typing import DefaultDict
+
+from typing import TYPE_CHECKING, DefaultDict
 
 import libcst as cst
-from typing import TYPE_CHECKING
+
 if TYPE_CHECKING:
     from python_parser_import_index import PythonParserImportIndex
 
@@ -155,6 +156,7 @@ class PythonImportRewriter(cst.CSTTransformer):
         self, original_node: cst.Module, updated_node: cst.Module
     ) -> cst.Module:
         from collections import defaultdict
+
         if not self.need_type_checking_block or not self.used_in_C_only:
             return updated_node
 
@@ -173,17 +175,27 @@ class PythonImportRewriter(cst.CSTTransformer):
         existing_imported: set[tuple[str | None, str]] = set()
 
         for i, stmt in enumerate(updated_node.body):
-            if isinstance(stmt, cst.If) and isinstance(stmt.test, cst.Name) and stmt.test.value == "TYPE_CHECKING":
+            if (
+                isinstance(stmt, cst.If)
+                and isinstance(stmt.test, cst.Name)
+                and stmt.test.value == "TYPE_CHECKING"
+            ):
                 existing_tc_index = i
                 existing_tc_body = list(stmt.body.body)
                 # Collect names already imported there
                 for s in existing_tc_body:
-                    if isinstance(s, cst.SimpleStatementLine) and len(s.body) == 1 and isinstance(s.body[0], cst.ImportFrom):
+                    if (
+                        isinstance(s, cst.SimpleStatementLine)
+                        and len(s.body) == 1
+                        and isinstance(s.body[0], cst.ImportFrom)
+                    ):
                         imp: cst.ImportFrom = s.body[0]
                         mod = self._flatten_module_expr_to_str(imp.module)
                         if imp.names and not isinstance(imp.names, cst.ImportStar):
                             for alias in imp.names:
-                                if isinstance(alias, cst.ImportAlias) and isinstance(alias.name, cst.Name):
+                                if isinstance(alias, cst.ImportAlias) and isinstance(
+                                    alias.name, cst.Name
+                                ):
                                     existing_imported.add((mod, alias.name.value))
                 break
 
@@ -200,11 +212,14 @@ class PythonImportRewriter(cst.CSTTransformer):
             for mod, names in missing_by_module.items():
                 if not names:
                     continue
-                import_names = [cst.ImportAlias(name=cst.Name(n)) for n in sorted(names)]
+                import_names = [
+                    cst.ImportAlias(name=cst.Name(n)) for n in sorted(names)
+                ]
                 imp_stmt = cst.SimpleStatementLine(
                     (
                         cst.ImportFrom(
-                            module=self._build_module_expr(mod), names=tuple(import_names)
+                            module=self._build_module_expr(mod),
+                            names=tuple(import_names),
                         ),
                     )
                 )
@@ -224,7 +239,9 @@ class PythonImportRewriter(cst.CSTTransformer):
             if not names:
                 continue
             import_names = [cst.ImportAlias(name=cst.Name(n)) for n in sorted(names)]
-            imp = cst.ImportFrom(module=self._build_module_expr(mod), names=tuple(import_names))
+            imp = cst.ImportFrom(
+                module=self._build_module_expr(mod), names=tuple(import_names)
+            )
             type_checking_body.append(cst.SimpleStatementLine((imp,)))
 
         if not type_checking_body:
@@ -256,9 +273,17 @@ class PythonImportRewriter(cst.CSTTransformer):
         # Skip __future__ imports
         while i < len(updated_node.body):
             stmt = updated_node.body[i]
-            if isinstance(stmt, cst.SimpleStatementLine) and stmt.body and isinstance(stmt.body[0], cst.ImportFrom):
+            if (
+                isinstance(stmt, cst.SimpleStatementLine)
+                and stmt.body
+                and isinstance(stmt.body[0], cst.ImportFrom)
+            ):
                 imp: cst.ImportFrom = stmt.body[0]
-                if imp.module and isinstance(imp.module, cst.Name) and imp.module.value == "__future__":
+                if (
+                    imp.module
+                    and isinstance(imp.module, cst.Name)
+                    and imp.module.value == "__future__"
+                ):
                     i += 1
                     insert_index = i
                     continue
@@ -266,8 +291,13 @@ class PythonImportRewriter(cst.CSTTransformer):
         # Walk through consecutive import statements
         while i < len(updated_node.body):
             stmt = updated_node.body[i]
-            if isinstance(stmt, cst.SimpleStatementLine) and stmt.body and (
-                isinstance(stmt.body[0], cst.ImportFrom) or isinstance(stmt.body[0], cst.Import)
+            if (
+                isinstance(stmt, cst.SimpleStatementLine)
+                and stmt.body
+                and (
+                    isinstance(stmt.body[0], cst.ImportFrom)
+                    or isinstance(stmt.body[0], cst.Import)
+                )
             ):
                 i += 1
                 insert_index = i

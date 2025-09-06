@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import DefaultDict, ClassVar
+from typing import ClassVar, DefaultDict
 
 import libcst as cst
 
@@ -113,8 +113,11 @@ class PythonUsageCollector(cst.CSTVisitor):
                     elif isinstance(expr, cst.Subscript):
                         _collect_base_names(expr.value)
                         for e in expr.slice:
-                            if isinstance(e, cst.SubscriptElement) and isinstance(e.slice, cst.Index):
+                            if isinstance(e, cst.SubscriptElement) and isinstance(
+                                e.slice, cst.Index
+                            ):
                                 _collect_base_names(e.slice.value)
+
                 _collect_base_names(node.default)
                 self.used_in_B.update(collected)
             except Exception:
@@ -129,7 +132,7 @@ class PythonUsageCollector(cst.CSTVisitor):
     # Fallback: explicitly scan Parameters node for defaults (some environments may not trigger visit_Param)
     def visit_Parameters(self, node: cst.Parameters) -> bool:  # type: ignore[override]
         try:
-            func = self.func_stack[-1] if self.func_stack else "<module>"
+            self.func_stack[-1] if self.func_stack else "<module>"
             # Aggregate all parameter-like collections
             all_params: list[cst.Param] = []
             all_params.extend(list(node.params))
@@ -154,7 +157,9 @@ class PythonUsageCollector(cst.CSTVisitor):
                     elif isinstance(expr, cst.Subscript):
                         _collect_base_names(expr.value)
                         for e in expr.slice:
-                            if isinstance(e, cst.SubscriptElement) and isinstance(e.slice, cst.Index):
+                            if isinstance(e, cst.SubscriptElement) and isinstance(
+                                e.slice, cst.Index
+                            ):
                                 _collect_base_names(e.slice.value)
 
                 _collect_base_names(p.default)  # type: ignore[arg-type]
@@ -167,7 +172,11 @@ class PythonUsageCollector(cst.CSTVisitor):
     def visit_Name(self, node: cst.Name) -> None:  # type: ignore[override]
         if not self.func_stack:
             return
-        if self._in_annotation_stack or self._in_decorator_stack or any(self._in_param_default_stack):
+        if (
+            self._in_annotation_stack
+            or self._in_decorator_stack
+            or any(self._in_param_default_stack)
+        ):
             return
         val = node.value
         # Do not treat 'cast' identifier as runtime usage; keep typing at module level
@@ -188,7 +197,11 @@ class PythonUsageCollector(cst.CSTVisitor):
                 self.functions_needing_local[self.func_stack[-1]].add(callee)
                 return
             # typing.cast(x, MyClass) when used as bare `cast(...)`
-            if (callee in self.cast_function_candidates or "cast" in callee.lower()) and node.args and len(node.args) >= 1:
+            if (
+                (callee in self.cast_function_candidates or "cast" in callee.lower())
+                and node.args
+                and len(node.args) >= 1
+            ):
                 type_arg = node.args[0].value
                 # Collect any imported names appearing anywhere inside the type expression
                 names = self._collect_names_from_type_expr(type_arg)
@@ -203,7 +216,10 @@ class PythonUsageCollector(cst.CSTVisitor):
             # typing.cast(...) or pkg.cast(...)
             if (
                 isinstance(func.attr, cst.Name)
-                and (func.attr.value in self.cast_function_candidates or "cast" in func.attr.value.lower())
+                and (
+                    func.attr.value in self.cast_function_candidates
+                    or "cast" in func.attr.value.lower()
+                )
                 and node.args
                 and len(node.args) >= 1
             ):
@@ -267,7 +283,10 @@ class PythonUsageCollector(cst.CSTVisitor):
             # Recurse into value first
             self._walk_expr_for_names(expr.value, bucket)
             # Also consider direct attr name if projects import attributes directly (rare)
-            if isinstance(expr.attr, cst.Name) and expr.attr.value in self.imported_value_names:
+            if (
+                isinstance(expr.attr, cst.Name)
+                and expr.attr.value in self.imported_value_names
+            ):
                 bucket.add(expr.attr.value)
         elif isinstance(expr, cst.Subscript):
             self._walk_expr_for_names(expr.value, bucket)

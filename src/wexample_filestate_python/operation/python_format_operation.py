@@ -1,9 +1,9 @@
 from __future__ import annotations
 
-from typing import ClassVar
+from typing import TYPE_CHECKING, ClassVar
 
 from .abstract_python_file_operation import AbstractPythonFileOperation
-from typing import TYPE_CHECKING
+
 if TYPE_CHECKING:
     from wexample_filestate.const.types_state_items import TargetFileOrDirectoryType
 

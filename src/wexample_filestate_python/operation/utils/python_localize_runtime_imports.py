@@ -1,8 +1,9 @@
 from __future__ import annotations
-from typing import DefaultDict
+
+from typing import TYPE_CHECKING, DefaultDict
 
 import libcst as cst
-from typing import TYPE_CHECKING
+
 if TYPE_CHECKING:
     from python_parser_import_index import PythonParserImportIndex
 
@@ -58,8 +59,11 @@ class PythonLocalizeRuntimeImports(cst.CSTTransformer):
             return ".".join(parts) if parts else None
         return None
 
-    def _build_local_imports(self, func_qname: str) -> tuple[list[cst.BaseStatement], set[tuple[str | None, str]]]:
+    def _build_local_imports(
+        self, func_qname: str
+    ) -> tuple[list[cst.BaseStatement], set[tuple[str | None, str]]]:
         from collections import defaultdict
+
         names = self.functions_needing_local.get(func_qname)
         if not names:
             return [], set()
@@ -118,17 +122,24 @@ class PythonLocalizeRuntimeImports(cst.CSTTransformer):
         to_inject, pairs = self._build_local_imports(func_qname)
         if not to_inject:
             return updated_node
+
         # First prune matching imports anywhere within the function body
         class _PruneInner(cst.CSTTransformer):
             def leave_ImportFrom(self, original_node: cst.ImportFrom, updated_node: cst.ImportFrom):  # type: ignore[override]
-                if updated_node.names is None or isinstance(updated_node.names, cst.ImportStar):
+                if updated_node.names is None or isinstance(
+                    updated_node.names, cst.ImportStar
+                ):
                     return updated_node
-                mod = PythonLocalizeRuntimeImports._flatten_module_expr_to_str(updated_node.module)
+                mod = PythonLocalizeRuntimeImports._flatten_module_expr_to_str(
+                    updated_node.module
+                )
                 kept_aliases: list[cst.ImportAlias] = []
                 for alias in updated_node.names:
                     if not isinstance(alias, cst.ImportAlias):
                         continue
-                    name = alias.name.value if isinstance(alias.name, cst.Name) else None
+                    name = (
+                        alias.name.value if isinstance(alias.name, cst.Name) else None
+                    )
                     if not name:
                         continue
                     if (mod, name) in pairs:
@@ -168,17 +179,24 @@ class PythonLocalizeRuntimeImports(cst.CSTTransformer):
         to_inject, pairs = self._build_local_imports(func_qname)
         if not to_inject:
             return updated_node
+
         # Prune nested duplicates first
         class _PruneInner(cst.CSTTransformer):
             def leave_ImportFrom(self, original_node: cst.ImportFrom, updated_node: cst.ImportFrom):  # type: ignore[override]
-                if updated_node.names is None or isinstance(updated_node.names, cst.ImportStar):
+                if updated_node.names is None or isinstance(
+                    updated_node.names, cst.ImportStar
+                ):
                     return updated_node
-                mod = PythonLocalizeRuntimeImports._flatten_module_expr_to_str(updated_node.module)
+                mod = PythonLocalizeRuntimeImports._flatten_module_expr_to_str(
+                    updated_node.module
+                )
                 kept_aliases: list[cst.ImportAlias] = []
                 for alias in updated_node.names:
                     if not isinstance(alias, cst.ImportAlias):
                         continue
-                    name = alias.name.value if isinstance(alias.name, cst.Name) else None
+                    name = (
+                        alias.name.value if isinstance(alias.name, cst.Name) else None
+                    )
                     if not name:
                         continue
                     if (mod, name) in pairs:

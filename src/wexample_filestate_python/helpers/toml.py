@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from typing import Any
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
+
 if TYPE_CHECKING:
     from tomlkit.items import Array
 
@@ -14,6 +14,7 @@ def toml_sort_string_array(arr: Any) -> bool:
     Returns True if the array was changed.
     """
     from tomlkit.items import Array, String
+
     # Validate array type
     if not isinstance(arr, Array):
         return False
@@ -48,6 +49,7 @@ def toml_ensure_table(doc: Any, path: list[str]) -> tuple[Any, bool]:
     Path example: ["tool", "pdm", "build"]. Uses tomlkit.table() for missing parts.
     """
     from tomlkit import table
+
     if not isinstance(path, list) or not path:
         raise ValueError("path must be a non-empty list of keys")
 
@@ -69,6 +71,7 @@ def toml_ensure_array(tbl: Any, key: str) -> tuple[Any, bool]:
     Uses tomlkit.array() for creation.
     """
     from tomlkit import array
+
     arr = tbl.get(key) if isinstance(tbl, dict) else None
     if arr is None:
         arr = array()
@@ -80,6 +83,7 @@ def toml_ensure_array(tbl: Any, key: str) -> tuple[Any, bool]:
 def toml_get_string_value(item: Any) -> str:
     """Return the string content of a tomlkit String or generic item as str."""
     from tomlkit.items import String
+
     if isinstance(item, String):
         return item.value
     return str(item)
@@ -91,6 +95,7 @@ def toml_ensure_array_multiline(tbl: Any, key: str) -> tuple[Array, bool]:
     Returns (array, changed_created).
     """
     from tomlkit.items import Array
+
     arr, changed = toml_ensure_array(tbl, key)
     # Force multiline for readability when dumping
     if isinstance(arr, Array):
@@ -104,6 +109,7 @@ def toml_set_array_multiline(tbl: Any, key: str, values: list[Any]) -> Array:
     Returns the created Array instance.
     """
     from tomlkit import array
+
     arr = array(values)
     arr.multiline(True)
     tbl[key] = arr
