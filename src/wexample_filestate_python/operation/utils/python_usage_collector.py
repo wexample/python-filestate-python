@@ -102,7 +102,18 @@ class PythonUsageCollector(cst.CSTVisitor):
         # Names in defaults are needed at definition time: treat as B
         if has_default:
             try:
-                self._walk_expr_for_names(node.default, self.used_in_B)
+                # Collect base identifiers even if not recognized as imported yet
+                def _collect_base_names(expr: cst.BaseExpression) -> None:
+                    if isinstance(expr, cst.Name):
+                        self.used_in_B.add(expr.value)
+                    elif isinstance(expr, cst.Attribute):
+                        _collect_base_names(expr.value)
+                    elif isinstance(expr, cst.Subscript):
+                        _collect_base_names(expr.value)
+                        for e in expr.slice:
+                            if isinstance(e, cst.SubscriptElement) and isinstance(e.slice, cst.Index):
+                                _collect_base_names(e.slice.value)
+                _collect_base_names(node.default)
             except Exception:
                 pass
         # We still record annotation as C elsewhere
