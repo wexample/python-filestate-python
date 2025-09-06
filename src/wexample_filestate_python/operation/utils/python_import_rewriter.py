@@ -132,7 +132,6 @@ class PythonImportRewriter(cst.CSTTransformer):
 
             # Drop if moved to TYPE_CHECKING or localized (A or C-only)
             if alias_ident in self.names_to_remove_from_module:
-                removed_any = True
                 continue
 
             kept_aliases.append(alias)
@@ -140,18 +139,16 @@ class PythonImportRewriter(cst.CSTTransformer):
         if not kept_aliases:
             return cst.RemoveFromParent()
 
-        # If only one alias remains, ensure it has no trailing comma to avoid rendering like
-        # "from typing import TYPE_CHECKING,"
-        if len(kept_aliases) == 1:
-            single = kept_aliases[0]
-            if isinstance(single.comma, cst.Comma):
-                single = single.with_changes(comma=cst.MaybeSentinel.DEFAULT)
-            return updated_node.with_changes(names=(single,))
-
-        # Otherwise, keep original alias comma formatting to avoid CST inconsistencies
-        # If we didn't remove anything, preserve the original node to keep exact formatting/order
-        if not removed_any:
+        # If nothing changed (same number of aliases kept as original and none removed),
+        # return the original node to preserve exact formatting (commas, parentheses, whitespace).
+        try:
+            original_alias_count = len(original_node.names) if not isinstance(original_node.names, cst.ImportStar) else 0  # type: ignore[arg-type]
+        except Exception:
+            original_alias_count = -1
+        if original_alias_count == len(kept_aliases) and not removed_any:
             return original_node
+
+        # Keep original alias tokens (including commas) to avoid formatting-only changes.
         return updated_node.with_changes(names=tuple(kept_aliases))
 
     def leave_Module(
