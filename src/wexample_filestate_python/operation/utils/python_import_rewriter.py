@@ -132,6 +132,7 @@ class PythonImportRewriter(cst.CSTTransformer):
 
             # Drop if moved to TYPE_CHECKING or localized (A or C-only)
             if alias_ident in self.names_to_remove_from_module:
+                removed_any = True
                 continue
 
             kept_aliases.append(alias)
