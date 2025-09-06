@@ -69,6 +69,29 @@ class PythonRelocateImportsOperation(AbstractPythonFileOperation):
         )
         module.visit(uc)
 
+        # Conservative fallback: collect any imported names used in non-annotation expressions
+        runtime_used_anywhere: set[str] = set()
+
+        class _RuntimeSymbolCollector(cst.CSTVisitor):
+            def __init__(self) -> None:
+                self.in_annotation_stack: list[bool] = []
+
+            def visit_Annotation(self, node: cst.Annotation) -> bool:  # type: ignore[override]
+                self.in_annotation_stack.append(True)
+                return True
+
+            def leave_Annotation(self, node: cst.Annotation) -> None:  # type: ignore[override]
+                self.in_annotation_stack.pop()
+
+            def visit_Name(self, node: cst.Name) -> None:  # type: ignore[override]
+                if self.in_annotation_stack:
+                    return
+                val = node.value
+                if val in imported_value_names:
+                    runtime_used_anywhere.add(val)
+
+        module.visit(_RuntimeSymbolCollector())
+
         # Resolve categories
         used_in_A_all_functions: set[str] = (
             set().union(*functions_needing_local.values())
@@ -85,14 +108,12 @@ class PythonRelocateImportsOperation(AbstractPythonFileOperation):
         used_in_C_only: set[str] = {
             n
             for n in used_in_C_annot
-            if n not in used_in_A_final and n not in used_in_B and n not in cast_type_names_anywhere
+            if n not in used_in_A_final and n not in used_in_B and n not in cast_type_names_anywhere and n not in runtime_used_anywhere
         }
 
-        # Do not remove module-level imports for names that appear in cast() types
-        # unless they are also localized (A). This prevents wrong moves to TYPE_CHECKING
-        # when we failed to map a function usage for some reason.
-        safe_names_to_keep = cast_type_names_anywhere - used_in_A_final
-        names_to_remove_from_module = (set(used_in_A_final) | set(used_in_C_only)) - safe_names_to_keep
+        # Never remove module-level imports for names used inside cast() anywhere in the module;
+        # keep them at module level AND inject locals where needed.
+        names_to_remove_from_module = (set(used_in_A_final) | set(used_in_C_only)) - set(cast_type_names_anywhere) - set(runtime_used_anywhere)
 
         rewritten = module.visit(
             PythonImportRewriter(
