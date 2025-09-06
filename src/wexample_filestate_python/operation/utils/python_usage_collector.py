@@ -72,9 +72,16 @@ class PythonUsageCollector(cst.CSTVisitor):
                 self.functions_needing_local[self.func_stack[-1]].add(callee)
                 return
             # typing.cast(x, MyClass) when used as bare `cast(...)`
-            if callee in self.cast_function_candidates and node.args and len(node.args) >= 2:
+            if (
+                callee in self.cast_function_candidates
+                and node.args
+                and len(node.args) >= 2
+            ):
                 second = node.args[1].value
-                if isinstance(second, cst.Name) and second.value in self.imported_value_names:
+                if (
+                    isinstance(second, cst.Name)
+                    and second.value in self.imported_value_names
+                ):
                     self.functions_needing_local[self.func_stack[-1]].add(second.value)
                     return
         elif isinstance(func, cst.Attribute):
@@ -86,7 +93,10 @@ class PythonUsageCollector(cst.CSTVisitor):
                 and len(node.args) >= 2
             ):
                 second = node.args[1].value
-                if isinstance(second, cst.Name) and second.value in self.imported_value_names:
+                if (
+                    isinstance(second, cst.Name)
+                    and second.value in self.imported_value_names
+                ):
                     self.functions_needing_local[self.func_stack[-1]].add(second.value)
                     return
 
@@ -114,7 +124,9 @@ class PythonUsageCollector(cst.CSTVisitor):
         elif isinstance(ann, cst.Subscript):
             self._walk_expr_for_names(ann.value, bucket)
             for e in ann.slice:
-                if isinstance(e, cst.SubscriptElement) and isinstance(e.slice, cst.Index):
+                if isinstance(e, cst.SubscriptElement) and isinstance(
+                    e.slice, cst.Index
+                ):
                     self._walk_expr_for_names(e.slice.value, bucket)
         else:
             self._walk_expr_for_names(ann, bucket)
@@ -124,10 +136,15 @@ class PythonUsageCollector(cst.CSTVisitor):
             if expr.value in self.imported_value_names:
                 bucket.add(expr.value)
         elif isinstance(expr, cst.Attribute):
-            if isinstance(expr.attr, cst.Name) and expr.attr.value in self.imported_value_names:
+            if (
+                isinstance(expr.attr, cst.Name)
+                and expr.attr.value in self.imported_value_names
+            ):
                 bucket.add(expr.attr.value)
         elif isinstance(expr, cst.Subscript):
             self._walk_expr_for_names(expr.value, bucket)
             for e in expr.slice:
-                if isinstance(e, cst.SubscriptElement) and isinstance(e.slice, cst.Index):
+                if isinstance(e, cst.SubscriptElement) and isinstance(
+                    e.slice, cst.Index
+                ):
                     self._walk_expr_for_names(e.slice.value, bucket)

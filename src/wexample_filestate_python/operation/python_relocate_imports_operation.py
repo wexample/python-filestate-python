@@ -1,16 +1,16 @@
 from __future__ import annotations
 
+from collections import defaultdict
 from typing import ClassVar, DefaultDict
 
+import libcst as cst
 from wexample_filestate.const.types_state_items import TargetFileOrDirectoryType
 
 from .abstract_python_file_operation import AbstractPythonFileOperation
-from .utils.python_parser_import_index import PythonParserImportIndex
-from .utils.python_usage_collector import PythonUsageCollector
 from .utils.python_import_rewriter import PythonImportRewriter
 from .utils.python_localize_runtime_imports import PythonLocalizeRuntimeImports
-import libcst as cst
-from collections import defaultdict
+from .utils.python_parser_import_index import PythonParserImportIndex
+from .utils.python_usage_collector import PythonUsageCollector
 
 
 class PythonRelocateImportsOperation(AbstractPythonFileOperation):
@@ -61,7 +61,9 @@ class PythonRelocateImportsOperation(AbstractPythonFileOperation):
         # A: runtime usage inside function bodies
         # B: property type usage inside class body annotations
         # C: type-only annotations across module if not in A or B
-        functions_needing_local: DefaultDict[str, set[str]] = defaultdict(set)  # func_qualified_name -> names
+        functions_needing_local: DefaultDict[str, set[str]] = defaultdict(
+            set
+        )  # func_qualified_name -> names
         used_in_B: set[str] = set()
         used_in_C_annot: set[str] = set()
         uc = PythonUsageCollector(
@@ -74,16 +76,28 @@ class PythonRelocateImportsOperation(AbstractPythonFileOperation):
         module.visit(uc)
 
         # Resolve categories
-        used_in_A_all_functions: set[str] = set().union(*functions_needing_local.values()) if functions_needing_local else set()
+        used_in_A_all_functions: set[str] = (
+            set().union(*functions_needing_local.values())
+            if functions_needing_local
+            else set()
+        )
         # B has priority over A: if a name is in B, we will NOT local-import it (keep at module level)
-        used_in_A_final: set[str] = {n for n in used_in_A_all_functions if n not in used_in_B}
+        used_in_A_final: set[str] = {
+            n for n in used_in_A_all_functions if n not in used_in_B
+        }
         # C-only = in type annotations but not A_final or B
-        used_in_C_only: set[str] = {n for n in used_in_C_annot if n not in used_in_A_final and n not in used_in_B}
+        used_in_C_only: set[str] = {
+            n
+            for n in used_in_C_annot
+            if n not in used_in_A_final and n not in used_in_B
+        }
 
         # Prepare transformations
         # 1) Adjust module-level ImportFrom nodes: remove names that move to A (local) or C-only (TYPE_CHECKING),
         #    except when also in B.
-        names_to_remove_from_module: set[str] = set(used_in_A_final) | set(used_in_C_only)
+        names_to_remove_from_module: set[str] = set(used_in_A_final) | set(
+            used_in_C_only
+        )
 
         rewritten = module.visit(
             PythonImportRewriter(
@@ -97,22 +111,18 @@ class PythonRelocateImportsOperation(AbstractPythonFileOperation):
         # 2) Inject local imports into functions for A names
         #    For each function with names, add `from <module> import Name` at top of body.
         final_module = rewritten.visit(
-            PythonLocalizeRuntimeImports(idx=idx, functions_needing_local=functions_needing_local)
+            PythonLocalizeRuntimeImports(
+                idx=idx, functions_needing_local=functions_needing_local
+            )
         )
 
         return final_module.code
 
     def describe_before(self) -> str:
-        return (
-            "Imports are not organized by usage: runtime-in-method, class-level property types, and type-only annotations."
-        )
+        return "Imports are not organized by usage: runtime-in-method, class-level property types, and type-only annotations."
 
     def describe_after(self) -> str:
-        return (
-            "Imports have been relocated: runtime-in-method imports are localized, class property types stay at module level, and type-only imports are moved under TYPE_CHECKING."
-        )
+        return "Imports have been relocated: runtime-in-method imports are localized, class property types stay at module level, and type-only imports are moved under TYPE_CHECKING."
 
     def description(self) -> str:
-        return (
-            "Relocate imports by usage. Move runtime-only symbols used inside methods into those methods; keep property-type imports at module level; move type-only imports under TYPE_CHECKING."
-        )
+        return "Relocate imports by usage. Move runtime-only symbols used inside methods into those methods; keep property-type imports at module level; move type-only imports under TYPE_CHECKING."

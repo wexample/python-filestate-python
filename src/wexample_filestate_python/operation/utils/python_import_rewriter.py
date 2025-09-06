@@ -1,9 +1,9 @@
 from __future__ import annotations
 
+from collections import defaultdict
 from typing import DefaultDict
 
 import libcst as cst
-from collections import defaultdict
 
 from .python_parser_import_index import PythonParserImportIndex
 
@@ -32,14 +32,26 @@ class PythonImportRewriter(cst.CSTTransformer):
         self.need_type_checking_block: bool = len(used_in_C_only) > 0
 
     def leave_SimpleStatementLine(
-        self, original_node: cst.SimpleStatementLine, updated_node: cst.SimpleStatementLine
+        self,
+        original_node: cst.SimpleStatementLine,
+        updated_node: cst.SimpleStatementLine,
     ) -> cst.BaseStatement:
         # Detect `from typing import TYPE_CHECKING`
-        if len(updated_node.body) == 1 and isinstance(updated_node.body[0], cst.ImportFrom):
+        if len(updated_node.body) == 1 and isinstance(
+            updated_node.body[0], cst.ImportFrom
+        ):
             imp: cst.ImportFrom = updated_node.body[0]
-            if imp.module and isinstance(imp.module, cst.Name) and imp.module.value == "typing" and imp.names and not isinstance(imp.names, cst.ImportStar):
+            if (
+                imp.module
+                and isinstance(imp.module, cst.Name)
+                and imp.module.value == "typing"
+                and imp.names
+                and not isinstance(imp.names, cst.ImportStar)
+            ):
                 for alias in imp.names:
-                    if isinstance(alias, cst.ImportAlias) and isinstance(alias.name, cst.Name):
+                    if isinstance(alias, cst.ImportAlias) and isinstance(
+                        alias.name, cst.Name
+                    ):
                         if alias.name.value == "TYPE_CHECKING":
                             self.found_type_checking_import = True
         return updated_node
@@ -74,7 +86,9 @@ class PythonImportRewriter(cst.CSTTransformer):
             return cst.RemoveFromParent()
         return updated_node.with_changes(names=tuple(kept_aliases))
 
-    def leave_Module(self, original_node: cst.Module, updated_node: cst.Module) -> cst.Module:
+    def leave_Module(
+        self, original_node: cst.Module, updated_node: cst.Module
+    ) -> cst.Module:
         if not self.need_type_checking_block or not self.used_in_C_only:
             return updated_node
 
@@ -89,7 +103,9 @@ class PythonImportRewriter(cst.CSTTransformer):
             if not names:
                 continue
             import_names = [cst.ImportAlias(name=cst.Name(n)) for n in sorted(names)]
-            imp = cst.ImportFrom(module=cst.Name(mod) if mod else None, names=tuple(import_names))
+            imp = cst.ImportFrom(
+                module=cst.Name(mod) if mod else None, names=tuple(import_names)
+            )
             type_checking_body.append(cst.SimpleStatementLine((imp,)))
 
         if not type_checking_body:
@@ -113,9 +129,17 @@ class PythonImportRewriter(cst.CSTTransformer):
             new_body.append(stmt)
             i += 1
             if not inserted_typing_import:
-                if isinstance(stmt, cst.SimpleStatementLine) and stmt.body and isinstance(stmt.body[0], cst.ImportFrom):
+                if (
+                    isinstance(stmt, cst.SimpleStatementLine)
+                    and stmt.body
+                    and isinstance(stmt.body[0], cst.ImportFrom)
+                ):
                     imp: cst.ImportFrom = stmt.body[0]
-                    if imp.module and isinstance(imp.module, cst.Name) and imp.module.value == "__future__":
+                    if (
+                        imp.module
+                        and isinstance(imp.module, cst.Name)
+                        and imp.module.value == "__future__"
+                    ):
                         continue
                 if not self.found_type_checking_import:
                     new_body.append(typing_import_stmt)

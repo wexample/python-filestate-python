@@ -5,6 +5,9 @@ from typing import TYPE_CHECKING
 from wexample_filestate.operations_provider.abstract_operations_provider import (
     AbstractOperationsProvider,
 )
+from wexample_filestate_python.operation.python_relocate_imports_operation import (
+    PythonRelocateImportsOperation,
+)
 
 if TYPE_CHECKING:
     from wexample_filestate.operation.abstract_operation import AbstractOperation
@@ -37,7 +40,6 @@ class PythonOperationsProvider(AbstractOperationsProvider):
         from wexample_filestate_python.operation.python_unquote_annotations_operation import (
             PythonUnquoteAnnotationsOperation,
         )
-        from wexample_filestate_python.operation.python_relocate_imports_operation import PythonRelocateImportsOperation
 
         return [
             PythonFormatOperation,
