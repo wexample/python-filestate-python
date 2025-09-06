@@ -39,6 +39,8 @@ class PythonUsageCollector(cst.CSTVisitor):
 
         self.class_stack: list[str] = []
         self.func_stack: list[str] = []
+        self._in_annotation_stack: list[bool] = []
+        self._in_decorator_stack: list[bool] = []
 
     # ----- Stack management -----
     def visit_ClassDef(self, node: cst.ClassDef) -> bool:  # type: ignore[override]
@@ -67,6 +69,34 @@ class PythonUsageCollector(cst.CSTVisitor):
 
     def leave_AsyncFunctionDef(self, node: cst.AsyncFunctionDef) -> None:  # type: ignore[override]
         self.func_stack.pop()
+
+    # Track annotation context to avoid misclassifying annotation names as runtime
+    def visit_Annotation(self, node: cst.Annotation) -> bool:  # type: ignore[override]
+        self._in_annotation_stack.append(True)
+        return True
+
+    def leave_Annotation(self, node: cst.Annotation) -> None:  # type: ignore[override]
+        if self._in_annotation_stack:
+            self._in_annotation_stack.pop()
+
+    # Track decorator context to avoid treating decorator names as runtime usage
+    def visit_Decorator(self, node: cst.Decorator) -> bool:  # type: ignore[override]
+        self._in_decorator_stack.append(True)
+        return True
+
+    def leave_Decorator(self, node: cst.Decorator) -> None:  # type: ignore[override]
+        if self._in_decorator_stack:
+            self._in_decorator_stack.pop()
+
+    # Treat bare Name usage inside function bodies as runtime usage (A)
+    def visit_Name(self, node: cst.Name) -> None:  # type: ignore[override]
+        if not self.func_stack:
+            return
+        if self._in_annotation_stack or self._in_decorator_stack:
+            return
+        val = node.value
+        if val in self.imported_value_names:
+            self.functions_needing_local[self.func_stack[-1]].add(val)
 
     # ----- A: runtime usages inside functions -----
     def visit_Call(self, node: cst.Call) -> None:  # type: ignore[override]
