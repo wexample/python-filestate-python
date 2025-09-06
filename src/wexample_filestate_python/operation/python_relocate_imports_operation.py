@@ -100,9 +100,14 @@ class PythonRelocateImportsOperation(AbstractPythonFileOperation):
         # Exclude only B (class-level property usage), which must stay at module level.
         used_in_C_for_block: set[str] = (set(used_in_C_annot) | set(cast_type_names_anywhere)) - set(used_in_B)
 
-        # Never remove module-level imports for names used inside cast() anywhere in the module;
-        # keep them at module level AND inject locals where needed.
-        names_to_remove_from_module = (set(used_in_A_final) | set(used_in_C_only)) - set(cast_type_names_anywhere)
+        # For names used inside cast() anywhere in the module:
+        # - include them under TYPE_CHECKING (handled via used_in_C_for_block)
+        # - remove module-level import unless also in B (class-level usage)
+        names_to_remove_from_module = (
+            set(used_in_A_final)
+            | set(used_in_C_only)
+            | (set(cast_type_names_anywhere) - set(used_in_B))
+        )
 
         rewritten = module.visit(
             PythonImportRewriter(
@@ -119,7 +124,8 @@ class PythonRelocateImportsOperation(AbstractPythonFileOperation):
             PythonLocalizeRuntimeImports(
                 idx=idx,
                 functions_needing_local=functions_needing_local,
-                skip_local_names=set(used_in_B) | set(cast_type_names_anywhere),
+                # Do not skip cast-used names so they are localized per method.
+                skip_local_names=set(used_in_B),
             )
         )
 
