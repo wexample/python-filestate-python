@@ -42,11 +42,7 @@ class PythonRelocateImportsOperation(AbstractPythonFileOperation):
     @classmethod
     def preview_source_change(cls, target: TargetFileOrDirectoryType) -> str | None:
         src = cls._read_current_str_or_fail(target)
-        try:
-            module = cst.parse_module(src)
-        except Exception:
-            # Fallback: keep content unchanged if parse fails.
-            return src
+        module = cst.parse_module(src)
 
         # Index current imports using shared utility
         idx = PythonParserImportIndex()
