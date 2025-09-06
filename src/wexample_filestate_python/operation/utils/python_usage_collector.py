@@ -114,6 +114,18 @@ class PythonUsageCollector(cst.CSTVisitor):
             return
         self._record_type_names(node.annotation.annotation, self.used_in_B)
 
+    # Also treat class-level simple assignments where RHS references imported names as B.
+    # Example: SERVICE_CLASS = GithubRemote
+    def visit_Assign(self, node: cst.Assign) -> None:  # type: ignore[override]
+        if not self.class_stack:
+            return
+        # Record any imported names appearing in the value expression as B
+        try:
+            value = node.value
+        except Exception:
+            return
+        self._walk_expr_for_names(value, self.used_in_B)
+
     # ----- C: function param annotations -----
     def visit_Param(self, node: cst.Param) -> None:  # type: ignore[override]
         if node.annotation is not None:

@@ -20,10 +20,12 @@ class PythonLocalizeRuntimeImports(cst.CSTTransformer):
         self,
         idx: PythonParserImportIndex,
         functions_needing_local: DefaultDict[str, set[str]],
+        skip_local_names: set[str] | None = None,
     ) -> None:
         super().__init__()
         self.idx = idx
         self.functions_needing_local = functions_needing_local
+        self.skip_local_names = skip_local_names or set()
         self.class_stack: list[str] = []
 
     @staticmethod
@@ -64,6 +66,8 @@ class PythonLocalizeRuntimeImports(cst.CSTTransformer):
         # Group by module
         by_module: DefaultDict[str | None, list[str]] = defaultdict(list)
         for ident in sorted(names):
+            if ident in self.skip_local_names:
+                continue
             mod, _ = self.idx.name_to_from.get(ident, (None, None))
             by_module[mod].append(ident)
         stmts: list[cst.BaseStatement] = []

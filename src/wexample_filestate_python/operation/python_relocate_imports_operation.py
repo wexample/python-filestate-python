@@ -111,7 +111,9 @@ class PythonRelocateImportsOperation(AbstractPythonFileOperation):
         #    For each function with names, add `from <module> import Name` at top of body.
         final_module = rewritten.visit(
             PythonLocalizeRuntimeImports(
-                idx=idx, functions_needing_local=functions_needing_local
+                idx=idx,
+                functions_needing_local=functions_needing_local,
+                skip_local_names=set(used_in_B) | set(cast_type_names_anywhere),
             )
         )
 
