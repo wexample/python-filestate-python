@@ -87,8 +87,8 @@ class PythonUsageCollector(cst.CSTVisitor):
                 for n in names:
                     # Always record for module-wide exclusion from TYPE_CHECKING
                     self.cast_type_names_anywhere.add(n)
-                    # Only schedule local import if it's a known imported symbol
-                    if n in self.imported_value_names and self.func_stack:
+                    # Always schedule local import for this function; localizer will filter if module cannot be resolved
+                    if self.func_stack:
                         self.functions_needing_local[self.func_stack[-1]].add(n)
                 return
         elif isinstance(func, cst.Attribute):
@@ -102,10 +102,8 @@ class PythonUsageCollector(cst.CSTVisitor):
                 second = node.args[1].value
                 names = self._collect_names_from_type_expr(second)
                 for n in names:
-                    if n in self.imported_value_names:
-                        if self.func_stack:
-                            self.functions_needing_local[self.func_stack[-1]].add(n)
-                        self.cast_type_names_anywhere.add(n)
+                    self.cast_type_names_anywhere.add(n)
+                    self.functions_needing_local[self.func_stack[-1]].add(n)
                 return
 
     # ----- B: class-level property annotations -----
