@@ -166,30 +166,17 @@ class PythonImportRewriter(cst.CSTTransformer):
             mod, _ = self.idx.name_to_from.get(ident, (None, None))
             desired_by_module[mod].add(ident)
 
-        # Look for existing TYPE_CHECKING block(s) and collect all existing imports
+        # Look for existing TYPE_CHECKING block(s)
         existing_tc_index = None
         existing_tc_body: list[cst.BaseStatement] | None = None
         existing_imported: set[tuple[str | None, str]] = set()
 
         for i, stmt in enumerate(updated_node.body):
-            if isinstance(stmt, cst.If):
-                is_tc = False
-                if isinstance(stmt.test, cst.Name) and stmt.test.value == "TYPE_CHECKING":
-                    is_tc = True
-                elif isinstance(stmt.test, cst.Attribute):
-                    # typing.TYPE_CHECKING pattern
-                    is_tc = (
-                        isinstance(stmt.test.attr, cst.Name)
-                        and stmt.test.attr.value == "TYPE_CHECKING"
-                    )
-                if not is_tc:
-                    continue
-                if existing_tc_index is None:
-                    existing_tc_index = i
-                    existing_tc_body = list(stmt.body.body)
+            if isinstance(stmt, cst.If) and isinstance(stmt.test, cst.Name) and stmt.test.value == "TYPE_CHECKING":
+                existing_tc_index = i
+                existing_tc_body = list(stmt.body.body)
                 # Collect names already imported there
-                body_stmts = list(stmt.body.body)
-                for s in body_stmts:
+                for s in existing_tc_body:
                     if isinstance(s, cst.SimpleStatementLine) and len(s.body) == 1 and isinstance(s.body[0], cst.ImportFrom):
                         imp: cst.ImportFrom = s.body[0]
                         mod = self._flatten_module_expr_to_str(imp.module)
@@ -197,14 +184,7 @@ class PythonImportRewriter(cst.CSTTransformer):
                             for alias in imp.names:
                                 if isinstance(alias, cst.ImportAlias) and isinstance(alias.name, cst.Name):
                                     existing_imported.add((mod, alias.name.value))
-
-        # If exact set already present, make no changes to preserve formatting/order
-        desired_pairs: set[tuple[str | None, str]] = set()
-        for mod, names in desired_by_module.items():
-            for n in names:
-                desired_pairs.add((mod, n))
-        if desired_pairs == existing_imported and existing_tc_index is not None:
-            return original_node
+                break
 
         # Compute missing imports
         missing_by_module: DefaultDict[str | None, list[str]] = defaultdict(list)
