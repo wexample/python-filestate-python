@@ -69,6 +69,9 @@ class PythonLocalizeRuntimeImports(cst.CSTTransformer):
             if ident in self.skip_local_names:
                 continue
             mod, _ = self.idx.name_to_from.get(ident, (None, None))
+            # Skip unresolved modules to avoid invalid ImportFrom(module=None)
+            if mod is None:
+                continue
             by_module[mod].append(ident)
         stmts: list[cst.BaseStatement] = []
         pairs: set[tuple[str | None, str]] = set()

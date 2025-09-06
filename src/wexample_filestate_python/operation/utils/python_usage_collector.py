@@ -45,6 +45,12 @@ class PythonUsageCollector(cst.CSTVisitor):
     # ----- Stack management -----
     def visit_ClassDef(self, node: cst.ClassDef) -> bool:  # type: ignore[override]
         self.class_stack.append(node.name.value)
+        # Treat symbols in the inheritance list as B (must be available at class creation)
+        for base in node.bases:
+            try:
+                self._walk_expr_for_names(base.value, self.used_in_B)
+            except Exception:
+                pass
         return True
 
     def leave_ClassDef(self, node: cst.ClassDef) -> None:  # type: ignore[override]
