@@ -11,6 +11,7 @@ from .utils.python_import_rewriter import PythonImportRewriter
 from .utils.python_localize_runtime_imports import PythonLocalizeRuntimeImports
 from .utils.python_parser_import_index import PythonParserImportIndex
 from .utils.python_usage_collector import PythonUsageCollector
+from .utils.python_runtime_symbol_collector import PythonRuntimeSymbolCollector
 
 
 class PythonRelocateImportsOperation(AbstractPythonFileOperation):
@@ -70,27 +71,9 @@ class PythonRelocateImportsOperation(AbstractPythonFileOperation):
         module.visit(uc)
 
         # Conservative fallback: collect any imported names used in non-annotation expressions
-        runtime_used_anywhere: set[str] = set()
-
-        class _RuntimeSymbolCollector(cst.CSTVisitor):
-            def __init__(self) -> None:
-                self.in_annotation_stack: list[bool] = []
-
-            def visit_Annotation(self, node: cst.Annotation) -> bool:  # type: ignore[override]
-                self.in_annotation_stack.append(True)
-                return True
-
-            def leave_Annotation(self, node: cst.Annotation) -> None:  # type: ignore[override]
-                self.in_annotation_stack.pop()
-
-            def visit_Name(self, node: cst.Name) -> None:  # type: ignore[override]
-                if self.in_annotation_stack:
-                    return
-                val = node.value
-                if val in imported_value_names:
-                    runtime_used_anywhere.add(val)
-
-        module.visit(_RuntimeSymbolCollector())
+        rsc = PythonRuntimeSymbolCollector(imported_value_names=imported_value_names)
+        module.visit(rsc)
+        runtime_used_anywhere: set[str] = rsc.runtime_used_anywhere
 
         # Resolve categories
         used_in_A_all_functions: set[str] = (
