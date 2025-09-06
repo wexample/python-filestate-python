@@ -1,9 +1,11 @@
 from __future__ import annotations
 
 import ast
-from pathlib import Path
 
 import tomli
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from pathlib import Path
 
 
 def package_parse_setup(path: Path) -> dict:
@@ -78,6 +80,7 @@ def package_get_dependencies(root_dir: str | Path) -> dict[str, set[str]]:
     """
     Get dependencies between packages in a directory.
     """
+    from pathlib import Path
     packages_root = Path(root_dir)
     if not packages_root.exists() or not packages_root.is_dir():
         raise ValueError(f"Error: {packages_root} does not exist or is not a directory")

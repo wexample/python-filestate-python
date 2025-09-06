@@ -1,11 +1,10 @@
 from __future__ import annotations
-
-from collections import defaultdict
 from typing import DefaultDict
 
 import libcst as cst
-
-from .python_parser_import_index import PythonParserImportIndex
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from python_parser_import_index import PythonParserImportIndex
 
 
 class PythonLocalizeRuntimeImports(cst.CSTTransformer):
@@ -60,6 +59,7 @@ class PythonLocalizeRuntimeImports(cst.CSTTransformer):
         return None
 
     def _build_local_imports(self, func_qname: str) -> tuple[list[cst.BaseStatement], set[tuple[str | None, str]]]:
+        from collections import defaultdict
         names = self.functions_needing_local.get(func_qname)
         if not names:
             return [], set()

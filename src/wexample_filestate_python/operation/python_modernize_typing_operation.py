@@ -1,8 +1,9 @@
 from __future__ import annotations
 
-from wexample_filestate.const.types_state_items import TargetFileOrDirectoryType
-
 from .abstract_python_file_operation import AbstractPythonFileOperation
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from wexample_filestate.const.types_state_items import TargetFileOrDirectoryType
 
 
 class PythonModernizeTypingOperation(AbstractPythonFileOperation):
@@ -13,15 +14,13 @@ class PythonModernizeTypingOperation(AbstractPythonFileOperation):
 
     @classmethod
     def get_option_name(cls) -> str:
-        from wexample_filestate_python.config_option.python_config_option import (
-            PythonConfigOption,
-        )
+        from wexample_filestate_python.config_option.python_config_option import PythonConfigOption
 
         return PythonConfigOption.OPTION_NAME_MODERNIZE_TYPING
 
     @classmethod
     def preview_source_change(cls, target: TargetFileOrDirectoryType) -> str | None:
-        from pyupgrade._main import Settings, _fix_plugins  # type: ignore
+        from pyupgrade._main import Settings, _fix_plugins
 
         src = cls._read_current_str_or_fail(target)
         settings = Settings(min_version=(3, 12))

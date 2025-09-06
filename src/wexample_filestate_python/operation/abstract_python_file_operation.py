@@ -1,23 +1,20 @@
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
-
-from wexample_config.config_option.abstract_config_option import AbstractConfigOption
-from wexample_filestate.enum.scopes import Scope
 from wexample_filestate.operation.abstract_existing_file_operation import (
     AbstractExistingFileOperation,
-)
-from wexample_filestate_python.config_option.python_config_option import (
-    PythonConfigOption,
 )
 
 if TYPE_CHECKING:
     pass
+    from wexample_config.config_option.abstract_config_option import AbstractConfigOption
+    from wexample_filestate.enum.scopes import Scope
 
 
 class AbstractPythonFileOperation(AbstractExistingFileOperation):
     @classmethod
     def get_scope(cls) -> Scope:
+        from wexample_filestate.enum.scopes import Scope
         return Scope.CONTENT
 
     @classmethod
@@ -26,6 +23,7 @@ class AbstractPythonFileOperation(AbstractExistingFileOperation):
 
     def applicable_for_option(self, option: AbstractConfigOption) -> bool:
         """Generic applicability for Python file transforms controlled by a single option name."""
+        from wexample_filestate_python.config_option.python_config_option import PythonConfigOption
         # Option type
         if not isinstance(option, PythonConfigOption):
             return False

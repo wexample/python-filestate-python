@@ -1,11 +1,10 @@
 from __future__ import annotations
-
-from collections import defaultdict
 from typing import DefaultDict
 
 import libcst as cst
-
-from .python_parser_import_index import PythonParserImportIndex
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from python_parser_import_index import PythonParserImportIndex
 
 
 class PythonImportRewriter(cst.CSTTransformer):
@@ -155,6 +154,7 @@ class PythonImportRewriter(cst.CSTTransformer):
     def leave_Module(
         self, original_node: cst.Module, updated_node: cst.Module
     ) -> cst.Module:
+        from collections import defaultdict
         if not self.need_type_checking_block or not self.used_in_C_only:
             return updated_node
 

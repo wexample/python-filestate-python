@@ -1,17 +1,12 @@
 from __future__ import annotations
-
-from collections import defaultdict
 from typing import ClassVar, DefaultDict
 
 import libcst as cst
-from wexample_filestate.const.types_state_items import TargetFileOrDirectoryType
 
 from .abstract_python_file_operation import AbstractPythonFileOperation
-from .utils.python_import_rewriter import PythonImportRewriter
-from .utils.python_localize_runtime_imports import PythonLocalizeRuntimeImports
-from .utils.python_parser_import_index import PythonParserImportIndex
-from .utils.python_usage_collector import PythonUsageCollector
-from .utils.python_runtime_symbol_collector import PythonRuntimeSymbolCollector
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from wexample_filestate.const.types_state_items import TargetFileOrDirectoryType
 
 
 class PythonRelocateImportsOperation(AbstractPythonFileOperation):
@@ -34,14 +29,18 @@ class PythonRelocateImportsOperation(AbstractPythonFileOperation):
 
     @classmethod
     def get_option_name(cls) -> str:
-        from wexample_filestate_python.config_option.python_config_option import (
-            PythonConfigOption,
-        )
+        from wexample_filestate_python.config_option.python_config_option import PythonConfigOption
 
         return PythonConfigOption.OPTION_NAME_RELOCATE_IMPORTS
 
     @classmethod
     def preview_source_change(cls, target: TargetFileOrDirectoryType) -> str | None:
+        from wexample_filestate_python.operation.utils.python_import_rewriter import PythonImportRewriter
+        from wexample_filestate_python.operation.utils.python_localize_runtime_imports import PythonLocalizeRuntimeImports
+        from wexample_filestate_python.operation.utils.python_parser_import_index import PythonParserImportIndex
+        from wexample_filestate_python.operation.utils.python_runtime_symbol_collector import PythonRuntimeSymbolCollector
+        from wexample_filestate_python.operation.utils.python_usage_collector import PythonUsageCollector
+        from collections import defaultdict
         src = cls._read_current_str_or_fail(target)
         module = cst.parse_module(src)
 

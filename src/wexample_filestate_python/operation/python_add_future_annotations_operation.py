@@ -1,6 +1,9 @@
 from wexample_filestate.const.types_state_items import TargetFileOrDirectoryType
 
 from .abstract_python_file_operation import AbstractPythonFileOperation
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from wexample_filestate.const.types_state_items import TargetFileOrDirectoryType
 
 
 class PythonAddFutureAnnotationsOperation(AbstractPythonFileOperation):
@@ -14,9 +17,7 @@ class PythonAddFutureAnnotationsOperation(AbstractPythonFileOperation):
 
     @classmethod
     def get_option_name(cls) -> str:
-        from wexample_filestate_python.config_option.python_config_option import (
-            PythonConfigOption,
-        )
+        from wexample_filestate_python.config_option.python_config_option import PythonConfigOption
 
         return PythonConfigOption.OPTION_NAME_ADD_FUTURE_ANNOTATIONS
 
