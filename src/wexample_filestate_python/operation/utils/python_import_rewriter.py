@@ -32,6 +32,16 @@ class PythonImportRewriter(cst.CSTTransformer):
         self.need_type_checking_block: bool = len(used_in_C_only) > 0
         self._inside_type_checking_stack: list[bool] = []
 
+    @staticmethod
+    def _build_module_expr(mod: str | None) -> cst.BaseExpression | None:
+        if not mod:
+            return None
+        parts = mod.split(".")
+        expr: cst.BaseExpression = cst.Name(parts[0])
+        for p in parts[1:]:
+            expr = cst.Attribute(value=expr, attr=cst.Name(p))
+        return expr
+
     def leave_SimpleStatementLine(
         self,
         original_node: cst.SimpleStatementLine,
@@ -156,7 +166,7 @@ class PythonImportRewriter(cst.CSTTransformer):
                 imp_stmt = cst.SimpleStatementLine(
                     (
                         cst.ImportFrom(
-                            module=cst.Name(mod) if mod else None, names=tuple(import_names)
+                            module=self._build_module_expr(mod), names=tuple(import_names)
                         ),
                     )
                 )
@@ -176,7 +186,7 @@ class PythonImportRewriter(cst.CSTTransformer):
             if not names:
                 continue
             import_names = [cst.ImportAlias(name=cst.Name(n)) for n in sorted(names)]
-            imp = cst.ImportFrom(module=cst.Name(mod) if mod else None, names=tuple(import_names))
+            imp = cst.ImportFrom(module=self._build_module_expr(mod), names=tuple(import_names))
             type_checking_body.append(cst.SimpleStatementLine((imp,)))
 
         if not type_checking_body:
