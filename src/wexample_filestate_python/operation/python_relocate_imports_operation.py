@@ -59,11 +59,13 @@ class PythonRelocateImportsOperation(AbstractPythonFileOperation):
         )  # func_qualified_name -> names
         used_in_B: set[str] = set()
         used_in_C_annot: set[str] = set()
+        cast_type_names_anywhere: set[str] = set()
         uc = PythonUsageCollector(
             imported_value_names=imported_value_names,
             functions_needing_local=functions_needing_local,
             used_in_B=used_in_B,
             used_in_C_annot=used_in_C_annot,
+            cast_type_names_anywhere=cast_type_names_anywhere,
         )
         module.visit(uc)
 
@@ -78,10 +80,12 @@ class PythonRelocateImportsOperation(AbstractPythonFileOperation):
             n for n in used_in_A_all_functions if n not in used_in_B
         }
         # C-only = in type annotations but not A_final or B
+        # Exclude any names that appear in cast() type expressions anywhere from C-only,
+        # since casts require runtime availability of the symbol.
         used_in_C_only: set[str] = {
             n
             for n in used_in_C_annot
-            if n not in used_in_A_final and n not in used_in_B
+            if n not in used_in_A_final and n not in used_in_B and n not in cast_type_names_anywhere
         }
 
         rewritten = module.visit(

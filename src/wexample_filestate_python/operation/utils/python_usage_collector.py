@@ -22,6 +22,7 @@ class PythonUsageCollector(cst.CSTVisitor):
         functions_needing_local: DefaultDict[str, set[str]],
         used_in_B: set[str],
         used_in_C_annot: set[str],
+        cast_type_names_anywhere: set[str],
         cast_function_candidates: set[str] | None = None,
     ) -> None:
         super().__init__()
@@ -29,6 +30,7 @@ class PythonUsageCollector(cst.CSTVisitor):
         self.functions_needing_local = functions_needing_local
         self.used_in_B = used_in_B
         self.used_in_C_annot = used_in_C_annot
+        self.cast_type_names_anywhere = cast_type_names_anywhere
         self.cast_function_candidates = (
             set(self.DEFAULT_CAST_FUNCTION_CANDIDATES)
             if cast_function_candidates is None
@@ -81,9 +83,12 @@ class PythonUsageCollector(cst.CSTVisitor):
             if callee in self.cast_function_candidates and node.args and len(node.args) >= 2:
                 second = node.args[1].value
                 # Collect any imported names appearing anywhere inside the type expression
-                for n in self._collect_names_from_type_expr(second):
+                names = self._collect_names_from_type_expr(second)
+                for n in names:
                     if n in self.imported_value_names:
-                        self.functions_needing_local[self.func_stack[-1]].add(n)
+                        if self.func_stack:
+                            self.functions_needing_local[self.func_stack[-1]].add(n)
+                        self.cast_type_names_anywhere.add(n)
                 return
         elif isinstance(func, cst.Attribute):
             # typing.cast(...) or pkg.cast(...)
@@ -94,9 +99,12 @@ class PythonUsageCollector(cst.CSTVisitor):
                 and len(node.args) >= 2
             ):
                 second = node.args[1].value
-                for n in self._collect_names_from_type_expr(second):
+                names = self._collect_names_from_type_expr(second)
+                for n in names:
                     if n in self.imported_value_names:
-                        self.functions_needing_local[self.func_stack[-1]].add(n)
+                        if self.func_stack:
+                            self.functions_needing_local[self.func_stack[-1]].add(n)
+                        self.cast_type_names_anywhere.add(n)
                 return
 
     # ----- B: class-level property annotations -----
