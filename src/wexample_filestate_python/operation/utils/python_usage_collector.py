@@ -103,9 +103,11 @@ class PythonUsageCollector(cst.CSTVisitor):
         if has_default:
             try:
                 # Collect base identifiers even if not recognized as imported yet
+                collected: set[str] = set()
+
                 def _collect_base_names(expr: cst.BaseExpression) -> None:
                     if isinstance(expr, cst.Name):
-                        self.used_in_B.add(expr.value)
+                        collected.add(expr.value)
                     elif isinstance(expr, cst.Attribute):
                         _collect_base_names(expr.value)
                     elif isinstance(expr, cst.Subscript):
@@ -114,6 +116,7 @@ class PythonUsageCollector(cst.CSTVisitor):
                             if isinstance(e, cst.SubscriptElement) and isinstance(e.slice, cst.Index):
                                 _collect_base_names(e.slice.value)
                 _collect_base_names(node.default)
+                self.used_in_B.update(collected)
             except Exception:
                 pass
         # We still record annotation as C elsewhere
@@ -122,6 +125,43 @@ class PythonUsageCollector(cst.CSTVisitor):
     def leave_Param(self, node: cst.Param) -> None:  # type: ignore[override]
         if self._in_param_default_stack:
             self._in_param_default_stack.pop()
+
+    # Fallback: explicitly scan Parameters node for defaults (some environments may not trigger visit_Param)
+    def visit_Parameters(self, node: cst.Parameters) -> bool:  # type: ignore[override]
+        try:
+            func = self.func_stack[-1] if self.func_stack else "<module>"
+            # Aggregate all parameter-like collections
+            all_params: list[cst.Param] = []
+            all_params.extend(list(node.params))
+            all_params.extend(list(node.posonly_params))
+            all_params.extend(list(node.kwonly_params))
+            if node.star_arg is not None and isinstance(node.star_arg, cst.Param):
+                all_params.append(node.star_arg)
+            if node.star_kwarg is not None and isinstance(node.star_kwarg, cst.Param):
+                all_params.append(node.star_kwarg)
+
+            for p in all_params:
+                has_default = p.default is not None
+                if not has_default:
+                    continue
+                collected: set[str] = set()
+
+                def _collect_base_names(expr: cst.BaseExpression) -> None:
+                    if isinstance(expr, cst.Name):
+                        collected.add(expr.value)
+                    elif isinstance(expr, cst.Attribute):
+                        _collect_base_names(expr.value)
+                    elif isinstance(expr, cst.Subscript):
+                        _collect_base_names(expr.value)
+                        for e in expr.slice:
+                            if isinstance(e, cst.SubscriptElement) and isinstance(e.slice, cst.Index):
+                                _collect_base_names(e.slice.value)
+
+                _collect_base_names(p.default)  # type: ignore[arg-type]
+                self.used_in_B.update(collected)
+        except Exception:
+            pass
+        return True
 
     # Treat bare Name usage inside function bodies as runtime usage (A)
     def visit_Name(self, node: cst.Name) -> None:  # type: ignore[override]
