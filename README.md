@@ -12,6 +12,7 @@ Version: 0.0.41
 
 - pydantic>=2,<3
 - wexample-filestate==0.0.51
+- wexample-helpers-api==0.0.32
 
 ## Installation
 
