@@ -96,7 +96,7 @@ class PythonRelocateImportsOperation(AbstractPythonFileOperation):
 
         # Never remove module-level imports for names used inside cast() anywhere in the module;
         # keep them at module level AND inject locals where needed.
-        names_to_remove_from_module = (set(used_in_A_final) | set(used_in_C_only)) - set(cast_type_names_anywhere) - set(runtime_used_anywhere)
+        names_to_remove_from_module = (set(used_in_A_final) | set(used_in_C_only)) - set(cast_type_names_anywhere)
 
         rewritten = module.visit(
             PythonImportRewriter(
