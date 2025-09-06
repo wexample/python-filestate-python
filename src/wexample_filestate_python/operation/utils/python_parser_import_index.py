@@ -12,22 +12,34 @@ class PythonParserImportIndex(cst.CSTVisitor):
         self.importfrom_nodes: list[cst.ImportFrom] = []
         self.other_import_nodes: list[cst.Import] = []
 
+    @staticmethod
+    def _flatten_module_name(module: cst.BaseExpression | None) -> str | None:
+        if module is None:
+            return None
+        if isinstance(module, cst.Name):
+            return module.value
+        if isinstance(module, cst.Attribute):
+            parts: list[str] = []
+            cur: cst.BaseExpression | None = module
+            while isinstance(cur, cst.Attribute):
+                if isinstance(cur.attr, cst.Name):
+                    parts.append(cur.attr.value)
+                else:
+                    break
+                cur = cur.value
+            if isinstance(cur, cst.Name):
+                parts.append(cur.value)
+            parts.reverse()
+            return ".".join(parts) if parts else None
+        if isinstance(module, cst.SimpleString):
+            return module.evaluated_value
+        return None
+
     def visit_ImportFrom(self, node: cst.ImportFrom) -> None:  # type: ignore[override]
         self.importfrom_nodes.append(node)
         if node.names is None or isinstance(node.names, cst.ImportStar):
             return
-        module_name = None
-        if node.module is not None:
-            if isinstance(node.module, cst.Name):
-                module_name = node.module.value
-            elif isinstance(node.module, cst.Attribute):
-                module_name = (
-                    node.module.attr.value
-                    if isinstance(node.module.attr, cst.Name)
-                    else None
-                )
-            elif isinstance(node.module, cst.SimpleString):
-                module_name = node.module.evaluated_value  # unlikely
+        module_name = self._flatten_module_name(node.module)
         for alias in node.names:
             if isinstance(alias, cst.ImportAlias):
                 asname = alias.asname.name.value if alias.asname else None

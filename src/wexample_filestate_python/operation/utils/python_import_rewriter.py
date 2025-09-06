@@ -30,6 +30,7 @@ class PythonImportRewriter(cst.CSTTransformer):
         self.idx = idx
         self.found_type_checking_import: bool = False
         self.need_type_checking_block: bool = len(used_in_C_only) > 0
+        self._inside_type_checking_stack: list[bool] = []
 
     def leave_SimpleStatementLine(
         self,
@@ -56,10 +57,24 @@ class PythonImportRewriter(cst.CSTTransformer):
                             self.found_type_checking_import = True
         return updated_node
 
+    def visit_If(self, node: cst.If) -> bool:  # type: ignore[override]
+        # Track whether we are under `if TYPE_CHECKING:`
+        inside = isinstance(node.test, cst.Name) and node.test.value == "TYPE_CHECKING"
+        self._inside_type_checking_stack.append(inside)
+        return True
+
+    def leave_If(self, original_node: cst.If, updated_node: cst.If) -> cst.If:  # type: ignore[override]
+        self._inside_type_checking_stack.pop()
+        return updated_node
+
     def leave_ImportFrom(
         self, original_node: cst.ImportFrom, updated_node: cst.ImportFrom
     ) -> cst.RemovalSentinel | cst.BaseSmallStatement:
         if updated_node.names is None or isinstance(updated_node.names, cst.ImportStar):
+            return updated_node
+
+        # If we're already inside a TYPE_CHECKING block, do not filter out C-only names here.
+        if self._inside_type_checking_stack and self._inside_type_checking_stack[-1]:
             return updated_node
 
         kept_aliases: list[cst.ImportAlias] = []
@@ -92,20 +107,76 @@ class PythonImportRewriter(cst.CSTTransformer):
         if not self.need_type_checking_block or not self.used_in_C_only:
             return updated_node
 
-        # Build TYPE_CHECKING block
-        type_checking_body: list[cst.BaseStatement] = []
-        by_module: DefaultDict[str | None, list[str]] = defaultdict(list)
+        # Build desired imports for C-only
+        desired_by_module: DefaultDict[str | None, set[str]] = defaultdict(set)
         for ident in sorted(self.used_in_C_only):
             mod, _ = self.idx.name_to_from.get(ident, (None, None))
-            by_module[mod].append(ident)
+            desired_by_module[mod].add(ident)
 
-        for mod, names in by_module.items():
+        # Look for existing TYPE_CHECKING block(s)
+        existing_tc_index = None
+        existing_tc_body: list[cst.BaseStatement] | None = None
+        existing_imported: set[tuple[str | None, str]] = set()
+
+        for i, stmt in enumerate(updated_node.body):
+            if isinstance(stmt, cst.If) and isinstance(stmt.test, cst.Name) and stmt.test.value == "TYPE_CHECKING":
+                existing_tc_index = i
+                existing_tc_body = list(stmt.body.body)
+                # Collect names already imported there
+                for s in existing_tc_body:
+                    if isinstance(s, cst.SimpleStatementLine) and len(s.body) == 1 and isinstance(s.body[0], cst.ImportFrom):
+                        imp: cst.ImportFrom = s.body[0]
+                        mod = None
+                        if imp.module:
+                            if isinstance(imp.module, cst.Name):
+                                mod = imp.module.value
+                            elif isinstance(imp.module, cst.Attribute):
+                                # Best-effort flatten
+                                mod = None
+                        if imp.names and not isinstance(imp.names, cst.ImportStar):
+                            for alias in imp.names:
+                                if isinstance(alias, cst.ImportAlias) and isinstance(alias.name, cst.Name):
+                                    existing_imported.add((mod, alias.name.value))
+                break
+
+        # Compute missing imports
+        missing_by_module: DefaultDict[str | None, list[str]] = defaultdict(list)
+        for mod, names in desired_by_module.items():
+            for n in sorted(names):
+                if (mod, n) not in existing_imported:
+                    missing_by_module[mod].append(n)
+
+        if existing_tc_index is not None and existing_tc_body is not None:
+            # Append missing imports to existing TYPE_CHECKING block
+            additions: list[cst.BaseStatement] = []
+            for mod, names in missing_by_module.items():
+                if not names:
+                    continue
+                import_names = [cst.ImportAlias(name=cst.Name(n)) for n in sorted(names)]
+                imp_stmt = cst.SimpleStatementLine(
+                    (
+                        cst.ImportFrom(
+                            module=cst.Name(mod) if mod else None, names=tuple(import_names)
+                        ),
+                    )
+                )
+                additions.append(imp_stmt)
+            if not additions:
+                return updated_node
+            new_tc = updated_node.body[existing_tc_index].with_changes(
+                body=cst.IndentedBlock(body=existing_tc_body + additions)
+            )
+            new_body = list(updated_node.body)
+            new_body[existing_tc_index] = new_tc
+            return updated_node.with_changes(body=new_body)
+
+        # Otherwise, create a new TYPE_CHECKING block placed after imports
+        type_checking_body: list[cst.BaseStatement] = []
+        for mod, names in missing_by_module.items():
             if not names:
                 continue
             import_names = [cst.ImportAlias(name=cst.Name(n)) for n in sorted(names)]
-            imp = cst.ImportFrom(
-                module=cst.Name(mod) if mod else None, names=tuple(import_names)
-            )
+            imp = cst.ImportFrom(module=cst.Name(mod) if mod else None, names=tuple(import_names))
             type_checking_body.append(cst.SimpleStatementLine((imp,)))
 
         if not type_checking_body:
@@ -120,35 +191,40 @@ class PythonImportRewriter(cst.CSTTransformer):
             )
         )
 
-        new_body: list[cst.CSTNode] = []
-        inserted_typing_import = False
-
+        # Find insertion index: after last top-level import (skipping initial __future__ imports)
+        insert_index = 0
         i = 0
+        # Skip future block
         while i < len(updated_node.body):
             stmt = updated_node.body[i]
-            new_body.append(stmt)
-            i += 1
-            if not inserted_typing_import:
-                if (
-                    isinstance(stmt, cst.SimpleStatementLine)
-                    and stmt.body
-                    and isinstance(stmt.body[0], cst.ImportFrom)
-                ):
-                    imp: cst.ImportFrom = stmt.body[0]
-                    if (
-                        imp.module
-                        and isinstance(imp.module, cst.Name)
-                        and imp.module.value == "__future__"
-                    ):
-                        continue
-                if not self.found_type_checking_import:
-                    new_body.append(typing_import_stmt)
-                inserted_typing_import = True
+            if isinstance(stmt, cst.SimpleStatementLine) and stmt.body and isinstance(stmt.body[0], cst.ImportFrom):
+                imp: cst.ImportFrom = stmt.body[0]
+                if imp.module and isinstance(imp.module, cst.Name) and imp.module.value == "__future__":
+                    i += 1
+                    insert_index = i
+                    continue
+            break
+        # Walk through consecutive import statements
+        while i < len(updated_node.body):
+            stmt = updated_node.body[i]
+            if isinstance(stmt, cst.SimpleStatementLine) and stmt.body and (
+                isinstance(stmt.body[0], cst.ImportFrom) or isinstance(stmt.body[0], cst.Import)
+            ):
+                i += 1
+                insert_index = i
+            else:
+                break
+
+        new_body = list(updated_node.body)
+        # Ensure typing import exists somewhere before the TYPE_CHECKING block
+        if not self.found_type_checking_import:
+            new_body.insert(insert_index, typing_import_stmt)
+            insert_index += 1
 
         type_checking_if = cst.If(
             test=cst.Name("TYPE_CHECKING"),
             body=cst.IndentedBlock(body=type_checking_body),
         )
-        new_body.insert(1 if inserted_typing_import else 0, type_checking_if)
+        new_body.insert(insert_index, type_checking_if)
 
         return updated_node.with_changes(body=new_body)
