@@ -14,6 +14,8 @@ class PythonConfigOption(AbstractConfigOption):
     OPTION_NAME_ADD_FUTURE_ANNOTATIONS: ClassVar[str] = "add_future_annotations"
     # New policy: unquote annotations (remove string annotations)
     OPTION_NAME_UNQUOTE_ANNOTATIONS: ClassVar[str] = "unquote_annotations"
+    # Relocate imports by usage (runtime-in-method, class property types, type-only)
+    OPTION_NAME_RELOCATE_IMPORTS: ClassVar[str] = "relocate_imports"
 
     @staticmethod
     def get_raw_value_allowed_type() -> Any:
