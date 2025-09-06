@@ -37,12 +37,14 @@ class PythonOperationsProvider(AbstractOperationsProvider):
         from wexample_filestate_python.operation.python_unquote_annotations_operation import (
             PythonUnquoteAnnotationsOperation,
         )
+        from wexample_filestate_python.operation.python_relocate_imports_operation import PythonRelocateImportsOperation
 
         return [
             PythonFormatOperation,
             PythonSortImportsOperation,
             PythonAddReturnTypesOperation,
             PythonModernizeTypingOperation,
+            PythonRelocateImportsOperation,
             PythonFStringifyOperation,
             PythonRemoveUnusedOperation,
             PythonAddFutureAnnotationsOperation,

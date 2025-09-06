@@ -1,0 +1,133 @@
+from __future__ import annotations
+
+from typing import DefaultDict
+
+import libcst as cst
+
+
+class PythonUsageCollector(cst.CSTVisitor):
+    """Collect usage of imported names across three categories:
+    - A: runtime usages inside function/method bodies (class calls, typing.cast target)
+    - B: class-level property type annotations
+    - C: type-only annotations in params/returns/module-level AnnAssign
+
+    The collector mutates the provided buckets so the caller can reuse shared storage.
+    """
+
+    def __init__(
+        self,
+        imported_value_names: set[str],
+        functions_needing_local: DefaultDict[str, set[str]],
+        used_in_B: set[str],
+        used_in_C_annot: set[str],
+        cast_function_candidates: set[str] | None = None,
+    ) -> None:
+        super().__init__()
+        self.imported_value_names = imported_value_names
+        self.functions_needing_local = functions_needing_local
+        self.used_in_B = used_in_B
+        self.used_in_C_annot = used_in_C_annot
+        self.cast_function_candidates = cast_function_candidates or set()
+
+        self.class_stack: list[str] = []
+        self.func_stack: list[str] = []
+
+    # ----- Stack management -----
+    def visit_ClassDef(self, node: cst.ClassDef) -> bool:  # type: ignore[override]
+        self.class_stack.append(node.name.value)
+        return True
+
+    def leave_ClassDef(self, node: cst.ClassDef) -> None:  # type: ignore[override]
+        self.class_stack.pop()
+
+    def visit_FunctionDef(self, node: cst.FunctionDef) -> bool:  # type: ignore[override]
+        self.func_stack.append(self._qualified_func_name(node.name.value))
+        # Record return annotation for C
+        if node.returns is not None:
+            self._record_type_names(node.returns.annotation, self.used_in_C_annot)
+        return True
+
+    def leave_FunctionDef(self, node: cst.FunctionDef) -> None:  # type: ignore[override]
+        self.func_stack.pop()
+
+    def visit_AsyncFunctionDef(self, node: cst.AsyncFunctionDef) -> bool:  # type: ignore[override]
+        self.func_stack.append(self._qualified_func_name(node.name.value))
+        # Record return annotation for C
+        if node.returns is not None:
+            self._record_type_names(node.returns.annotation, self.used_in_C_annot)
+        return True
+
+    def leave_AsyncFunctionDef(self, node: cst.AsyncFunctionDef) -> None:  # type: ignore[override]
+        self.func_stack.pop()
+
+    # ----- A: runtime usages inside functions -----
+    def visit_Call(self, node: cst.Call) -> None:  # type: ignore[override]
+        if not self.func_stack:
+            return
+        func = node.func
+        if isinstance(func, cst.Name):
+            callee = func.value
+            # class constructor call
+            if callee in self.imported_value_names and callee[:1].isupper():
+                self.functions_needing_local[self.func_stack[-1]].add(callee)
+                return
+            # typing.cast(x, MyClass) when used as bare `cast(...)`
+            if callee in self.cast_function_candidates and node.args and len(node.args) >= 2:
+                second = node.args[1].value
+                if isinstance(second, cst.Name) and second.value in self.imported_value_names:
+                    self.functions_needing_local[self.func_stack[-1]].add(second.value)
+                    return
+        elif isinstance(func, cst.Attribute):
+            # typing.cast(...) or pkg.cast(...)
+            if (
+                isinstance(func.attr, cst.Name)
+                and func.attr.value in self.cast_function_candidates
+                and node.args
+                and len(node.args) >= 2
+            ):
+                second = node.args[1].value
+                if isinstance(second, cst.Name) and second.value in self.imported_value_names:
+                    self.functions_needing_local[self.func_stack[-1]].add(second.value)
+                    return
+
+    # ----- B: class-level property annotations -----
+    def visit_AnnAssign(self, node: cst.AnnAssign) -> None:  # type: ignore[override]
+        if not self.class_stack:
+            # module-level annotated assignment -> C
+            self._record_type_names(node.annotation.annotation, self.used_in_C_annot)
+            return
+        self._record_type_names(node.annotation.annotation, self.used_in_B)
+
+    # ----- C: function param annotations -----
+    def visit_Param(self, node: cst.Param) -> None:  # type: ignore[override]
+        if node.annotation is not None:
+            self._record_type_names(node.annotation.annotation, self.used_in_C_annot)
+
+    # ----- internals -----
+    def _qualified_func_name(self, base: str) -> str:
+        return ".".join(self.class_stack + [base]) if self.class_stack else base
+
+    def _record_type_names(self, ann: cst.BaseExpression, bucket: set[str]) -> None:
+        if isinstance(ann, cst.Name):
+            if ann.value in self.imported_value_names:
+                bucket.add(ann.value)
+        elif isinstance(ann, cst.Subscript):
+            self._walk_expr_for_names(ann.value, bucket)
+            for e in ann.slice:
+                if isinstance(e, cst.SubscriptElement) and isinstance(e.slice, cst.Index):
+                    self._walk_expr_for_names(e.slice.value, bucket)
+        else:
+            self._walk_expr_for_names(ann, bucket)
+
+    def _walk_expr_for_names(self, expr: cst.BaseExpression, bucket: set[str]) -> None:
+        if isinstance(expr, cst.Name):
+            if expr.value in self.imported_value_names:
+                bucket.add(expr.value)
+        elif isinstance(expr, cst.Attribute):
+            if isinstance(expr.attr, cst.Name) and expr.attr.value in self.imported_value_names:
+                bucket.add(expr.attr.value)
+        elif isinstance(expr, cst.Subscript):
+            self._walk_expr_for_names(expr.value, bucket)
+            for e in expr.slice:
+                if isinstance(e, cst.SubscriptElement) and isinstance(e.slice, cst.Index):
+                    self._walk_expr_for_names(e.slice.value, bucket)
