@@ -47,7 +47,7 @@ def toml_ensure_table(doc: Any, path: list[str]) -> tuple[Any, bool]:
     Ensure a nested TOML table exists and return (table, changed).
     Path example: ["tool", "pdm", "build"]. Uses tomlkit.table() for missing parts.
     """
-    from tomlkit import table as _tk_table
+    from tomlkit import table
     if not isinstance(path, list) or not path:
         raise ValueError("path must be a non-empty list of keys")
 
@@ -56,7 +56,7 @@ def toml_ensure_table(doc: Any, path: list[str]) -> tuple[Any, bool]:
     for key in path:
         tbl = current.get(key) if isinstance(current, dict) else None
         if not tbl or not isinstance(tbl, dict):
-            tbl = _tk_table()
+            tbl = table()
             current[key] = tbl
             changed = True
         current = tbl
@@ -68,10 +68,10 @@ def toml_ensure_array(tbl: Any, key: str) -> tuple[Any, bool]:
     Ensure an array exists at tbl[key] and return (array, changed).
     Uses tomlkit.array() for creation.
     """
-    from tomlkit import array as _tk_array
+    from tomlkit import array
     arr = tbl.get(key) if isinstance(tbl, dict) else None
     if arr is None:
-        arr = _tk_array()
+        arr = array()
         tbl[key] = arr
         return arr, True
     return arr, False
@@ -103,8 +103,8 @@ def toml_set_array_multiline(tbl: Any, key: str, values: list[Any]) -> Array:
     Replace tbl[key] with a tomlkit array built from values and set multiline(True).
     Returns the created Array instance.
     """
-    from tomlkit import array as _tk_array
-    arr = _tk_array(values)
+    from tomlkit import array
+    arr = array(values)
     arr.multiline(True)
     tbl[key] = arr
     return arr
