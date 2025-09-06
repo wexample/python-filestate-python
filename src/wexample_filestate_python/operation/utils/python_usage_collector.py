@@ -171,5 +171,15 @@ class PythonUsageCollector(cst.CSTVisitor):
     # Collect names inside a type expression (Name, Attribute tail, Subscript args)
     def _collect_names_from_type_expr(self, expr: cst.BaseExpression) -> set[str]:
         acc: set[str] = set()
+        # Handle forward-ref style: cast("Foo", x) or cast("dict[str, Foo]", x)
+        if isinstance(expr, cst.SimpleString):
+            try:
+                # Remove surrounding quotes; libcst handles raw string quotes
+                text = expr.evaluated_value
+                parsed = cst.parse_expression(text)
+                self._walk_expr_for_names(parsed, acc)
+                return acc
+            except Exception:
+                return acc
         self._walk_expr_for_names(expr, acc)
         return acc
