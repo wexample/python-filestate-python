@@ -161,6 +161,9 @@ class PythonImportRewriter(cst.CSTTransformer):
         desired_by_module: DefaultDict[str | None, set[str]] = defaultdict(set)
         for ident in sorted(self.used_in_C_only):
             mod, _ = self.idx.name_to_from.get(ident, (None, None))
+            # Never add typing.* under TYPE_CHECKING; keep them at module level only.
+            if mod == "typing":
+                continue
             desired_by_module[mod].add(ident)
 
         # Look for existing TYPE_CHECKING block(s)
