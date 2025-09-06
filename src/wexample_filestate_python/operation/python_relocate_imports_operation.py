@@ -88,10 +88,16 @@ class PythonRelocateImportsOperation(AbstractPythonFileOperation):
             if n not in used_in_A_final and n not in used_in_B and n not in cast_type_names_anywhere
         }
 
+        # Do not remove module-level imports for names that appear in cast() types
+        # unless they are also localized (A). This prevents wrong moves to TYPE_CHECKING
+        # when we failed to map a function usage for some reason.
+        safe_names_to_keep = cast_type_names_anywhere - used_in_A_final
+        names_to_remove_from_module = (set(used_in_A_final) | set(used_in_C_only)) - safe_names_to_keep
+
         rewritten = module.visit(
             PythonImportRewriter(
                 used_in_B=used_in_B,
-                names_to_remove_from_module=set(used_in_A_final) | set(used_in_C_only),
+                names_to_remove_from_module=names_to_remove_from_module,
                 used_in_C_only=used_in_C_only,
                 idx=idx,
             )
