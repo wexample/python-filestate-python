@@ -138,19 +138,16 @@ class PythonImportRewriter(cst.CSTTransformer):
         if not kept_aliases:
             return cst.RemoveFromParent()
 
-        # Normalize commas: ensure no trailing comma on last alias
-        normalized: list[cst.ImportAlias] = []
-        for i, a in enumerate(kept_aliases):
-            if i == len(kept_aliases) - 1:
-                normalized.append(a.with_changes(comma=None))
-            else:
-                # ensure there is a comma between aliases
-                if getattr(a, "comma", None) is None:
-                    normalized.append(a.with_changes(comma=cst.Comma()))
-                else:
-                    normalized.append(a)
+        # If only one alias remains, ensure it has no trailing comma to avoid rendering like
+        # "from typing import TYPE_CHECKING,"
+        if len(kept_aliases) == 1:
+            single = kept_aliases[0]
+            if isinstance(single.comma, cst.Comma):
+                single = single.with_changes(comma=cst.MaybeSentinel.DEFAULT)
+            return updated_node.with_changes(names=(single,))
 
-        return updated_node.with_changes(names=tuple(normalized))
+        # Otherwise, keep original alias comma formatting to avoid CST inconsistencies
+        return updated_node.with_changes(names=tuple(kept_aliases))
 
     def leave_Module(
         self, original_node: cst.Module, updated_node: cst.Module
