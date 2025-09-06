@@ -212,10 +212,11 @@ class PythonUsageCollector(cst.CSTVisitor):
             if expr.value in self.imported_value_names:
                 bucket.add(expr.value)
         elif isinstance(expr, cst.Attribute):
-            if (
-                isinstance(expr.attr, cst.Name)
-                and expr.attr.value in self.imported_value_names
-            ):
+            # Walk attribute chain: prefer recording the base name (e.g., TerminalColor in TerminalColor.WHITE)
+            # Recurse into value first
+            self._walk_expr_for_names(expr.value, bucket)
+            # Also consider direct attr name if projects import attributes directly (rare)
+            if isinstance(expr.attr, cst.Name) and expr.attr.value in self.imported_value_names:
                 bucket.add(expr.attr.value)
         elif isinstance(expr, cst.Subscript):
             self._walk_expr_for_names(expr.value, bucket)
