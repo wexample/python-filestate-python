@@ -72,6 +72,9 @@ class PythonLocalizeRuntimeImports(cst.CSTTransformer):
             # Skip unresolved modules to avoid invalid ImportFrom(module=None)
             if mod is None:
                 continue
+            # Never inject local imports from typing; keep them at module level
+            if mod == "typing":
+                continue
             by_module[mod].append(ident)
         stmts: list[cst.BaseStatement] = []
         pairs: set[tuple[str | None, str]] = set()
