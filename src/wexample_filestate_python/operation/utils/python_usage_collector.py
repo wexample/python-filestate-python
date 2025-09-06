@@ -97,7 +97,14 @@ class PythonUsageCollector(cst.CSTVisitor):
 
     # Track param default context; defaults are evaluated at definition time (module init), not runtime
     def visit_Param(self, node: cst.Param) -> bool:  # type: ignore[override]
-        self._in_param_default_stack.append(True if node.default is not None else False)
+        has_default = node.default is not None
+        self._in_param_default_stack.append(has_default)
+        # Names in defaults are needed at definition time: treat as B
+        if has_default:
+            try:
+                self._walk_expr_for_names(node.default, self.used_in_B)
+            except Exception:
+                pass
         # We still record annotation as C elsewhere
         return True
 
