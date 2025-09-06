@@ -21,11 +21,11 @@ class PythonSortImportsOperation(AbstractPythonFileOperation):
     @classmethod
     def preview_source_change(cls, target: TargetFileOrDirectoryType) -> str | None:
         from isort.settings import Config
-        from isort import isort_code
+        from isort import code
 
         src = cls._read_current_str_or_fail(target)
         config = Config(profile="black")
-        formatted = isort_code(src, config=config)
+        formatted = code(src, config=config)
         return formatted
 
     def describe_before(self) -> str:
