@@ -107,6 +107,7 @@ class PythonRelocateImportsOperation(AbstractPythonFileOperation):
             set(used_in_A_final)
             | set(used_in_C_only)
             | (set(cast_type_names_anywhere) - set(used_in_B))
+            | (set(used_in_C_for_block) - set(used_in_B))
         )
 
         rewritten = module.visit(
