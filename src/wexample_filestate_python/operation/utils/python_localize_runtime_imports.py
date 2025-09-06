@@ -26,6 +26,16 @@ class PythonLocalizeRuntimeImports(cst.CSTTransformer):
         self.functions_needing_local = functions_needing_local
         self.class_stack: list[str] = []
 
+    @staticmethod
+    def _build_module_expr(mod: str | None) -> cst.BaseExpression | None:
+        if not mod:
+            return None
+        parts = mod.split(".")
+        expr: cst.BaseExpression = cst.Name(parts[0])
+        for p in parts[1:]:
+            expr = cst.Attribute(value=expr, attr=cst.Name(p))
+        return expr
+
     def _build_local_imports(self, func_qname: str) -> list[cst.BaseStatement]:
         names = self.functions_needing_local.get(func_qname)
         if not names:
@@ -44,7 +54,7 @@ class PythonLocalizeRuntimeImports(cst.CSTTransformer):
                 cst.SimpleStatementLine(
                     (
                         cst.ImportFrom(
-                            module=cst.Name(mod) if mod else None,
+                            module=self._build_module_expr(mod),
                             names=tuple(import_names),
                         ),
                     )

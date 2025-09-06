@@ -42,6 +42,27 @@ class PythonImportRewriter(cst.CSTTransformer):
             expr = cst.Attribute(value=expr, attr=cst.Name(p))
         return expr
 
+    @staticmethod
+    def _flatten_module_expr_to_str(module: cst.BaseExpression | None) -> str | None:
+        if module is None:
+            return None
+        if isinstance(module, cst.Name):
+            return module.value
+        if isinstance(module, cst.Attribute):
+            parts: list[str] = []
+            cur: cst.BaseExpression | None = module
+            while isinstance(cur, cst.Attribute):
+                if isinstance(cur.attr, cst.Name):
+                    parts.append(cur.attr.value)
+                else:
+                    break
+                cur = cur.value
+            if isinstance(cur, cst.Name):
+                parts.append(cur.value)
+            parts.reverse()
+            return ".".join(parts) if parts else None
+        return None
+
     def leave_SimpleStatementLine(
         self,
         original_node: cst.SimpleStatementLine,
@@ -136,13 +157,7 @@ class PythonImportRewriter(cst.CSTTransformer):
                 for s in existing_tc_body:
                     if isinstance(s, cst.SimpleStatementLine) and len(s.body) == 1 and isinstance(s.body[0], cst.ImportFrom):
                         imp: cst.ImportFrom = s.body[0]
-                        mod = None
-                        if imp.module:
-                            if isinstance(imp.module, cst.Name):
-                                mod = imp.module.value
-                            elif isinstance(imp.module, cst.Attribute):
-                                # Best-effort flatten
-                                mod = None
+                        mod = self._flatten_module_expr_to_str(imp.module)
                         if imp.names and not isinstance(imp.names, cst.ImportStar):
                             for alias in imp.names:
                                 if isinstance(alias, cst.ImportAlias) and isinstance(alias.name, cst.Name):
