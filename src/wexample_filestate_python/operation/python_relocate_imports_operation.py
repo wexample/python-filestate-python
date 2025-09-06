@@ -94,6 +94,12 @@ class PythonRelocateImportsOperation(AbstractPythonFileOperation):
             if n not in used_in_A_final and n not in used_in_B and n not in cast_type_names_anywhere and n not in runtime_used_anywhere
         }
 
+        # Names to include under TYPE_CHECKING:
+        # - any used in annotations anywhere
+        # - any used in cast() type expressions (to keep annotations/import paths consistent)
+        # Exclude only B (class-level property usage), which must stay at module level.
+        used_in_C_for_block: set[str] = (set(used_in_C_annot) | set(cast_type_names_anywhere)) - set(used_in_B)
+
         # Never remove module-level imports for names used inside cast() anywhere in the module;
         # keep them at module level AND inject locals where needed.
         names_to_remove_from_module = (set(used_in_A_final) | set(used_in_C_only)) - set(cast_type_names_anywhere)
@@ -102,7 +108,7 @@ class PythonRelocateImportsOperation(AbstractPythonFileOperation):
             PythonImportRewriter(
                 used_in_B=used_in_B,
                 names_to_remove_from_module=names_to_remove_from_module,
-                used_in_C_only=used_in_C_only,
+                used_in_C_only=used_in_C_for_block,
                 idx=idx,
             )
         )
