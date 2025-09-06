@@ -101,6 +101,9 @@ class PythonUsageCollector(cst.CSTVisitor):
         if self._in_annotation_stack or self._in_decorator_stack:
             return
         val = node.value
+        # Do not treat 'cast' identifier as runtime usage; keep typing at module level
+        if val == "cast":
+            return
         if val in self.imported_value_names:
             self.functions_needing_local[self.func_stack[-1]].add(val)
 
