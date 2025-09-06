@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import DefaultDict
+from typing import DefaultDict, ClassVar
 
 import libcst as cst
 
@@ -13,6 +13,8 @@ class PythonUsageCollector(cst.CSTVisitor):
 
     The collector mutates the provided buckets so the caller can reuse shared storage.
     """
+
+    DEFAULT_CAST_FUNCTION_CANDIDATES: ClassVar[set[str]] = {"cast"}
 
     def __init__(
         self,
@@ -27,7 +29,11 @@ class PythonUsageCollector(cst.CSTVisitor):
         self.functions_needing_local = functions_needing_local
         self.used_in_B = used_in_B
         self.used_in_C_annot = used_in_C_annot
-        self.cast_function_candidates = cast_function_candidates or set()
+        self.cast_function_candidates = (
+            set(self.DEFAULT_CAST_FUNCTION_CANDIDATES)
+            if cast_function_candidates is None
+            else cast_function_candidates
+        )
 
         self.class_stack: list[str] = []
         self.func_stack: list[str] = []

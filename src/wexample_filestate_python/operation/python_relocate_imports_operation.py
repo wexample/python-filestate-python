@@ -31,9 +31,6 @@ class PythonRelocateImportsOperation(AbstractPythonFileOperation):
     Triggered by config: { "python": ["relocate_imports"] }
     """
 
-    # Names that we treat as a call to typing.cast in code detection.
-    _cast_function_candidates: ClassVar[set[str]] = {"cast"}
-
     @classmethod
     def get_option_name(cls) -> str:
         from wexample_filestate_python.config_option.python_config_option import (
@@ -71,7 +68,6 @@ class PythonRelocateImportsOperation(AbstractPythonFileOperation):
             functions_needing_local=functions_needing_local,
             used_in_B=used_in_B,
             used_in_C_annot=used_in_C_annot,
-            cast_function_candidates=self._cast_function_candidates,
         )
         module.visit(uc)
 
@@ -91,13 +87,6 @@ class PythonRelocateImportsOperation(AbstractPythonFileOperation):
             for n in used_in_C_annot
             if n not in used_in_A_final and n not in used_in_B
         }
-
-        # Prepare transformations
-        # 1) Adjust module-level ImportFrom nodes: remove names that move to A (local) or C-only (TYPE_CHECKING),
-        #    except when also in B.
-        names_to_remove_from_module: set[str] = set(used_in_A_final) | set(
-            used_in_C_only
-        )
 
         rewritten = module.visit(
             PythonImportRewriter(
