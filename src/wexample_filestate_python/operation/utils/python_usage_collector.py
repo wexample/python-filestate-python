@@ -103,7 +103,8 @@ class PythonUsageCollector(cst.CSTVisitor):
                 names = self._collect_names_from_type_expr(second)
                 for n in names:
                     self.cast_type_names_anywhere.add(n)
-                    self.functions_needing_local[self.func_stack[-1]].add(n)
+                    if self.func_stack:
+                        self.functions_needing_local[self.func_stack[-1]].add(n)
                 return
 
     # ----- B: class-level property annotations -----
