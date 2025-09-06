@@ -108,6 +108,8 @@ class PythonImportRewriter(cst.CSTTransformer):
         if self._inside_type_checking_stack and self._inside_type_checking_stack[-1]:
             return updated_node
 
+        mod_str = self._flatten_module_expr_to_str(updated_node.module)
+
         kept_aliases: list[cst.ImportAlias] = []
         for alias in updated_node.names:
             if not isinstance(alias, cst.ImportAlias):
@@ -116,6 +118,11 @@ class PythonImportRewriter(cst.CSTTransformer):
             if not name:
                 continue
             alias_ident = alias.asname.name.value if alias.asname else name
+
+            # Always keep non-TYPE_CHECKING imports from typing at module level
+            if mod_str == "typing" and name != "TYPE_CHECKING":
+                kept_aliases.append(alias)
+                continue
 
             # Keep B at module level
             if alias_ident in self.used_in_B:
@@ -130,7 +137,20 @@ class PythonImportRewriter(cst.CSTTransformer):
 
         if not kept_aliases:
             return cst.RemoveFromParent()
-        return updated_node.with_changes(names=tuple(kept_aliases))
+
+        # Normalize commas: ensure no trailing comma on last alias
+        normalized: list[cst.ImportAlias] = []
+        for i, a in enumerate(kept_aliases):
+            if i == len(kept_aliases) - 1:
+                normalized.append(a.with_changes(comma=None))
+            else:
+                # ensure there is a comma between aliases
+                if getattr(a, "comma", None) is None:
+                    normalized.append(a.with_changes(comma=cst.Comma()))
+                else:
+                    normalized.append(a)
+
+        return updated_node.with_changes(names=tuple(normalized))
 
     def leave_Module(
         self, original_node: cst.Module, updated_node: cst.Module
