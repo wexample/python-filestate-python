@@ -56,8 +56,11 @@ class PythonLocalizeRuntimeImports(cst.CSTTransformer):
         self.class_stack.append(node.name.value)
         return True
 
-    def leave_ClassDef(self, node: cst.ClassDef) -> None:  # type: ignore[override]
+    def leave_ClassDef(
+        self, original_node: cst.ClassDef, updated_node: cst.ClassDef
+    ) -> cst.ClassDef:  # type: ignore[override]
         self.class_stack.pop()
+        return updated_node
 
     def leave_FunctionDef(
         self, original_node: cst.FunctionDef, updated_node: cst.FunctionDef
