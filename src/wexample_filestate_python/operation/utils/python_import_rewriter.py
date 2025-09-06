@@ -239,10 +239,21 @@ class PythonImportRewriter(cst.CSTTransformer):
             )
         )
 
-        # Find insertion index: after last top-level import (skipping initial __future__ imports)
+        # Find insertion index: after module docstring (if any) and after __future__ imports,
+        # then after consecutive top-level imports. Never before the docstring or __future__.
         insert_index = 0
         i = 0
-        # Skip future block
+        # Skip module docstring at very top
+        if i < len(updated_node.body):
+            stmt0 = updated_node.body[i]
+            if isinstance(stmt0, cst.SimpleStatementLine) and any(
+                isinstance(el, cst.Expr) and isinstance(el.value, cst.SimpleString)
+                for el in stmt0.body
+            ):
+                i += 1
+                insert_index = i
+
+        # Skip __future__ imports
         while i < len(updated_node.body):
             stmt = updated_node.body[i]
             if isinstance(stmt, cst.SimpleStatementLine) and stmt.body and isinstance(stmt.body[0], cst.ImportFrom):
