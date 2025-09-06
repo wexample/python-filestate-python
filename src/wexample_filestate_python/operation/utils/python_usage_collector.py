@@ -78,18 +78,13 @@ class PythonUsageCollector(cst.CSTVisitor):
                 self.functions_needing_local[self.func_stack[-1]].add(callee)
                 return
             # typing.cast(x, MyClass) when used as bare `cast(...)`
-            if (
-                callee in self.cast_function_candidates
-                and node.args
-                and len(node.args) >= 2
-            ):
+            if callee in self.cast_function_candidates and node.args and len(node.args) >= 2:
                 second = node.args[1].value
-                if (
-                    isinstance(second, cst.Name)
-                    and second.value in self.imported_value_names
-                ):
-                    self.functions_needing_local[self.func_stack[-1]].add(second.value)
-                    return
+                # Collect any imported names appearing anywhere inside the type expression
+                for n in self._collect_names_from_type_expr(second):
+                    if n in self.imported_value_names:
+                        self.functions_needing_local[self.func_stack[-1]].add(n)
+                return
         elif isinstance(func, cst.Attribute):
             # typing.cast(...) or pkg.cast(...)
             if (
@@ -99,12 +94,10 @@ class PythonUsageCollector(cst.CSTVisitor):
                 and len(node.args) >= 2
             ):
                 second = node.args[1].value
-                if (
-                    isinstance(second, cst.Name)
-                    and second.value in self.imported_value_names
-                ):
-                    self.functions_needing_local[self.func_stack[-1]].add(second.value)
-                    return
+                for n in self._collect_names_from_type_expr(second):
+                    if n in self.imported_value_names:
+                        self.functions_needing_local[self.func_stack[-1]].add(n)
+                return
 
     # ----- B: class-level property annotations -----
     def visit_AnnAssign(self, node: cst.AnnAssign) -> None:  # type: ignore[override]
@@ -154,3 +147,9 @@ class PythonUsageCollector(cst.CSTVisitor):
                     e.slice, cst.Index
                 ):
                     self._walk_expr_for_names(e.slice.value, bucket)
+
+    # Collect names inside a type expression (Name, Attribute tail, Subscript args)
+    def _collect_names_from_type_expr(self, expr: cst.BaseExpression) -> set[str]:
+        acc: set[str] = set()
+        self._walk_expr_for_names(expr, acc)
+        return acc
