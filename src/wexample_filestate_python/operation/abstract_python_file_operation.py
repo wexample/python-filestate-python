@@ -25,9 +25,7 @@ class AbstractPythonFileOperation(AbstractExistingFileOperation):
 
     def applicable_for_option(self, option: AbstractConfigOption) -> bool:
         """Generic applicability for Python file transforms controlled by a single option name."""
-        from wexample_filestate_python.config_option.python_config_option import (
-            PythonConfigOption,
-        )
+        from wexample_filestate_python.config_option.python_config_option import PythonConfigOption
 
         # Option type
         if not isinstance(option, PythonConfigOption):

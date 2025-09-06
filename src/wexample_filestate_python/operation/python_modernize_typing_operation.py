@@ -16,7 +16,9 @@ class PythonModernizeTypingOperation(AbstractPythonFileOperation):
 
     @classmethod
     def get_option_name(cls) -> str:
-        from wexample_filestate_python.config_option.python_config_option import PythonConfigOption
+        from wexample_filestate_python.config_option.python_config_option import (
+            PythonConfigOption,
+        )
 
         return PythonConfigOption.OPTION_NAME_MODERNIZE_TYPING
 

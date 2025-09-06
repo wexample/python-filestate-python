@@ -15,9 +15,7 @@ if TYPE_CHECKING:
 class PythonOptionsProvider(AbstractOptionsProvider):
     @classmethod
     def get_options(cls) -> list[type[AbstractConfigOption]]:
-        from wexample_filestate_python.config_option.python_config_option import (
-            PythonConfigOption,
-        )
+        from wexample_filestate_python.config_option.python_config_option import PythonConfigOption
         return [
             PythonConfigOption,
         ]

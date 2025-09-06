@@ -16,14 +16,16 @@ class PythonSortImportsOperation(AbstractPythonFileOperation):
 
     @classmethod
     def get_option_name(cls) -> str:
-        from wexample_filestate_python.config_option.python_config_option import PythonConfigOption
+        from wexample_filestate_python.config_option.python_config_option import (
+            PythonConfigOption,
+        )
 
         return PythonConfigOption.OPTION_NAME_SORT_IMPORTS
 
     @classmethod
     def preview_source_change(cls, target: TargetFileOrDirectoryType) -> str | None:
-        from isort.settings import Config
         from isort import code
+        from isort.settings import Config
 
         src = cls._read_current_str_or_fail(target)
         config = Config(profile="black")
