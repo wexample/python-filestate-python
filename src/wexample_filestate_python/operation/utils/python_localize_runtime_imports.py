@@ -36,7 +36,28 @@ class PythonLocalizeRuntimeImports(cst.CSTTransformer):
             expr = cst.Attribute(value=expr, attr=cst.Name(p))
         return expr
 
-    def _build_local_imports(self, func_qname: str) -> list[cst.BaseStatement]:
+    @staticmethod
+    def _flatten_module_expr_to_str(module: cst.BaseExpression | None) -> str | None:
+        if module is None:
+            return None
+        if isinstance(module, cst.Name):
+            return module.value
+        if isinstance(module, cst.Attribute):
+            parts: list[str] = []
+            cur: cst.BaseExpression | None = module
+            while isinstance(cur, cst.Attribute):
+                if isinstance(cur.attr, cst.Name):
+                    parts.append(cur.attr.value)
+                else:
+                    break
+                cur = cur.value
+            if isinstance(cur, cst.Name):
+                parts.append(cur.value)
+            parts.reverse()
+            return ".".join(parts) if parts else None
+        return None
+
+    def _build_local_imports(self, func_qname: str, existing_imported: set[tuple[str | None, str]]) -> list[cst.BaseStatement]:
         names = self.functions_needing_local.get(func_qname)
         if not names:
             return []
@@ -49,7 +70,10 @@ class PythonLocalizeRuntimeImports(cst.CSTTransformer):
         for mod, idents in by_module.items():
             if not idents:
                 continue
-            import_names = [cst.ImportAlias(name=cst.Name(n)) for n in sorted(idents)]
+            filtered = [n for n in sorted(idents) if (mod, n) not in existing_imported]
+            if not filtered:
+                continue
+            import_names = [cst.ImportAlias(name=cst.Name(n)) for n in filtered]
             stmts.append(
                 cst.SimpleStatementLine(
                     (
@@ -80,7 +104,18 @@ class PythonLocalizeRuntimeImports(cst.CSTTransformer):
             if self.class_stack
             else original_node.name.value
         )
-        to_inject = self._build_local_imports(func_qname)
+        # Scan existing from-imports in function body to avoid duplicates
+        existing: set[tuple[str | None, str]] = set()
+        for s in updated_node.body.body:
+            if isinstance(s, cst.SimpleStatementLine) and len(s.body) == 1 and isinstance(s.body[0], cst.ImportFrom):
+                imp: cst.ImportFrom = s.body[0]
+                mod = self._flatten_module_expr_to_str(imp.module)
+                if imp.names and not isinstance(imp.names, cst.ImportStar):
+                    for alias in imp.names:
+                        if isinstance(alias, cst.ImportAlias) and isinstance(alias.name, cst.Name):
+                            existing.add((mod, alias.name.value))
+
+        to_inject = self._build_local_imports(func_qname, existing)
         if not to_inject:
             return updated_node
         # Insert imports at the very top of the function body, after possible docstring
@@ -108,7 +143,17 @@ class PythonLocalizeRuntimeImports(cst.CSTTransformer):
             if self.class_stack
             else original_node.name.value
         )
-        to_inject = self._build_local_imports(func_qname)
+        existing: set[tuple[str | None, str]] = set()
+        for s in updated_node.body.body:
+            if isinstance(s, cst.SimpleStatementLine) and len(s.body) == 1 and isinstance(s.body[0], cst.ImportFrom):
+                imp: cst.ImportFrom = s.body[0]
+                mod = self._flatten_module_expr_to_str(imp.module)
+                if imp.names and not isinstance(imp.names, cst.ImportStar):
+                    for alias in imp.names:
+                        if isinstance(alias, cst.ImportAlias) and isinstance(alias.name, cst.Name):
+                            existing.add((mod, alias.name.value))
+
+        to_inject = self._build_local_imports(func_qname, existing)
         if not to_inject:
             return updated_node
         body = list(updated_node.body.body)
