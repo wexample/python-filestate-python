@@ -84,6 +84,7 @@ class PythonUsageCollector(cst.CSTVisitor):
                 type_arg = node.args[0].value
                 # Collect any imported names appearing anywhere inside the type expression
                 names = self._collect_names_from_type_expr(second)
+                names = self._collect_names_from_type_expr(type_arg)
                 for n in names:
                     # Always record for module-wide exclusion from TYPE_CHECKING
                     self.cast_type_names_anywhere.add(n)
@@ -101,6 +102,8 @@ class PythonUsageCollector(cst.CSTVisitor):
             ):
                 second = node.args[1].value
                 names = self._collect_names_from_type_expr(second)
+                type_arg = node.args[0].value
+                names = self._collect_names_from_type_expr(type_arg)
                 for n in names:
                     self.cast_type_names_anywhere.add(n)
                     if self.func_stack:
