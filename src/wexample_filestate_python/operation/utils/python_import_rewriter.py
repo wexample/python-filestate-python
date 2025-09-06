@@ -111,6 +111,7 @@ class PythonImportRewriter(cst.CSTTransformer):
         mod_str = self._flatten_module_expr_to_str(updated_node.module)
 
         kept_aliases: list[cst.ImportAlias] = []
+        removed_any = False
         for alias in updated_node.names:
             if not isinstance(alias, cst.ImportAlias):
                 continue
@@ -131,6 +132,7 @@ class PythonImportRewriter(cst.CSTTransformer):
 
             # Drop if moved to TYPE_CHECKING or localized (A or C-only)
             if alias_ident in self.names_to_remove_from_module:
+                removed_any = True
                 continue
 
             kept_aliases.append(alias)
@@ -147,6 +149,9 @@ class PythonImportRewriter(cst.CSTTransformer):
             return updated_node.with_changes(names=(single,))
 
         # Otherwise, keep original alias comma formatting to avoid CST inconsistencies
+        # If we didn't remove anything, preserve the original node to keep exact formatting/order
+        if not removed_any:
+            return original_node
         return updated_node.with_changes(names=tuple(kept_aliases))
 
     def leave_Module(
@@ -204,7 +209,7 @@ class PythonImportRewriter(cst.CSTTransformer):
                 )
                 additions.append(imp_stmt)
             if not additions:
-                return updated_node
+                return original_node
             new_tc = updated_node.body[existing_tc_index].with_changes(
                 body=cst.IndentedBlock(body=existing_tc_body + additions)
             )
