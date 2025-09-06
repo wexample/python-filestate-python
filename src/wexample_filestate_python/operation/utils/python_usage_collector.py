@@ -41,6 +41,7 @@ class PythonUsageCollector(cst.CSTVisitor):
         self.func_stack: list[str] = []
         self._in_annotation_stack: list[bool] = []
         self._in_decorator_stack: list[bool] = []
+        self._in_param_default_stack: list[bool] = []
 
     # ----- Stack management -----
     def visit_ClassDef(self, node: cst.ClassDef) -> bool:  # type: ignore[override]
@@ -93,6 +94,16 @@ class PythonUsageCollector(cst.CSTVisitor):
     def leave_Decorator(self, node: cst.Decorator) -> None:  # type: ignore[override]
         if self._in_decorator_stack:
             self._in_decorator_stack.pop()
+
+    # Track param default context; defaults are evaluated at definition time (module init), not runtime
+    def visit_Param(self, node: cst.Param) -> bool:  # type: ignore[override]
+        self._in_param_default_stack.append(True if node.default is not None else False)
+        # We still record annotation as C elsewhere
+        return True
+
+    def leave_Param(self, node: cst.Param) -> None:  # type: ignore[override]
+        if self._in_param_default_stack:
+            self._in_param_default_stack.pop()
 
     # Treat bare Name usage inside function bodies as runtime usage (A)
     def visit_Name(self, node: cst.Name) -> None:  # type: ignore[override]
