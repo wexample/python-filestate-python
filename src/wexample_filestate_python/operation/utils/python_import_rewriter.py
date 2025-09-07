@@ -18,6 +18,7 @@ class PythonImportRewriter(cst.CSTTransformer):
 
     def __init__(
         self,
+        *,
         used_in_B: set[str],
         names_to_remove_from_module: set[str],
         used_in_C_only: set[str],
@@ -28,7 +29,9 @@ class PythonImportRewriter(cst.CSTTransformer):
         self.names_to_remove_from_module = names_to_remove_from_module
         self.used_in_C_only = used_in_C_only
         self.idx = idx
-        self.found_type_checking_import: bool = False
+        self.found_type_checking_import = False
+        # Track whether we are at module level; only prune at module level
+        self._inside_class_func_stack: list[str] = []
         self.need_type_checking_block: bool = len(used_in_C_only) > 0
         self._inside_type_checking_stack: list[bool] = []
 
@@ -88,6 +91,22 @@ class PythonImportRewriter(cst.CSTTransformer):
                             self.found_type_checking_import = True
         return updated_node
 
+    def visit_ClassDef(self, node: cst.ClassDef) -> bool:  # type: ignore[override]
+        self._inside_class_func_stack.append("class")
+        return True
+
+    def leave_ClassDef(self, original_node: cst.ClassDef, updated_node: cst.ClassDef) -> cst.BaseStatement:  # type: ignore[override]
+        self._inside_class_func_stack.pop()
+        return updated_node
+
+    def visit_FunctionDef(self, node: cst.FunctionDef) -> bool:  # type: ignore[override]
+        self._inside_class_func_stack.append("function")
+        return True
+
+    def leave_FunctionDef(self, original_node: cst.FunctionDef, updated_node: cst.FunctionDef) -> cst.BaseStatement:  # type: ignore[override]
+        self._inside_class_func_stack.pop()
+        return updated_node
+
     def visit_If(self, node: cst.If) -> bool:  # type: ignore[override]
         # Track whether we are under `if TYPE_CHECKING:`
         inside = isinstance(node.test, cst.Name) and node.test.value == "TYPE_CHECKING"
@@ -98,9 +117,68 @@ class PythonImportRewriter(cst.CSTTransformer):
         self._inside_type_checking_stack.pop()
         return updated_node
 
+    def leave_Import(
+        self, original_node: cst.Import, updated_node: cst.Import
+    ) -> cst.RemovalSentinel | cst.BaseSmallStatement:
+        # Only handle module-level imports
+        if self._inside_class_func_stack:
+            try:
+                print("[RelocateDebug] skip_prune_non_module Import:", cst.Module([]).code_for_node(original_node))
+            except Exception:
+                pass
+            return updated_node
+        kept_aliases: list[cst.ImportAlias] = []
+        removed_any = False
+        for alias in updated_node.names:
+            if not isinstance(alias, cst.ImportAlias):
+                continue
+            name = alias.name.value if isinstance(alias.name, cst.Name) else None
+            if not name:
+                continue
+            alias_ident = alias.asname.name.value if alias.asname else name
+
+            # Always keep non-TYPE_CHECKING imports from typing at module level
+            if self._flatten_module_expr_to_str(updated_node.module) == "typing" and name != "TYPE_CHECKING":
+                kept_aliases.append(alias)
+                continue
+
+            # Keep B at module level
+            if alias_ident in self.used_in_B:
+                kept_aliases.append(alias)
+                continue
+
+            # Drop if moved to TYPE_CHECKING or localized (A or C-only)
+            if alias_ident in self.names_to_remove_from_module:
+                removed_any = True
+                continue
+
+            kept_aliases.append(alias)
+
+        if not kept_aliases:
+            return cst.RemoveFromParent()
+
+        # If nothing changed (same number of aliases kept as original and none removed),
+        # return the original node to preserve exact formatting (commas, parentheses, whitespace).
+        try:
+            original_alias_count = len(original_node.names) if not isinstance(original_node.names, cst.ImportStar) else 0  # type: ignore[arg-type]
+        except Exception:
+            original_alias_count = -1
+        if original_alias_count == len(kept_aliases) and not removed_any:
+            return original_node
+
+        # Keep original alias tokens (including commas) to avoid formatting-only changes.
+        return updated_node.with_changes(names=tuple(kept_aliases))
+
     def leave_ImportFrom(
         self, original_node: cst.ImportFrom, updated_node: cst.ImportFrom
     ) -> cst.RemovalSentinel | cst.BaseSmallStatement:
+        # Only handle module-level imports
+        if self._inside_class_func_stack:
+            try:
+                print("[RelocateDebug] skip_prune_non_module ImportFrom:", cst.Module([]).code_for_node(original_node))
+            except Exception:
+                pass
+            return updated_node
         if updated_node.names is None or isinstance(updated_node.names, cst.ImportStar):
             return updated_node
 
