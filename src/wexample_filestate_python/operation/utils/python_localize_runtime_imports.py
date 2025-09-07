@@ -123,6 +123,25 @@ class PythonLocalizeRuntimeImports(cst.CSTTransformer):
         if not to_inject:
             return updated_node
 
+        # If all target imports are already present somewhere in the function body,
+        # avoid rewriting to preserve existing order/formatting.
+        def _collect_current_pairs(fn: cst.FunctionDef) -> set[tuple[str | None, str]]:
+            found: set[tuple[str | None, str]] = set()
+            class _Find(cst.CSTVisitor):
+                def leave_ImportFrom(self, node: cst.ImportFrom) -> None:  # type: ignore[override]
+                    if node.names is None or isinstance(node.names, cst.ImportStar):
+                        return
+                    mod = PythonLocalizeRuntimeImports._flatten_module_expr_to_str(node.module)
+                    for alias in node.names:
+                        if isinstance(alias, cst.ImportAlias) and isinstance(alias.name, cst.Name):
+                            found.add((mod, alias.name.value))
+            fn.visit(_Find())
+            return found
+
+        existing = _collect_current_pairs(updated_node)
+        if pairs.issubset(existing):
+            return original_node
+
         # First prune matching imports anywhere within the function body
         class _PruneInner(cst.CSTTransformer):
             def leave_ImportFrom(self, original_node: cst.ImportFrom, updated_node: cst.ImportFrom):  # type: ignore[override]
