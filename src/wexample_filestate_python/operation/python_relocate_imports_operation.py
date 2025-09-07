@@ -109,23 +109,7 @@ class PythonRelocateImportsOperation(AbstractPythonFileOperation):
             | (set(used_in_C_for_block) - set(used_in_B))
         )
 
-        # --- Debug summary (concise) ---
-        try:
-            print("[RelocateDebug] A_final:", sorted(used_in_A_final))
-            print("[RelocateDebug] B:", sorted(used_in_B))
-            print("[RelocateDebug] C_only:", sorted(used_in_C_only))
-            print("[RelocateDebug] C_for_block:", sorted(used_in_C_for_block))
-            print("[RelocateDebug] cast_anywhere:", sorted(cast_type_names_anywhere))
-            print(
-                "[RelocateDebug] names_to_remove_from_module:",
-                sorted(names_to_remove_from_module),
-            )
-            # Extra: which cast-only names were excluded from TYPE_CHECKING
-            excluded_cast_only = sorted(list(set(cast_type_names_anywhere) - set(used_in_C_for_block)))
-            if excluded_cast_only:
-                print("[RelocateDebug] cast_only_excluded_from_TC:", excluded_cast_only)
-        except Exception:
-            pass
+        # Debug summary removed
 
         rewritten = module.visit(
             PythonImportRewriter(

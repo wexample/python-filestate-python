@@ -103,34 +103,9 @@ class PythonUsageCollector(cst.CSTVisitor):
         # Mark that we are in a parameter annotation while traversing children
         in_annot = node.annotation is not None
         self._in_param_annot_stack.append(in_annot)
-        try:
-            if in_annot:
-                print("[RelocateDebug] enter_param_annot:", self.func_stack[-1] if self.func_stack else "<module>", "param=", node.name.value if isinstance(node.name, cst.Name) else "<anon>")
-        except Exception:
-            pass
         # Record parameter annotation types into C (annotation usage)
-        try:
-            if node.annotation is not None:
-                before = set(self.used_in_C_annot)
-                self._record_type_names(node.annotation.annotation, self.used_in_C_annot)
-                added = sorted(list(set(self.used_in_C_annot) - before))
-                if added:
-                    print("[RelocateDebug] param_annot types=", added)
-        except Exception:
-            pass
-        try:
-            print(
-                "[RelocateDebug] param:",
-                self.func_stack[-1] if self.func_stack else "<module>",
-                "name=",
-                node.name.value if isinstance(node.name, cst.Name) else "<anon>",
-                "has_default=",
-                bool(has_default),
-                "default_type=",
-                type(node.default).__name__ if node.default is not None else None,
-            )
-        except Exception:
-            pass
+        if node.annotation is not None:
+            self._record_type_names(node.annotation.annotation, self.used_in_C_annot)
         # Names in defaults are needed at definition time: treat as B
         if has_default:
             try:
