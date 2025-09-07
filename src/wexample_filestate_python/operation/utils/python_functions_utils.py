@@ -129,6 +129,15 @@ def reorder_module_functions(module: cst.Module) -> cst.Module:
             insert_at = idx
             break
 
+    # Ensure functions come before the first class if any
+    first_class_index = None
+    for idx, node in enumerate(new_body):
+        if isinstance(node, cst.ClassDef):
+            first_class_index = idx
+            break
+    if first_class_index is not None and insert_at > first_class_index:
+        insert_at = first_class_index
+
     # Build function nodes preserving each group's comments/spacing on first element
     rebuilt_functions: List[cst.CSTNode] = []
     for g in sorted_groups:
