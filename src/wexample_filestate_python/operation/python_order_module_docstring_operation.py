@@ -56,7 +56,9 @@ class PythonOrderModuleDocstringOperation(AbstractPythonFileOperation):
                             normalize_docstring_quotes,
                         )
                         normalized_docstring = normalize_docstring_quotes(docstring_node)
-                        new_body = [normalized_docstring] + list(module.body[1:])
+                        # Ensure no leading whitespace for the docstring at top
+                        clean_docstring = normalized_docstring.with_changes(leading_lines=[])
+                        new_body = [clean_docstring] + list(module.body[1:])
                         modified_module = module.with_changes(body=new_body)
                         return modified_module.code
             # Already at top and quotes are fine
