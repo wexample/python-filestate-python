@@ -44,12 +44,20 @@ def reorder_module_classes(module: cst.Module) -> cst.Module:
     if not classes_with_idx:
         return module
 
-    # Extract in original order and compute sorted order
-    classes = [cls for _, cls in classes_with_idx]
-    sorted_classes = sorted(classes, key=lambda c: c.name.value.lower())
+    # Anchor = index of first class in original body
+    first_class_index = classes_with_idx[0][0]
 
-    # If already sorted in place, still ensure they are contiguous at original positions? We'll rebuild and compare code.
-    remove_indices = sorted(idx for idx, _ in classes_with_idx)
+    # Only reorder classes at or after the anchor; do not touch classes before it (e.g., Enums/types placed earlier)
+    tail_classes_with_idx = [(idx, cls) for idx, cls in classes_with_idx if idx >= first_class_index]
+    if not tail_classes_with_idx:
+        return module
+
+    # Extract tail classes and compute sorted order
+    tail_classes = [cls for _, cls in tail_classes_with_idx]
+    sorted_tail_classes = sorted(tail_classes, key=lambda c: c.name.value.lower())
+
+    # Remove only the tail classes
+    remove_indices = sorted(idx for idx, _ in tail_classes_with_idx)
 
     new_body: List[cst.CSTNode] = []
     for idx, node in enumerate(module.body):
@@ -57,10 +65,8 @@ def reorder_module_classes(module: cst.Module) -> cst.Module:
             continue
         new_body.append(node)
 
-    # Anchor = index of first class in original body
-    first_class_index = classes_with_idx[0][0]
-    removed_before_anchor = sum(1 for i in remove_indices if i < first_class_index)
-    insert_at = first_class_index - removed_before_anchor
+    # Insert at the original anchor (no removals before it since we only removed >= anchor)
+    insert_at = first_class_index
 
     # Keep __main__ guard last
     for idx, node in enumerate(new_body):
@@ -68,7 +74,7 @@ def reorder_module_classes(module: cst.Module) -> cst.Module:
             insert_at = idx
             break
 
-    # Reinsert classes
-    new_body[insert_at:insert_at] = [cls for cls in sorted_classes]
+    # Reinsert sorted tail classes
+    new_body[insert_at:insert_at] = [cls for cls in sorted_tail_classes]
 
     return module.with_changes(body=new_body)
