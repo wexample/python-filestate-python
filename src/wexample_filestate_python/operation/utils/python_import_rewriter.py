@@ -127,6 +127,10 @@ class PythonImportRewriter(cst.CSTTransformer):
             except Exception:
                 pass
             return updated_node
+        try:
+            print("[RelocateDebug] handle Import:", cst.Module([]).code_for_node(original_node))
+        except Exception:
+            pass
         kept_aliases: list[cst.ImportAlias] = []
         removed_any = False
         for alias in updated_node.names:
@@ -136,11 +140,6 @@ class PythonImportRewriter(cst.CSTTransformer):
             if not name:
                 continue
             alias_ident = alias.asname.name.value if alias.asname else name
-
-            # Always keep non-TYPE_CHECKING imports from typing at module level
-            if self._flatten_module_expr_to_str(updated_node.module) == "typing" and name != "TYPE_CHECKING":
-                kept_aliases.append(alias)
-                continue
 
             # Keep B at module level
             if alias_ident in self.used_in_B:
