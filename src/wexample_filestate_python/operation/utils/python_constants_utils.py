@@ -21,8 +21,18 @@ def _stmt_has_flag(stmt: cst.SimpleStatementLine, src: str) -> bool:
             comment_text = el.comment.value  # includes '#'
             if flag_exists(FLAG_NAME, comment_text):
                 return True
-    # Do NOT fallback to scanning the entire file; only consider an inline flag
-    # directly attached to this statement via leading_lines.
+    # Do NOT fallback to scanning the entire file universally; detection via
+    # previous sibling EmptyLine is handled by the callers.
+    return False
+
+
+def _prev_line_has_flag(body_list: list[cst.CSTNode], index: int) -> bool:
+    """Return True if the previous sibling is an EmptyLine whose comment contains the flag."""
+    if index - 1 < 0:
+        return False
+    prev = body_list[index - 1]
+    if isinstance(prev, cst.EmptyLine) and prev.comment is not None:
+        return flag_exists(FLAG_NAME, prev.comment.value)
     return False
 
 
@@ -72,7 +82,8 @@ def find_flagged_constant_blocks(module: cst.Module, src: str) -> List[Tuple[int
     while i < n:
         stmt = body[i]
         if isinstance(stmt, cst.SimpleStatementLine):
-            if _stmt_has_flag(stmt, src) and _get_simple_assignment_name(stmt) is not None:
+            has_flag = _stmt_has_flag(stmt, src) or _prev_line_has_flag(list(body), i)
+            if has_flag and _get_simple_assignment_name(stmt) is not None:
                 # Start a block at i
                 j = i
                 nodes: List[cst.SimpleStatementLine] = []
@@ -80,11 +91,15 @@ def find_flagged_constant_blocks(module: cst.Module, src: str) -> List[Tuple[int
                     s = body[j]
                     if isinstance(s, cst.SimpleStatementLine):
                         if j != i:
-                            # If separated by a blank line, stop the block
-                            if any(el.comment is None for el in s.leading_lines):
+                            # Stop the block if there is a visual separation (blank line),
+                            # which libcst represents as more than one leading line.
+                            if len(s.leading_lines) > 1:
                                 break
                             # If there is a non-flag comment immediately above, treat it as a new section
-                            if any(el.comment is not None and not flag_exists(FLAG_NAME, el.comment.value) for el in s.leading_lines):
+                            if any(
+                                el.comment is not None and not flag_exists(FLAG_NAME, el.comment.value)
+                                for el in s.leading_lines
+                            ):
                                 break
                         name = _get_simple_assignment_name(s)
                         if name is None:
@@ -179,17 +194,23 @@ def find_flagged_constant_blocks_in_class(classdef: cst.ClassDef, src: str) -> L
     while i < n:
         item = body_list[i]
         if isinstance(item, cst.SimpleStatementLine):
-            if _stmt_has_flag(item, src) and _get_simple_assignment_name(item) is not None:
+            has_flag = _stmt_has_flag(item, src) or _prev_line_has_flag(body_list, i)
+            if has_flag and _get_simple_assignment_name(item) is not None:
                 j = i
                 nodes: List[cst.SimpleStatementLine] = []
                 while j < n:
                     s = body_list[j]
                     if isinstance(s, cst.SimpleStatementLine):
                         if j != i:
-                            # Stop if separated visually by a non-flag blank line/comment
-                            if any(el.comment is None for el in s.leading_lines):
+                            # Stop the block if there is a visual separation (blank line),
+                            # modeled as more than one leading line by libcst.
+                            if len(s.leading_lines) > 1:
                                 break
-                            if any(el.comment is not None and not flag_exists(FLAG_NAME, el.comment.value) for el in s.leading_lines):
+                            # Stop if a non-flag comment appears immediately above
+                            if any(
+                                el.comment is not None and not flag_exists(FLAG_NAME, el.comment.value)
+                                for el in s.leading_lines
+                            ):
                                 break
                         name = _get_simple_assignment_name(s)
                         if name is None:
