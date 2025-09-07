@@ -79,13 +79,16 @@ def find_flagged_constant_blocks(module: cst.Module, src: str) -> List[Tuple[int
                 while j < n:
                     s = body[j]
                     if isinstance(s, cst.SimpleStatementLine):
+                        # If this statement is separated by a blank line, stop the block
+                        if j != i and any(el.comment is None for el in s.leading_lines):
+                            break
                         name = _get_simple_assignment_name(s)
                         if name is None:
                             break
                         nodes.append(s)
                         j += 1
                         continue
-                    # Stop at blank line or any other node
+                    # Stop at any other node
                     break
                 if nodes:
                     blocks.append((i, j, nodes))
