@@ -10,15 +10,34 @@ SPECIAL_INNER_CLASS_NAMES = {"Config"}
 
 
 def _is_attribute_statement(node: cst.CSTNode) -> bool:
+    """Return True if node is a class-level attribute we should order.
+
+    We consider:
+      - Simple single-target Name assignments (Assign/AnnAssign) whose target name is NOT UPPER_CASE
+      - Inner class definitions (e.g., Config) as attributes for ordering
+
+    Uppercase names are ignored here (treated as constants in another operation).
+    """
     if isinstance(node, cst.SimpleStatementLine) and len(node.body) == 1:
         small = node.body[0]
         if isinstance(small, cst.Assign):
             # Only simple single-target Name assignments
             if len(small.targets) != 1:
                 return False
-            return isinstance(small.targets[0].target, cst.Name)
+            target = small.targets[0].target
+            if isinstance(target, cst.Name):
+                # Ignore UPPER_CASE constants
+                if target.value.isupper():
+                    return False
+                return True
+            return False
         if isinstance(small, cst.AnnAssign):
-            return isinstance(small.target, cst.Name)
+            target = small.target
+            if isinstance(target, cst.Name):
+                if target.value.isupper():
+                    return False
+                return True
+            return False
     # Pydantic / config style inner classes are considered attributes for ordering
     if isinstance(node, cst.ClassDef) and isinstance(node.name, cst.Name):
         return True
