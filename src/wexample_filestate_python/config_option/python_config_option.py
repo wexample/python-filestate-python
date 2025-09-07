@@ -29,8 +29,6 @@ class PythonConfigOption(AbstractConfigOption):
     OPTION_NAME_UNQUOTE_ANNOTATIONS: ClassVar[str] = "unquote_annotations"
     # Order module-level functions (public A–Z, then private)
     OPTION_NAME_ORDER_MODULE_FUNCTIONS: ClassVar[str] = "order_module_functions"
-    # Order module-level classes alphabetically using anchor strategy
-    OPTION_NAME_ORDER_MODULE_CLASSES: ClassVar[str] = "order_module_classes"
 
     @staticmethod
     def get_raw_value_allowed_type() -> Any:
