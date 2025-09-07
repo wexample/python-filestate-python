@@ -30,18 +30,31 @@ class PythonRelocateImportsOperation(AbstractPythonFileOperation):
 
     @classmethod
     def get_option_name(cls) -> str:
-        from wexample_filestate_python.config_option.python_config_option import PythonConfigOption
+        from wexample_filestate_python.config_option.python_config_option import (
+            PythonConfigOption,
+        )
 
         return PythonConfigOption.OPTION_NAME_RELOCATE_IMPORTS
 
     @classmethod
     def preview_source_change(cls, target: TargetFileOrDirectoryType) -> str | None:
-        from wexample_filestate_python.operation.utils.python_import_rewriter import PythonImportRewriter
-        from wexample_filestate_python.operation.utils.python_localize_runtime_imports import PythonLocalizeRuntimeImports
-        from wexample_filestate_python.operation.utils.python_parser_import_index import PythonParserImportIndex
-        from wexample_filestate_python.operation.utils.python_runtime_symbol_collector import PythonRuntimeSymbolCollector
-        from wexample_filestate_python.operation.utils.python_usage_collector import PythonUsageCollector
         from collections import defaultdict
+
+        from wexample_filestate_python.operation.utils.python_import_rewriter import (
+            PythonImportRewriter,
+        )
+        from wexample_filestate_python.operation.utils.python_localize_runtime_imports import (
+            PythonLocalizeRuntimeImports,
+        )
+        from wexample_filestate_python.operation.utils.python_parser_import_index import (
+            PythonParserImportIndex,
+        )
+        from wexample_filestate_python.operation.utils.python_runtime_symbol_collector import (
+            PythonRuntimeSymbolCollector,
+        )
+        from wexample_filestate_python.operation.utils.python_usage_collector import (
+            PythonUsageCollector,
+        )
         src = cls._read_current_str_or_fail(target)
         module = cst.parse_module(src)
 

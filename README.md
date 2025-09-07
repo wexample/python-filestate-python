@@ -10,6 +10,8 @@ Version: 0.0.41
 
 ## Dependencies
 
+- attrs>=23.1.0
+- cattrs>=23.1.0
 - pydantic>=2,<3
 - wexample-filestate==0.0.51
 - wexample-helpers-api==0.0.32
