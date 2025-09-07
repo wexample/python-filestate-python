@@ -57,6 +57,7 @@ class PythonOperationsProvider(AbstractOperationsProvider):
         )
 
         return [
+            # filestate: python-iterable-sort
             PythonFormatOperation,
             PythonSortImportsOperation,
             PythonAddReturnTypesOperation,
