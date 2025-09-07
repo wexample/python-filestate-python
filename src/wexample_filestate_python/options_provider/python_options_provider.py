@@ -18,6 +18,7 @@ class PythonOptionsProvider(AbstractOptionsProvider):
         from wexample_filestate_python.config_option.python_config_option import (
             PythonConfigOption,
         )
+
         return [
             PythonConfigOption,
         ]

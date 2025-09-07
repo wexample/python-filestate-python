@@ -55,6 +55,7 @@ class PythonRelocateImportsOperation(AbstractPythonFileOperation):
         from wexample_filestate_python.operation.utils.python_usage_collector import (
             PythonUsageCollector,
         )
+
         src = cls._read_current_str_or_fail(target)
         module = cst.parse_module(src)
 
@@ -104,7 +105,10 @@ class PythonRelocateImportsOperation(AbstractPythonFileOperation):
         type_only_names: set[str] = {
             n
             for n in type_annotation_names
-            if n not in runtime_local_final and n not in class_level_names and n not in cast_type_names_anywhere and n not in runtime_used_anywhere
+            if n not in runtime_local_final
+            and n not in class_level_names
+            and n not in cast_type_names_anywhere
+            and n not in runtime_used_anywhere
         }
 
         # Names to include under TYPE_CHECKING:

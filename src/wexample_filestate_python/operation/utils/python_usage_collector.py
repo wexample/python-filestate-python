@@ -181,7 +181,12 @@ class PythonUsageCollector(cst.CSTVisitor):
     def visit_Name(self, node: cst.Name) -> None:  # type: ignore[override]
         if not self.func_stack:
             return
-        if self._in_annotation_stack or self._in_decorator_stack or any(self._in_param_default_stack) or any(self._in_param_annot_stack):
+        if (
+            self._in_annotation_stack
+            or self._in_decorator_stack
+            or any(self._in_param_default_stack)
+            or any(self._in_param_annot_stack)
+        ):
             return
         val = node.value
         # Do not treat 'cast' identifier as runtime usage; keep typing at module level
