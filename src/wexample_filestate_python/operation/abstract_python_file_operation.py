@@ -41,3 +41,44 @@ class AbstractPythonFileOperation(AbstractExistingFileOperation):
 
         # Delegate change detection to the base helper
         return self.source_need_change(self.target)
+
+    @classmethod
+    def _execute_and_wrap_stdout(cls, callback):
+        """Execute a callback and wrap any stdout/stderr output with additional newlines.
+        
+        This ensures that output from external tools doesn't interfere with progress indicators
+        by adding a newline after any captured output.
+        
+        Args:
+            callback: Function to execute that may produce stdout/stderr output
+            
+        Returns:
+            The return value of the callback function
+        """
+        import sys
+        import io
+
+        old_stdout = sys.stdout
+        old_stderr = sys.stderr
+        captured_stdout = io.StringIO()
+        captured_stderr = io.StringIO()
+        sys.stdout = captured_stdout
+        sys.stderr = captured_stderr
+
+        try:
+            result = callback()
+        finally:
+            sys.stdout = old_stdout
+            sys.stderr = old_stderr
+
+            stdout_content = captured_stdout.getvalue()
+            stderr_content = captured_stderr.getvalue()
+
+            if stdout_content.strip():
+                print(stdout_content.rstrip())
+                print()
+            if stderr_content.strip():
+                print(stderr_content.rstrip(), file=sys.stderr)
+                print(file=sys.stderr)
+
+        return result
