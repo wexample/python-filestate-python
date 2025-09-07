@@ -24,6 +24,8 @@ class PythonConfigOption(AbstractConfigOption):
     OPTION_NAME_ORDER_MODULE_METADATA: ClassVar[str] = "order_module_metadata"
     # Sort flagged UPPER_CASE constant blocks at module level
     OPTION_NAME_ORDER_CONSTANTS: ClassVar[str] = "order_constants"
+    # Sort items inside flagged iterable literals (lists/dicts)
+    OPTION_NAME_ORDER_ITERABLE_ITEMS: ClassVar[str] = "order_iterable_items"
 
     @staticmethod
     def get_raw_value_allowed_type() -> Any:

@@ -52,6 +52,9 @@ class PythonOperationsProvider(AbstractOperationsProvider):
         from wexample_filestate_python.operation.python_order_constants_operation import (
             PythonOrderConstantsOperation,
         )
+        from wexample_filestate_python.operation.python_order_iterable_items_operation import (
+            PythonOrderIterableItemsOperation,
+        )
 
         return [
             PythonFormatOperation,
@@ -67,4 +70,5 @@ class PythonOperationsProvider(AbstractOperationsProvider):
             PythonOrderTypeCheckingBlockOperation,
             PythonOrderModuleMetadataOperation,
             PythonOrderConstantsOperation,
+            PythonOrderIterableItemsOperation,
         ]
