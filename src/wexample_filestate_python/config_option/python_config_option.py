@@ -21,6 +21,8 @@ class PythonConfigOption(AbstractConfigOption):
     OPTION_NAME_ORDER_MODULE_METADATA: ClassVar[str] = "order_module_metadata"
     # Move TYPE_CHECKING blocks to after regular imports
     OPTION_NAME_ORDER_TYPE_CHECKING_BLOCK: ClassVar[str] = "order_type_checking_block"
+    # Ensure if __name__ == "__main__" block is at the very end
+    OPTION_NAME_ORDER_MAIN_GUARD: ClassVar[str] = "order_main_guard"
     # Relocate imports by usage (runtime-in-method, class property types, type-only)
     OPTION_NAME_RELOCATE_IMPORTS: ClassVar[str] = "relocate_imports"
     OPTION_NAME_REMOVE_UNUSED: ClassVar[str] = "remove_unused"
