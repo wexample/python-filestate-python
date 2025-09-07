@@ -9,61 +9,6 @@ from wexample_filestate.helpers.flag import flag_exists
 FLAG_NAME = "python-constant-sort"
 
 
-def _stmt_has_flag(stmt: cst.SimpleStatementLine, src: str) -> bool:
-    """Detect if a simple statement line is preceded by the filestate flag.
-
-    We look into leading_lines comments, else fallback to searching raw src segment
-    of the statement's leading trivia.
-    """
-    # Check libcst leading_lines comments
-    for el in stmt.leading_lines:
-        if el.comment is not None:
-            comment_text = el.comment.value  # includes '#'
-            if flag_exists(FLAG_NAME, comment_text):
-                return True
-    # Do NOT fallback to scanning the entire file universally; detection via
-    # previous sibling EmptyLine is handled by the callers.
-    return False
-
-
-def _prev_line_has_flag(body_list: list[cst.CSTNode], index: int) -> bool:
-    """Return True if the previous sibling is an EmptyLine whose comment contains the flag."""
-    if index - 1 < 0:
-        return False
-    prev = body_list[index - 1]
-    if isinstance(prev, cst.EmptyLine) and prev.comment is not None:
-        return flag_exists(FLAG_NAME, prev.comment.value)
-    return False
-
-
-def _is_upper_name(name: str) -> bool:
-    return name.isupper()
-
-
-def _get_simple_assignment_name(stmt: cst.SimpleStatementLine) -> Optional[str]:
-    if len(stmt.body) != 1:
-        return None
-    small = stmt.body[0]
-    if isinstance(small, cst.Assign):
-        if len(small.targets) != 1:
-            return None
-        target = small.targets[0].target
-        if isinstance(target, cst.Name) and _is_upper_name(target.value):
-            return target.value
-        return None
-    if isinstance(small, cst.AnnAssign):
-        target = small.target
-        if isinstance(target, cst.Name) and _is_upper_name(target.value):
-            return target.value
-        return None
-    return None
-
-
-def _is_blank_line(stmt: cst.CSTNode) -> bool:
-    # In Module.body, blank lines are represented as EmptyLine nodes
-    return isinstance(stmt, cst.EmptyLine)
-
-
 def find_flagged_constant_blocks(module: cst.Module, src: str) -> List[Tuple[int, int, List[cst.SimpleStatementLine]]]:
     """Find blocks of contiguous UPPER_CASE assignments following the filestate flag.
 
@@ -110,6 +55,100 @@ def find_flagged_constant_blocks(module: cst.Module, src: str) -> List[Tuple[int
         i += 1
 
     return blocks
+
+
+# -------- Class-level support --------
+
+def find_flagged_constant_blocks_in_class(classdef: cst.ClassDef, src: str) -> List[Tuple[int, int, List[cst.SimpleStatementLine]]]:
+    """Find flagged constant blocks within a class body.
+
+    Returns list of tuples (start_index, end_index_exclusive, nodes_in_block)
+    where indices refer to classdef.body.body positions.
+    """
+    blocks: List[Tuple[int, int, List[cst.SimpleStatementLine]]] = []
+    body_list = list(classdef.body.body)
+    n = len(body_list)
+    i = 0
+    while i < n:
+        item = body_list[i]
+        if isinstance(item, cst.SimpleStatementLine):
+            has_flag = _stmt_has_flag(item, src) or _prev_line_has_flag(body_list, i)
+            if has_flag and _get_simple_assignment_name(item) is not None:
+                j = i
+                nodes: List[cst.SimpleStatementLine] = []
+                while j < n:
+                    s = body_list[j]
+                    if isinstance(s, cst.SimpleStatementLine):
+                        if j != i:
+                            # Stop the block ONLY on a blank line (no comment) among leading_lines.
+                            if any(el.comment is None for el in s.leading_lines):
+                                break
+                        name = _get_simple_assignment_name(s)
+                        if name is None:
+                            break
+                        nodes.append(s)
+                        j += 1
+                        continue
+                    break
+                if nodes:
+                    blocks.append((i, j, nodes))
+                    i = j
+                    continue
+        i += 1
+    return blocks
+
+
+def reorder_flagged_constants(module: cst.Module, src: str) -> cst.Module:
+    blocks = find_flagged_constant_blocks(module, src)
+    if not blocks:
+        return module
+
+    new_body = list(module.body)
+
+    # Process blocks from last to first to keep indices stable
+    for start, end, nodes in reversed(blocks):
+        sorted_nodes = sort_constants_block(nodes)
+        # If unchanged, skip
+        if all(a is b for a, b in zip(nodes, sorted_nodes)):
+            continue
+        # Replace slice
+        new_body[start:end] = sorted_nodes
+
+    return module.with_changes(body=new_body)
+
+
+def reorder_flagged_constants_everywhere(module: cst.Module, src: str) -> cst.Module:
+    """Reorder flagged constant blocks at module level and within class bodies."""
+    first = reorder_flagged_constants(module, src)
+    second = reorder_flagged_constants_in_classes(first, src)
+    return second
+
+
+def reorder_flagged_constants_in_classes(module: cst.Module, src: str) -> cst.Module:
+    """Reorder flagged constant blocks inside all class definitions in the module."""
+    changed = False
+    new_module_body = list(module.body)
+
+    for idx, node in enumerate(new_module_body):
+        if isinstance(node, cst.ClassDef):
+            class_body_list = list(node.body.body)
+            blocks = find_flagged_constant_blocks_in_class(node, src)
+            if not blocks:
+                continue
+            # Apply from last to first within the class body
+            for start, end, nodes in reversed(blocks):
+                sorted_nodes = sort_constants_block(nodes)
+                if all(a is b for a, b in zip(nodes, sorted_nodes)):
+                    continue
+                class_body_list[start:end] = sorted_nodes
+                changed = True
+            if changed:
+                new_class_body = node.body.with_changes(body=class_body_list)
+                new_module_body[idx] = node.with_changes(body=new_class_body)
+
+    if not changed:
+        return module
+    return module.with_changes(body=new_module_body)
 
 
 def sort_constants_block(nodes: List[cst.SimpleStatementLine]) -> List[cst.SimpleStatementLine]:
@@ -166,95 +205,56 @@ def sort_constants_block(nodes: List[cst.SimpleStatementLine]) -> List[cst.Simpl
     return sorted_nodes
 
 
-def reorder_flagged_constants(module: cst.Module, src: str) -> cst.Module:
-    blocks = find_flagged_constant_blocks(module, src)
-    if not blocks:
-        return module
+def _get_simple_assignment_name(stmt: cst.SimpleStatementLine) -> Optional[str]:
+    if len(stmt.body) != 1:
+        return None
+    small = stmt.body[0]
+    if isinstance(small, cst.Assign):
+        if len(small.targets) != 1:
+            return None
+        target = small.targets[0].target
+        if isinstance(target, cst.Name) and _is_upper_name(target.value):
+            return target.value
+        return None
+    if isinstance(small, cst.AnnAssign):
+        target = small.target
+        if isinstance(target, cst.Name) and _is_upper_name(target.value):
+            return target.value
+        return None
+    return None
 
-    new_body = list(module.body)
 
-    # Process blocks from last to first to keep indices stable
-    for start, end, nodes in reversed(blocks):
-        sorted_nodes = sort_constants_block(nodes)
-        # If unchanged, skip
-        if all(a is b for a, b in zip(nodes, sorted_nodes)):
-            continue
-        # Replace slice
-        new_body[start:end] = sorted_nodes
-
-    return module.with_changes(body=new_body)
+def _is_blank_line(stmt: cst.CSTNode) -> bool:
+    # In Module.body, blank lines are represented as EmptyLine nodes
+    return isinstance(stmt, cst.EmptyLine)
 
 
-# -------- Class-level support --------
+def _is_upper_name(name: str) -> bool:
+    return name.isupper()
 
-def find_flagged_constant_blocks_in_class(classdef: cst.ClassDef, src: str) -> List[Tuple[int, int, List[cst.SimpleStatementLine]]]:
-    """Find flagged constant blocks within a class body.
 
-    Returns list of tuples (start_index, end_index_exclusive, nodes_in_block)
-    where indices refer to classdef.body.body positions.
+def _prev_line_has_flag(body_list: list[cst.CSTNode], index: int) -> bool:
+    """Return True if the previous sibling is an EmptyLine whose comment contains the flag."""
+    if index - 1 < 0:
+        return False
+    prev = body_list[index - 1]
+    if isinstance(prev, cst.EmptyLine) and prev.comment is not None:
+        return flag_exists(FLAG_NAME, prev.comment.value)
+    return False
+
+
+def _stmt_has_flag(stmt: cst.SimpleStatementLine, src: str) -> bool:
+    """Detect if a simple statement line is preceded by the filestate flag.
+
+    We look into leading_lines comments, else fallback to searching raw src segment
+    of the statement's leading trivia.
     """
-    blocks: List[Tuple[int, int, List[cst.SimpleStatementLine]]] = []
-    body_list = list(classdef.body.body)
-    n = len(body_list)
-    i = 0
-    while i < n:
-        item = body_list[i]
-        if isinstance(item, cst.SimpleStatementLine):
-            has_flag = _stmt_has_flag(item, src) or _prev_line_has_flag(body_list, i)
-            if has_flag and _get_simple_assignment_name(item) is not None:
-                j = i
-                nodes: List[cst.SimpleStatementLine] = []
-                while j < n:
-                    s = body_list[j]
-                    if isinstance(s, cst.SimpleStatementLine):
-                        if j != i:
-                            # Stop the block ONLY on a blank line (no comment) among leading_lines.
-                            if any(el.comment is None for el in s.leading_lines):
-                                break
-                        name = _get_simple_assignment_name(s)
-                        if name is None:
-                            break
-                        nodes.append(s)
-                        j += 1
-                        continue
-                    break
-                if nodes:
-                    blocks.append((i, j, nodes))
-                    i = j
-                    continue
-        i += 1
-    return blocks
-
-
-def reorder_flagged_constants_in_classes(module: cst.Module, src: str) -> cst.Module:
-    """Reorder flagged constant blocks inside all class definitions in the module."""
-    changed = False
-    new_module_body = list(module.body)
-
-    for idx, node in enumerate(new_module_body):
-        if isinstance(node, cst.ClassDef):
-            class_body_list = list(node.body.body)
-            blocks = find_flagged_constant_blocks_in_class(node, src)
-            if not blocks:
-                continue
-            # Apply from last to first within the class body
-            for start, end, nodes in reversed(blocks):
-                sorted_nodes = sort_constants_block(nodes)
-                if all(a is b for a, b in zip(nodes, sorted_nodes)):
-                    continue
-                class_body_list[start:end] = sorted_nodes
-                changed = True
-            if changed:
-                new_class_body = node.body.with_changes(body=class_body_list)
-                new_module_body[idx] = node.with_changes(body=new_class_body)
-
-    if not changed:
-        return module
-    return module.with_changes(body=new_module_body)
-
-
-def reorder_flagged_constants_everywhere(module: cst.Module, src: str) -> cst.Module:
-    """Reorder flagged constant blocks at module level and within class bodies."""
-    first = reorder_flagged_constants(module, src)
-    second = reorder_flagged_constants_in_classes(first, src)
-    return second
+    # Check libcst leading_lines comments
+    for el in stmt.leading_lines:
+        if el.comment is not None:
+            comment_text = el.comment.value  # includes '#'
+            if flag_exists(FLAG_NAME, comment_text):
+                return True
+    # Do NOT fallback to scanning the entire file universally; detection via
+    # previous sibling EmptyLine is handled by the callers.
+    return False

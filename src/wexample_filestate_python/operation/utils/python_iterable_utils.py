@@ -8,54 +8,6 @@ from wexample_filestate.helpers.flag import flag_exists
 FLAG_NAME = "python-iterable-sort"
 
 
-def _find_flag_line_indices(src: str) -> List[int]:
-    """Return line indices where the iterable sort flag appears."""
-    lines = src.splitlines()
-    indices: List[int] = []
-    for i, line in enumerate(lines):
-        if flag_exists(FLAG_NAME, line):
-            indices.append(i)
-    return indices
-
-
-def _collect_iterable_block(lines: List[str], flag_idx: int) -> Tuple[int, int]:
-    """Given the index of the flag line, collect the contiguous item block range.
-
-    Returns (start_idx, end_idx_exclusive) of lines to sort. We start at the next
-    non-empty, non-comment line after the flag, and stop before the first blank
-    line or the closing bracket ']' at the same or lesser indentation level.
-    """
-    n = len(lines)
-    # Determine base indentation from the flag line
-    flag_line = lines[flag_idx]
-    base_indent = len(flag_line) - len(flag_line.lstrip(" \t"))
-
-    # Start scanning after the flag line
-    i = flag_idx + 1
-    # Skip immediate blank/comment lines (though the example shows none)
-    while i < n and (lines[i].strip() == "" or lines[i].lstrip().startswith("#")):
-        i += 1
-    start = i
-
-    # Scan until blank line or closing bracket ']' at indentation <= base
-    while i < n:
-        stripped = lines[i].strip()
-        # Stop at blank separator line
-        if stripped == "":
-            break
-        # Stop when list ends
-        curr_indent = len(lines[i]) - len(lines[i].lstrip(" \t"))
-        if stripped.startswith("]") and curr_indent <= base_indent:
-            break
-        # Stop if we encounter a trailing comment-only line
-        if lines[i].lstrip().startswith("#"):
-            break
-        i += 1
-
-    end = i
-    return start, end
-
-
 def reorder_flagged_iterables(src: str) -> str:
     """Sort items of flagged iterable blocks (typically list literals) alphabetically.
 
@@ -132,3 +84,51 @@ def reorder_flagged_iterables(src: str) -> str:
         changed = True
 
     return "\n".join(lines) if changed else src
+
+
+def _collect_iterable_block(lines: List[str], flag_idx: int) -> Tuple[int, int]:
+    """Given the index of the flag line, collect the contiguous item block range.
+
+    Returns (start_idx, end_idx_exclusive) of lines to sort. We start at the next
+    non-empty, non-comment line after the flag, and stop before the first blank
+    line or the closing bracket ']' at the same or lesser indentation level.
+    """
+    n = len(lines)
+    # Determine base indentation from the flag line
+    flag_line = lines[flag_idx]
+    base_indent = len(flag_line) - len(flag_line.lstrip(" \t"))
+
+    # Start scanning after the flag line
+    i = flag_idx + 1
+    # Skip immediate blank/comment lines (though the example shows none)
+    while i < n and (lines[i].strip() == "" or lines[i].lstrip().startswith("#")):
+        i += 1
+    start = i
+
+    # Scan until blank line or closing bracket ']' at indentation <= base
+    while i < n:
+        stripped = lines[i].strip()
+        # Stop at blank separator line
+        if stripped == "":
+            break
+        # Stop when list ends
+        curr_indent = len(lines[i]) - len(lines[i].lstrip(" \t"))
+        if stripped.startswith("]") and curr_indent <= base_indent:
+            break
+        # Stop if we encounter a trailing comment-only line
+        if lines[i].lstrip().startswith("#"):
+            break
+        i += 1
+
+    end = i
+    return start, end
+
+
+def _find_flag_line_indices(src: str) -> List[int]:
+    """Return line indices where the iterable sort flag appears."""
+    lines = src.splitlines()
+    indices: List[int] = []
+    for i, line in enumerate(lines):
+        if flag_exists(FLAG_NAME, line):
+            indices.append(i)
+    return indices

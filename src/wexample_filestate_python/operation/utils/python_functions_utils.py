@@ -6,38 +6,6 @@ from typing import List, Optional, Tuple
 import libcst as cst
 
 
-def _is_overload_decorator(dec: cst.Decorator) -> bool:
-    expr = dec.decorator
-    # @overload
-    if isinstance(expr, cst.Name) and expr.value == "overload":
-        return True
-    # @typing.overload
-    if isinstance(expr, cst.Attribute):
-        if isinstance(expr.attr, cst.Name) and expr.attr.value == "overload":
-            return True
-    return False
-
-
-def _has_overload_decorator(fn: cst.FunctionDef) -> bool:
-    if fn.decorators:
-        return any(_is_overload_decorator(d) for d in fn.decorators)
-    return False
-
-
-def _func_name(fn: cst.FunctionDef) -> str:
-    return fn.name.value
-
-
-def _is_private_name(name: str) -> bool:
-    return name.startswith("_")
-
-
-@dataclass(frozen=True)
-class FunctionGroup:
-    name: str
-    nodes: Tuple[cst.FunctionDef, ...]
-
-
 def collect_module_function_groups(module: cst.Module) -> List[Tuple[int, FunctionGroup]]:
     """Collect top-level functions into groups, preserving overload sequences.
 
@@ -69,15 +37,6 @@ def collect_module_function_groups(module: cst.Module) -> List[Tuple[int, Functi
             continue
         i += 1
     return groups
-
-
-def sort_function_groups(groups: List[FunctionGroup]) -> List[FunctionGroup]:
-    """Sort groups by public (A–Z) then private (_*), each alphabetically case-insensitive."""
-    public = [g for g in groups if not _is_private_name(g.name)]
-    private = [g for g in groups if _is_private_name(g.name)]
-    public.sort(key=lambda g: g.name.lower())
-    private.sort(key=lambda g: g.name.lower())
-    return public + private
 
 
 def module_functions_sorted_before_classes(module: cst.Module) -> bool:
@@ -146,3 +105,44 @@ def reorder_module_functions(module: cst.Module) -> cst.Module:
     new_body[insert_at:insert_at] = rebuilt_functions
 
     return module.with_changes(body=new_body)
+
+
+def sort_function_groups(groups: List[FunctionGroup]) -> List[FunctionGroup]:
+    """Sort groups by public (A–Z) then private (_*), each alphabetically case-insensitive."""
+    public = [g for g in groups if not _is_private_name(g.name)]
+    private = [g for g in groups if _is_private_name(g.name)]
+    public.sort(key=lambda g: g.name.lower())
+    private.sort(key=lambda g: g.name.lower())
+    return public + private
+
+
+def _func_name(fn: cst.FunctionDef) -> str:
+    return fn.name.value
+
+
+def _has_overload_decorator(fn: cst.FunctionDef) -> bool:
+    if fn.decorators:
+        return any(_is_overload_decorator(d) for d in fn.decorators)
+    return False
+
+
+def _is_overload_decorator(dec: cst.Decorator) -> bool:
+    expr = dec.decorator
+    # @overload
+    if isinstance(expr, cst.Name) and expr.value == "overload":
+        return True
+    # @typing.overload
+    if isinstance(expr, cst.Attribute):
+        if isinstance(expr.attr, cst.Name) and expr.attr.value == "overload":
+            return True
+    return False
+
+
+def _is_private_name(name: str) -> bool:
+    return name.startswith("_")
+
+
+@dataclass(frozen=True)
+class FunctionGroup:
+    name: str
+    nodes: Tuple[cst.FunctionDef, ...]

@@ -8,42 +8,6 @@ if TYPE_CHECKING:
     pass
 
 
-def normalize_docstring_quotes(docstring_node: cst.SimpleStatementLine) -> cst.SimpleStatementLine:
-    """Convert single quotes to double quotes in docstring nodes.
-    
-    Args:
-        docstring_node: A CST node containing a docstring statement
-        
-    Returns:
-        The same node with normalized double quotes
-    """
-    if not isinstance(docstring_node.body[0], cst.Expr):
-        return docstring_node
-        
-    expr = docstring_node.body[0]
-    if not isinstance(expr.value, cst.SimpleString):
-        return docstring_node
-        
-    string_value = expr.value
-    quote = string_value.quote
-    
-    # Convert single quotes to double quotes
-    if quote.startswith("'''"):
-        new_quote = '"""'
-    elif quote.startswith("'"):
-        new_quote = '"'
-    else:
-        # Already using double quotes
-        return docstring_node
-        
-    # Create new string with double quotes
-    new_string = string_value.with_changes(quote=new_quote)
-    new_expr = expr.with_changes(value=new_string)
-    new_body = [new_expr] + list(docstring_node.body[1:])
-    
-    return docstring_node.with_changes(body=new_body)
-
-
 def find_module_docstring(module: cst.Module) -> tuple[cst.SimpleStatementLine | None, int]:
     """Find the module docstring in a CST module.
     
@@ -113,3 +77,39 @@ def move_docstring_to_top(module: cst.Module) -> cst.Module:
     new_body.insert(0, clean_docstring)
     
     return module.with_changes(body=new_body)
+
+
+def normalize_docstring_quotes(docstring_node: cst.SimpleStatementLine) -> cst.SimpleStatementLine:
+    """Convert single quotes to double quotes in docstring nodes.
+    
+    Args:
+        docstring_node: A CST node containing a docstring statement
+        
+    Returns:
+        The same node with normalized double quotes
+    """
+    if not isinstance(docstring_node.body[0], cst.Expr):
+        return docstring_node
+        
+    expr = docstring_node.body[0]
+    if not isinstance(expr.value, cst.SimpleString):
+        return docstring_node
+        
+    string_value = expr.value
+    quote = string_value.quote
+    
+    # Convert single quotes to double quotes
+    if quote.startswith("'''"):
+        new_quote = '"""'
+    elif quote.startswith("'"):
+        new_quote = '"'
+    else:
+        # Already using double quotes
+        return docstring_node
+        
+    # Create new string with double quotes
+    new_string = string_value.with_changes(quote=new_quote)
+    new_expr = expr.with_changes(value=new_string)
+    new_body = [new_expr] + list(docstring_node.body[1:])
+    
+    return docstring_node.with_changes(body=new_body)

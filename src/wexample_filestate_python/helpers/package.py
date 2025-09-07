@@ -9,6 +9,94 @@ if TYPE_CHECKING:
     from pathlib import Path
 
 
+def package_get_dependencies(root_dir: str | Path) -> dict[str, set[str]]:
+    """
+    Get dependencies between packages in a directory.
+    """
+    from pathlib import Path
+
+    packages_root = Path(root_dir)
+    if not packages_root.exists() or not packages_root.is_dir():
+        raise ValueError(f"Error: {packages_root} does not exist or is not a directory")
+
+    dependencies = {}
+
+    # First pass: collect all local packages
+    for package_dir in packages_root.iterdir():
+        if not package_dir.is_dir():
+            continue
+
+        package_info = package_get_info(package_dir)
+        if package_info:
+            name, _ = package_info
+            dependencies[name] = set()
+
+    # Second pass: analyze dependencies
+    for package_dir in packages_root.iterdir():
+        if not package_dir.is_dir():
+            continue
+
+        package_info = package_get_info(package_dir)
+        if package_info:
+            name, deps = package_info
+            if name in dependencies:
+                # Only keep dependencies that are local packages
+                dependencies[name] = {dep for dep in deps if dep in dependencies}
+
+    return dependencies
+
+
+def package_get_info(package_dir: Path) -> tuple[str, set[str]] | None:
+    """
+    Get package name and its dependencies from setup.py or pyproject.toml.
+    """
+    # Try pyproject.toml first
+    toml_path = package_dir / "pyproject.toml"
+    if toml_path.exists():
+        metadata = package_parse_toml(toml_path)
+    else:
+        # Fallback to setup.py
+        setup_py_path = package_dir / "setup.py"
+        if setup_py_path.exists():
+            metadata = package_parse_setup(setup_py_path)
+        else:
+            return None
+
+    name = metadata.get("name")
+    if not name:
+        return None
+
+    deps = metadata.get("install_requires", [])
+    return name, set(deps)
+
+
+def package_list_sorted(root_dir: str | Path) -> list[str]:
+    """
+    Get a list of package names sorted by dependency order.
+    """
+    from wexample_filestate.helpers.dependencies import dependencies_sort
+
+    dependencies = package_get_dependencies(root_dir)
+    if not dependencies:
+        return []
+
+    # Convert dependencies dict to list for sorting
+    packages = list(dependencies.keys())
+
+    def get_deps(pkg: str) -> set[str]:
+        return dependencies[pkg]
+
+    return dependencies_sort(packages, get_deps)
+
+
+def package_normalize_name(val: str) -> str:
+    import re as _re
+
+    # strip extras, versions, markers
+    base = _re.split(r"[\s<>=!~;\[]", val, maxsplit=1)[0]
+    return base.strip().lower()
+
+
 def package_parse_setup(path: Path) -> dict:
     """
     Parse a setup.py file to extract metadata.
@@ -51,91 +139,3 @@ def package_parse_toml(path: Path) -> dict:
     except Exception as e:
         print(f"Error parsing {path}: {e}")
     return {}
-
-
-def package_get_info(package_dir: Path) -> tuple[str, set[str]] | None:
-    """
-    Get package name and its dependencies from setup.py or pyproject.toml.
-    """
-    # Try pyproject.toml first
-    toml_path = package_dir / "pyproject.toml"
-    if toml_path.exists():
-        metadata = package_parse_toml(toml_path)
-    else:
-        # Fallback to setup.py
-        setup_py_path = package_dir / "setup.py"
-        if setup_py_path.exists():
-            metadata = package_parse_setup(setup_py_path)
-        else:
-            return None
-
-    name = metadata.get("name")
-    if not name:
-        return None
-
-    deps = metadata.get("install_requires", [])
-    return name, set(deps)
-
-
-def package_get_dependencies(root_dir: str | Path) -> dict[str, set[str]]:
-    """
-    Get dependencies between packages in a directory.
-    """
-    from pathlib import Path
-
-    packages_root = Path(root_dir)
-    if not packages_root.exists() or not packages_root.is_dir():
-        raise ValueError(f"Error: {packages_root} does not exist or is not a directory")
-
-    dependencies = {}
-
-    # First pass: collect all local packages
-    for package_dir in packages_root.iterdir():
-        if not package_dir.is_dir():
-            continue
-
-        package_info = package_get_info(package_dir)
-        if package_info:
-            name, _ = package_info
-            dependencies[name] = set()
-
-    # Second pass: analyze dependencies
-    for package_dir in packages_root.iterdir():
-        if not package_dir.is_dir():
-            continue
-
-        package_info = package_get_info(package_dir)
-        if package_info:
-            name, deps = package_info
-            if name in dependencies:
-                # Only keep dependencies that are local packages
-                dependencies[name] = {dep for dep in deps if dep in dependencies}
-
-    return dependencies
-
-
-def package_list_sorted(root_dir: str | Path) -> list[str]:
-    """
-    Get a list of package names sorted by dependency order.
-    """
-    from wexample_filestate.helpers.dependencies import dependencies_sort
-
-    dependencies = package_get_dependencies(root_dir)
-    if not dependencies:
-        return []
-
-    # Convert dependencies dict to list for sorting
-    packages = list(dependencies.keys())
-
-    def get_deps(pkg: str) -> set[str]:
-        return dependencies[pkg]
-
-    return dependencies_sort(packages, get_deps)
-
-
-def package_normalize_name(val: str) -> str:
-    import re as _re
-
-    # strip extras, versions, markers
-    base = _re.split(r"[\s<>=!~;\[]", val, maxsplit=1)[0]
-    return base.strip().lower()
