@@ -104,7 +104,12 @@ def move_docstring_to_top(module: cst.Module) -> cst.Module:
     new_body = list(module.body)
     new_body.pop(position)
     
-    # Insert at the beginning
-    new_body.insert(0, normalized_docstring)
+    # Insert at the beginning with no leading whitespace
+    # Ensure the docstring has no leading newlines
+    clean_docstring = normalized_docstring.with_changes(
+        leading_lines=[]
+    )
+    
+    new_body.insert(0, clean_docstring)
     
     return module.with_changes(body=new_body)
