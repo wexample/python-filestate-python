@@ -18,6 +18,8 @@ class PythonConfigOption(AbstractConfigOption):
     OPTION_NAME_RELOCATE_IMPORTS: ClassVar[str] = "relocate_imports"
     # Order module docstring to be at the top of the file
     OPTION_NAME_ORDER_MODULE_DOCSTRING: ClassVar[str] = "order_module_docstring"
+    # Move TYPE_CHECKING blocks to after regular imports
+    OPTION_NAME_ORDER_TYPE_CHECKING_BLOCK: ClassVar[str] = "order_type_checking_block"
 
     @staticmethod
     def get_raw_value_allowed_type() -> Any:

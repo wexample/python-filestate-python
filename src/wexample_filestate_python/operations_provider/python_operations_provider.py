@@ -43,6 +43,9 @@ class PythonOperationsProvider(AbstractOperationsProvider):
         from wexample_filestate_python.operation.python_order_module_docstring_operation import (
             PythonOrderModuleDocstringOperation,
         )
+        from wexample_filestate_python.operation.python_order_type_checking_block_operation import (
+            PythonOrderTypeCheckingBlockOperation,
+        )
 
         return [
             PythonFormatOperation,
@@ -55,4 +58,5 @@ class PythonOperationsProvider(AbstractOperationsProvider):
             PythonAddFutureAnnotationsOperation,
             PythonUnquoteAnnotationsOperation,
             PythonOrderModuleDocstringOperation,
+            PythonOrderTypeCheckingBlockOperation,
         ]
