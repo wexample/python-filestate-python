@@ -133,26 +133,15 @@ def sort_constants_block(nodes: List[cst.SimpleStatementLine]) -> List[cst.Simpl
             ]
         return nodes
 
-    # Helper to filter out only the flag comment from a node's leading_lines,
-    # keeping any other comments intact.
-    def _strip_flag_from_leading(node: cst.SimpleStatementLine) -> cst.SimpleStatementLine:
-        if not node.leading_lines:
-            return node
-        new_leading: List[cst.EmptyLine] = []
-        for el in node.leading_lines:
-            if el.comment is not None and flag_exists(FLAG_NAME, el.comment.value):
-                # drop the flag line for non-first nodes
-                continue
-            new_leading.append(el)
-        return node.with_changes(leading_lines=new_leading)
-
     sorted_nodes: List[cst.SimpleStatementLine] = []
     for idx, (_, node) in enumerate(sorted_pairs):
         if idx == 0:
             # Attach the full original leading_lines (preserving spacing and flag)
             sorted_nodes.append(node.with_changes(leading_lines=original_first_leading))
         else:
-            sorted_nodes.append(_strip_flag_from_leading(node))
+            # Clear all leading_lines on subsequent nodes to prevent duplicating
+            # section headers or introducing extra blank lines within the block.
+            sorted_nodes.append(node.with_changes(leading_lines=[]))
     return sorted_nodes
 
 
