@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from typing import List, Optional, Tuple
 
 import libcst as cst
+from libcst import matchers as m
 
 
 def collect_module_function_groups(module: cst.Module) -> List[Tuple[int, FunctionGroup]]:
@@ -83,12 +84,133 @@ def reorder_module_functions(module: cst.Module) -> cst.Module:
             continue
         new_body.append(node)
 
-    # Determine insertion index: just before first class if any, else end of body
+    # Determine insertion index safely:
+    # - Insert before the first non-declaration node (anything that's not
+    #   docstring/imports/TYPE_CHECKING/metadata/UPPER_CASE constants)
+    # - Classes are considered a barrier (functions must come before classes)
+    # - Always insert before the __main__ guard so it remains last
+    def _is_main_guard(node: cst.CSTNode) -> bool:
+        if not isinstance(node, cst.If):
+            return False
+        test = node.test
+        # Match patterns like: if __name__ == "__main__":
+        if isinstance(test, cst.Comparison):
+            left = test.left
+            comps = test.comparisons
+            if len(comps) == 1 and isinstance(left, cst.Name) and left.value == "__name__":
+                comp = comps[0]
+                # operator should be ==
+                if isinstance(comp.operator, cst.Equal):
+                    right = comp.comparator
+                    if isinstance(right, cst.SimpleString):
+                        val = right.evaluated_value if hasattr(right, "evaluated_value") else right.value.strip('"\'')
+                        return val == "__main__" or right.value.strip() in ("'__main__'", '"__main__"')
+        return False
+
+    METADATA_NAMES = {"__all__", "__version__", "__author__", "__email__", "__license__", "__copyright__", "__title__", "__description__"}
+
+    def _is_docstring_node(node: cst.CSTNode, idx: int) -> bool:
+        if idx != 0:
+            return False
+        if not isinstance(node, cst.SimpleStatementLine):
+            return False
+        return (
+            len(node.body) == 1
+            and isinstance(node.body[0], cst.Expr)
+            and isinstance(node.body[0].value, cst.SimpleString)
+        )
+
+    def _is_import_line(node: cst.CSTNode) -> bool:
+        if not isinstance(node, cst.SimpleStatementLine):
+            return False
+        return any(isinstance(s, (cst.Import, cst.ImportFrom)) for s in node.body)
+
+    def _is_type_checking_if(node: cst.CSTNode) -> bool:
+        if not isinstance(node, cst.If):
+            return False
+        # Matches: if TYPE_CHECKING: or if typing.TYPE_CHECKING:
+        return m.matches(
+            node,
+            m.If(
+                test=(
+                    m.Name("TYPE_CHECKING")
+                    | m.Attribute(value=m.Name("typing"), attr=m.Name("TYPE_CHECKING"))
+                )
+            ),
+        )
+
+    def _is_metadata_or_upper_const(node: cst.CSTNode) -> bool:
+        if not isinstance(node, cst.SimpleStatementLine):
+            return False
+        if len(node.body) != 1:
+            return False
+        small = node.body[0]
+        if isinstance(small, cst.Assign) and len(small.targets) == 1:
+            tgt = small.targets[0].target
+            if isinstance(tgt, cst.Name):
+                name = tgt.value
+                return name in METADATA_NAMES or name.isupper()
+        if isinstance(small, cst.AnnAssign) and isinstance(small.target, cst.Name):
+            name = small.target.value
+            return name in METADATA_NAMES or name.isupper()
+        return False
+
+    def _is_typing_type_alias(node: cst.CSTNode) -> bool:
+        """Detect TypeVar/NewType assignments and TypeAlias annotated assignments.
+
+        Examples kept as declarations:
+          SortableType = TypeVar("SortableType")
+          UserId = NewType("UserId", int)
+          MyAlias: TypeAlias = dict[str, int]
+        """
+        if not isinstance(node, cst.SimpleStatementLine) or len(node.body) != 1:
+            return False
+        small = node.body[0]
+        # Assign: Name = Call(TypeVar/typing.TypeVar or NewType/typing.NewType)
+        if isinstance(small, cst.Assign) and len(small.targets) == 1:
+            value = small.value
+            if isinstance(value, cst.Call):
+                callee = value.func
+                # TypeVar or typing.TypeVar
+                if isinstance(callee, cst.Name) and callee.value in {"TypeVar", "NewType"}:
+                    return True
+                if isinstance(callee, cst.Attribute) and isinstance(callee.attr, cst.Name) and callee.attr.value in {"TypeVar", "NewType"}:
+                    return True
+        # Annotated assignment: Name: TypeAlias = ... (typing.TypeAlias also possible in older versions)
+        if isinstance(small, cst.AnnAssign):
+            ann = small.annotation.annotation
+            if isinstance(ann, cst.Name) and ann.value == "TypeAlias":
+                return True
+            if isinstance(ann, cst.Attribute) and isinstance(ann.attr, cst.Name) and ann.attr.value == "TypeAlias":
+                return True
+        return False
+
+    def _is_declaration(node: cst.CSTNode, idx: int) -> bool:
+        return (
+            _is_docstring_node(node, idx)
+            or _is_import_line(node)
+            or _is_type_checking_if(node)
+            or _is_metadata_or_upper_const(node)
+            or _is_typing_type_alias(node)
+        )
+
+    # Find main guard index if present
+    main_guard_index: Optional[int] = None
+    for idx, node in enumerate(new_body):
+        if _is_main_guard(node):
+            main_guard_index = idx
+            break
+
+    # Scan for first barrier: class, main guard, or any non-declaration
     insert_at = len(new_body)
     for idx, node in enumerate(new_body):
-        if isinstance(node, cst.ClassDef):
+        if isinstance(node, cst.ClassDef) or _is_main_guard(node) or not _is_declaration(node, idx):
             insert_at = idx
             break
+
+    # Ensure we don't insert after the __main__ guard
+    if main_guard_index is not None and insert_at > main_guard_index:
+        insert_at = main_guard_index
 
     # Build function nodes preserving each group's comments/spacing on first element
     rebuilt_functions: List[cst.CSTNode] = []
