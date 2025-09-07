@@ -16,6 +16,8 @@ class PythonConfigOption(AbstractConfigOption):
     OPTION_NAME_UNQUOTE_ANNOTATIONS: ClassVar[str] = "unquote_annotations"
     # Relocate imports by usage (runtime-in-method, class property types, type-only)
     OPTION_NAME_RELOCATE_IMPORTS: ClassVar[str] = "relocate_imports"
+    # Order module docstring to be at the top of the file
+    OPTION_NAME_ORDER_MODULE_DOCSTRING: ClassVar[str] = "order_module_docstring"
 
     @staticmethod
     def get_raw_value_allowed_type() -> Any:

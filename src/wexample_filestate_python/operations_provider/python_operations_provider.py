@@ -40,6 +40,9 @@ class PythonOperationsProvider(AbstractOperationsProvider):
         from wexample_filestate_python.operation.python_unquote_annotations_operation import (
             PythonUnquoteAnnotationsOperation,
         )
+        from wexample_filestate_python.operation.python_order_module_docstring_operation import (
+            PythonOrderModuleDocstringOperation,
+        )
 
         return [
             PythonFormatOperation,
@@ -51,4 +54,5 @@ class PythonOperationsProvider(AbstractOperationsProvider):
             PythonRemoveUnusedOperation,
             PythonAddFutureAnnotationsOperation,
             PythonUnquoteAnnotationsOperation,
+            PythonOrderModuleDocstringOperation,
         ]
