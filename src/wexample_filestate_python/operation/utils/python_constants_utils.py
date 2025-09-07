@@ -79,9 +79,13 @@ def find_flagged_constant_blocks(module: cst.Module, src: str) -> List[Tuple[int
                 while j < n:
                     s = body[j]
                     if isinstance(s, cst.SimpleStatementLine):
-                        # If this statement is separated by a blank line, stop the block
-                        if j != i and any(el.comment is None for el in s.leading_lines):
-                            break
+                        if j != i:
+                            # If separated by a blank line, stop the block
+                            if any(el.comment is None for el in s.leading_lines):
+                                break
+                            # If there is a non-flag comment immediately above, treat it as a new section
+                            if any(el.comment is not None and not flag_exists(FLAG_NAME, el.comment.value) for el in s.leading_lines):
+                                break
                         name = _get_simple_assignment_name(s)
                         if name is None:
                             break
