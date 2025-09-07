@@ -122,15 +122,7 @@ class PythonImportRewriter(cst.CSTTransformer):
     ) -> cst.RemovalSentinel | cst.BaseSmallStatement:
         # Only handle module-level imports
         if self._inside_class_func_stack:
-            try:
-                print("[RelocateDebug] skip_prune_non_module Import:", cst.Module([]).code_for_node(original_node))
-            except Exception:
-                pass
             return updated_node
-        try:
-            print("[RelocateDebug] handle Import:", cst.Module([]).code_for_node(original_node))
-        except Exception:
-            pass
         kept_aliases: list[cst.ImportAlias] = []
         removed_any = False
         for alias in updated_node.names:
@@ -173,10 +165,6 @@ class PythonImportRewriter(cst.CSTTransformer):
     ) -> cst.RemovalSentinel | cst.BaseSmallStatement:
         # Only handle module-level imports
         if self._inside_class_func_stack:
-            try:
-                print("[RelocateDebug] skip_prune_non_module ImportFrom:", cst.Module([]).code_for_node(original_node))
-            except Exception:
-                pass
             return updated_node
         if updated_node.names is None or isinstance(updated_node.names, cst.ImportStar):
             return updated_node
