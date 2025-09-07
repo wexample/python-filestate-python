@@ -61,6 +61,9 @@ class PythonOperationsProvider(AbstractOperationsProvider):
         from wexample_filestate_python.operation.python_order_iterable_items_operation import (
             PythonOrderIterableItemsOperation,
         )
+        from wexample_filestate_python.operation.python_order_class_docstring_operation import (
+            PythonOrderClassDocstringOperation,
+        )
 
         return [
             # filestate: python-iterable-sort
@@ -74,6 +77,7 @@ class PythonOperationsProvider(AbstractOperationsProvider):
             PythonOrderMainGuardOperation,
             PythonOrderModuleFunctionsOperation,
             PythonOrderIterableItemsOperation,
+            PythonOrderClassDocstringOperation,
             PythonOrderModuleDocstringOperation,
             PythonOrderTypeCheckingBlockOperation,
             PythonRelocateImportsOperation,
