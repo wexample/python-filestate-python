@@ -29,10 +29,10 @@ class PythonFStringifyOperation(AbstractPythonFileOperation):
 
         src = cls._read_current_str_or_fail(target)
         state = State(aggressive=False, multiline=False, len_limit=120)
-        
+
         def _execute_fstringify():
             return fstringify_code(src, state=state)
-        
+
         result = cls._execute_and_wrap_stdout(_execute_fstringify)
 
         if result is None:

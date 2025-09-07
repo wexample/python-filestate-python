@@ -45,18 +45,18 @@ class AbstractPythonFileOperation(AbstractExistingFileOperation):
     @classmethod
     def _execute_and_wrap_stdout(cls, callback):
         """Execute a callback and wrap any stdout/stderr output with additional newlines.
-        
+
         This ensures that output from external tools doesn't interfere with progress indicators
         by adding a newline after any captured output.
-        
+
         Args:
             callback: Function to execute that may produce stdout/stderr output
-            
+
         Returns:
             The return value of the callback function
         """
-        import sys
         import io
+        import sys
 
         old_stdout = sys.stdout
         old_stderr = sys.stderr
