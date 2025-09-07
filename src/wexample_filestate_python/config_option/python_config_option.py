@@ -33,6 +33,8 @@ class PythonConfigOption(AbstractConfigOption):
     OPTION_NAME_ORDER_MODULE_FUNCTIONS: ClassVar[str] = "order_module_functions"
     # Ensure class docstring is first statement after header/decorators
     OPTION_NAME_ORDER_CLASS_DOCSTRING: ClassVar[str] = "order_class_docstring"
+    # Sort class attributes: special first, then public A–Z, then private/protected A–Z
+    OPTION_NAME_ORDER_CLASS_ATTRIBUTES: ClassVar[str] = "order_class_attributes"
 
     @staticmethod
     def get_raw_value_allowed_type() -> Any:
