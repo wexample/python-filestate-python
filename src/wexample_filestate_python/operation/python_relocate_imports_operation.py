@@ -95,13 +95,14 @@ class PythonRelocateImportsOperation(AbstractPythonFileOperation):
         }
 
         # Names to include under TYPE_CHECKING:
-        # - any used in annotations anywhere
-        # - any used in cast() type expressions (to keep annotations/import paths consistent)
-        # Exclude only B (class-level property usage), which must stay at module level.
-        used_in_C_for_block: set[str] = (set(used_in_C_annot) | set(cast_type_names_anywhere)) - set(used_in_B)
+        # - only those used in annotations anywhere (C)
+        # Exclude B (class-level property usage), which must stay at module level.
+        # Note: cast-only names will be localized per method and NOT added to TYPE_CHECKING
+        # unless they also appear in annotations.
+        used_in_C_for_block: set[str] = set(used_in_C_annot) - set(used_in_B)
 
         # For names used inside cast() anywhere in the module:
-        # - include them under TYPE_CHECKING (handled via used_in_C_for_block)
+        # - do NOT auto-add to TYPE_CHECKING (unless also in annotations via used_in_C_for_block)
         # - remove module-level import unless also in B (class-level usage)
         names_to_remove_from_module = (
             set(used_in_A_final)
