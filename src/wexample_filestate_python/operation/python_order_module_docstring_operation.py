@@ -27,17 +27,44 @@ class PythonOrderModuleDocstringOperation(AbstractPythonFileOperation):
 
     @classmethod
     def preview_source_change(cls, target: TargetFileOrDirectoryType) -> str | None:
-        # TODO: Implement module docstring ordering
-        # 
-        # Corrections to apply:
-        # 1. Detect if file has a module docstring (triple-quoted string at module level)
-        # 2. If docstring exists but is not at the very top, move it to position 1
-        # 3. nope : Ensure docstring comes before any imports, constants, or other code
-        # 4. Preserve the exact content and formatting of the docstring
-        # 5. Handle both single-line and multi-line docstrings
-        # 6. nope, convert to double : Support both """ and ''' quote styles
+        import libcst as cst
+        from wexample_filestate_python.operation.utils.python_docstring_utils import (
+            find_module_docstring,
+            is_module_docstring_at_top,
+            move_docstring_to_top,
+        )
+
+        src = cls._read_current_str_or_fail(target)
+        module = cst.parse_module(src)
+
+        # Check if there's a docstring and if it needs to be moved
+        docstring_node, position = find_module_docstring(module)
         
-        return None
+        if docstring_node is None:
+            # No docstring found, nothing to do
+            return None
+            
+        if is_module_docstring_at_top(module):
+            # Check if quotes need normalization
+            if len(docstring_node.body) > 0 and isinstance(docstring_node.body[0], cst.Expr):
+                expr = docstring_node.body[0]
+                if isinstance(expr.value, cst.SimpleString):
+                    quote = expr.value.quote
+                    if quote.startswith("'''") or (quote.startswith("'") and not quote.startswith('"')):
+                        # Need to normalize quotes
+                        from wexample_filestate_python.operation.utils.python_docstring_utils import (
+                            normalize_docstring_quotes,
+                        )
+                        normalized_docstring = normalize_docstring_quotes(docstring_node)
+                        new_body = [normalized_docstring] + list(module.body[1:])
+                        modified_module = module.with_changes(body=new_body)
+                        return modified_module.code
+            # Already at top and quotes are fine
+            return None
+            
+        # Move docstring to top (this also normalizes quotes)
+        modified_module = move_docstring_to_top(module)
+        return modified_module.code
 
     def describe_before(self) -> str:
         return "Module docstring is not positioned at the top of the file."
