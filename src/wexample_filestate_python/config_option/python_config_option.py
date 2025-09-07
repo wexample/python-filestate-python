@@ -27,6 +27,8 @@ class PythonConfigOption(AbstractConfigOption):
     OPTION_NAME_SORT_IMPORTS: ClassVar[str] = "sort_imports"
     # New policy: unquote annotations (remove string annotations)
     OPTION_NAME_UNQUOTE_ANNOTATIONS: ClassVar[str] = "unquote_annotations"
+    # Order module-level functions (public A–Z, then private)
+    OPTION_NAME_ORDER_MODULE_FUNCTIONS: ClassVar[str] = "order_module_functions"
 
     @staticmethod
     def get_raw_value_allowed_type() -> Any:

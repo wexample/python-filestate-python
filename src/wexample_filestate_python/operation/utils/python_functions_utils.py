@@ -1,0 +1,148 @@
+from __future__ import annotations
+
+from dataclasses import dataclass
+from typing import List, Optional, Tuple
+
+import libcst as cst
+
+
+def _is_overload_decorator(dec: cst.Decorator) -> bool:
+    expr = dec.decorator
+    # @overload
+    if isinstance(expr, cst.Name) and expr.value == "overload":
+        return True
+    # @typing.overload
+    if isinstance(expr, cst.Attribute):
+        if isinstance(expr.attr, cst.Name) and expr.attr.value == "overload":
+            return True
+    return False
+
+
+def _has_overload_decorator(fn: cst.FunctionDef) -> bool:
+    if fn.decorators:
+        return any(_is_overload_decorator(d) for d in fn.decorators)
+    return False
+
+
+def _func_name(fn: cst.FunctionDef) -> str:
+    return fn.name.value
+
+
+def _is_private_name(name: str) -> bool:
+    return name.startswith("_")
+
+
+@dataclass(frozen=True)
+class FunctionGroup:
+    name: str
+    nodes: Tuple[cst.FunctionDef, ...]
+
+
+def collect_module_function_groups(module: cst.Module) -> List[Tuple[int, FunctionGroup]]:
+    """Collect top-level functions into groups, preserving overload sequences.
+
+    A group is formed by consecutive FunctionDef nodes with the same name when
+    the first N-1 have @overload and the last is the implementation (may or may not
+    have @overload in stub-only modules). If there are multiple consecutive
+    @overload for a name but no implementation following, they still form a group.
+    """
+    groups: List[Tuple[int, FunctionGroup]] = []
+    i = 0
+    body = module.body
+    n = len(body)
+    while i < n:
+        node = body[i]
+        if isinstance(node, cst.FunctionDef):
+            name = _func_name(node)
+            j = i + 1
+            collected: List[cst.FunctionDef] = [node]
+            # collect further overloads of the same name that are directly consecutive
+            while j < n:
+                next_node = body[j]
+                if isinstance(next_node, cst.FunctionDef) and _func_name(next_node) == name:
+                    collected.append(next_node)
+                    j += 1
+                    continue
+                break
+            groups.append((i, FunctionGroup(name=name, nodes=tuple(collected))))
+            i = j
+            continue
+        i += 1
+    return groups
+
+
+def sort_function_groups(groups: List[FunctionGroup]) -> List[FunctionGroup]:
+    """Sort groups by public (A–Z) then private (_*), each alphabetically case-insensitive."""
+    public = [g for g in groups if not _is_private_name(g.name)]
+    private = [g for g in groups if _is_private_name(g.name)]
+    public.sort(key=lambda g: g.name.lower())
+    private.sort(key=lambda g: g.name.lower())
+    return public + private
+
+
+def module_functions_sorted_before_classes(module: cst.Module) -> bool:
+    """Check if all function groups appear before the first class in the module."""
+    first_class_index = None
+    for idx, node in enumerate(module.body):
+        if isinstance(node, cst.ClassDef):
+            first_class_index = idx
+            break
+    if first_class_index is None:
+        return True
+    # Find first function index
+    for idx, node in enumerate(module.body):
+        if isinstance(node, cst.FunctionDef):
+            return idx < first_class_index
+    return True
+
+
+def reorder_module_functions(module: cst.Module) -> cst.Module:
+    """Reorder module-level functions: group, sort (public then private), and place before classes.
+
+    Keeps overload groups intact and preserves each group's leading_lines on its first function.
+    """
+    groups_with_idx = collect_module_function_groups(module)
+    if not groups_with_idx:
+        return module
+
+    # Extract groups in original order
+    groups = [g for _, g in groups_with_idx]
+
+    # If there is only functions and no classes or their order already correct and sorted, skip?
+    # We'll compute a new ordering and compare.
+    sorted_groups = sort_function_groups(groups)
+
+    # Remove all function nodes from body
+    remove_indices = []
+    for idx, g in groups_with_idx:
+        remove_indices.extend(range(idx, idx + len(g.nodes)))
+    remove_indices = sorted(set(remove_indices))
+
+    new_body: List[cst.CSTNode] = []
+    for idx, node in enumerate(module.body):
+        if idx in remove_indices:
+            continue
+        new_body.append(node)
+
+    # Determine insertion index: just before first class if any, else end of body
+    insert_at = len(new_body)
+    for idx, node in enumerate(new_body):
+        if isinstance(node, cst.ClassDef):
+            insert_at = idx
+            break
+
+    # Build function nodes preserving each group's comments/spacing on first element
+    rebuilt_functions: List[cst.CSTNode] = []
+    for g in sorted_groups:
+        # Preserve leading_lines of the original first node in the group
+        original_first_leading = g.nodes[0].leading_lines
+        for k, fn in enumerate(g.nodes):
+            if k == 0:
+                rebuilt_functions.append(fn.with_changes(leading_lines=original_first_leading))
+            else:
+                rebuilt_functions.append(fn.with_changes(leading_lines=[]))
+
+    # Insert functions as a contiguous block
+    new_body[insert_at:insert_at] = rebuilt_functions
+
+    return module.with_changes(body=new_body)

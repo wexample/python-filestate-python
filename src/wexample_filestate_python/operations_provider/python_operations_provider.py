@@ -52,6 +52,9 @@ class PythonOperationsProvider(AbstractOperationsProvider):
         from wexample_filestate_python.operation.python_order_constants_operation import (
             PythonOrderConstantsOperation,
         )
+        from wexample_filestate_python.operation.python_order_module_functions_operation import (
+            PythonOrderModuleFunctionsOperation,
+        )
         from wexample_filestate_python.operation.python_order_iterable_items_operation import (
             PythonOrderIterableItemsOperation,
         )
@@ -63,10 +66,11 @@ class PythonOperationsProvider(AbstractOperationsProvider):
             PythonFormatOperation,
             PythonFStringifyOperation,
             PythonModernizeTypingOperation,
+            PythonOrderModuleMetadataOperation,
             PythonOrderConstantsOperation,
+            PythonOrderModuleFunctionsOperation,
             PythonOrderIterableItemsOperation,
             PythonOrderModuleDocstringOperation,
-            PythonOrderModuleMetadataOperation,
             PythonOrderTypeCheckingBlockOperation,
             PythonRelocateImportsOperation,
             PythonRemoveUnusedOperation,
