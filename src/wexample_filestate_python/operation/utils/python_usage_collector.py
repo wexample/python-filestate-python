@@ -42,6 +42,7 @@ class PythonUsageCollector(cst.CSTVisitor):
         self._in_annotation_stack: list[bool] = []
         self._in_decorator_stack: list[bool] = []
         self._in_param_default_stack: list[bool] = []
+        self._in_param_annot_stack: list[bool] = []
 
     # ----- Stack management -----
     def visit_ClassDef(self, node: cst.ClassDef) -> bool:  # type: ignore[override]
@@ -99,6 +100,37 @@ class PythonUsageCollector(cst.CSTVisitor):
     def visit_Param(self, node: cst.Param) -> bool:  # type: ignore[override]
         has_default = node.default is not None
         self._in_param_default_stack.append(has_default)
+        # Mark that we are in a parameter annotation while traversing children
+        in_annot = node.annotation is not None
+        self._in_param_annot_stack.append(in_annot)
+        try:
+            if in_annot:
+                print("[RelocateDebug] enter_param_annot:", self.func_stack[-1] if self.func_stack else "<module>", "param=", node.name.value if isinstance(node.name, cst.Name) else "<anon>")
+        except Exception:
+            pass
+        # Record parameter annotation types into C (annotation usage)
+        try:
+            if node.annotation is not None:
+                before = set(self.used_in_C_annot)
+                self._record_type_names(node.annotation.annotation, self.used_in_C_annot)
+                added = sorted(list(set(self.used_in_C_annot) - before))
+                if added:
+                    print("[RelocateDebug] param_annot types=", added)
+        except Exception:
+            pass
+        try:
+            print(
+                "[RelocateDebug] param:",
+                self.func_stack[-1] if self.func_stack else "<module>",
+                "name=",
+                node.name.value if isinstance(node.name, cst.Name) else "<anon>",
+                "has_default=",
+                bool(has_default),
+                "default_type=",
+                type(node.default).__name__ if node.default is not None else None,
+            )
+        except Exception:
+            pass
         # Names in defaults are needed at definition time: treat as B
         if has_default:
             try:
@@ -128,6 +160,8 @@ class PythonUsageCollector(cst.CSTVisitor):
     def leave_Param(self, node: cst.Param) -> None:  # type: ignore[override]
         if self._in_param_default_stack:
             self._in_param_default_stack.pop()
+        if self._in_param_annot_stack:
+            self._in_param_annot_stack.pop()
 
     # Fallback: explicitly scan Parameters node for defaults (some environments may not trigger visit_Param)
     def visit_Parameters(self, node: cst.Parameters) -> bool:  # type: ignore[override]
@@ -172,17 +206,23 @@ class PythonUsageCollector(cst.CSTVisitor):
     def visit_Name(self, node: cst.Name) -> None:  # type: ignore[override]
         if not self.func_stack:
             return
-        if (
-            self._in_annotation_stack
-            or self._in_decorator_stack
-            or any(self._in_param_default_stack)
-        ):
+        if self._in_annotation_stack or self._in_decorator_stack or any(self._in_param_default_stack) or any(self._in_param_annot_stack):
             return
         val = node.value
         # Do not treat 'cast' identifier as runtime usage; keep typing at module level
         if val == "cast":
             return
         if val in self.imported_value_names:
+            # Resolve module to avoid misclassifying annotation-only names like Mapping
+            resolved_mod = None
+            try:
+                if hasattr(self, "idx") and getattr(self, "idx") is not None:  # type: ignore[attr-defined]
+                    resolved_mod = getattr(self, "idx").name_to_from.get(val, (None, None))[0]  # type: ignore[index]
+            except Exception:
+                resolved_mod = None
+            # Skip if module is unknown or belongs to typing/collections.abc
+            if resolved_mod in (None, "typing", "collections", "collections.abc"):
+                return
             self.functions_needing_local[self.func_stack[-1]].add(val)
 
     # ----- A: runtime usages inside functions -----
