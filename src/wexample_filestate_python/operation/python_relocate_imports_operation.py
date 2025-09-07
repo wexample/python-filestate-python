@@ -11,19 +11,19 @@ if TYPE_CHECKING:
 
 
 class PythonRelocateImportsOperation(AbstractPythonFileOperation):
-    """Relocate imports according to usage categories A/B/C.
+    """Relocate imports according to usage categories:
 
     Rules:
-    - A (runtime inside a method): names instantiated or used as runtime-only within
-      a function/method (e.g., return MyClass(), typing.cast(x, MyClass)).
+    - runtime_local (formerly A): names used at runtime inside functions/methods
+      (e.g., return MyClass(), typing.cast(x, MyClass)).
       -> import locally at the top of each function using it.
-    - B (class-level property types): names used in class attributes annotations
-      (e.g., prop: MyClass, prop: MyClass = Field(...)).
+    - class_level (formerly B): names required at class-definition time
+      (e.g., class attribute annotations, base class references).
       -> keep/import at module top level.
-    - C (type-only annotations): names used exclusively in annotations (function
-      params/returns, module-level annotations) and not in A or B.
+    - type_only (formerly C): names used only in type annotations (function
+      params/returns, module-level annotations) and not in runtime_local or class_level.
       -> move under `if TYPE_CHECKING:` at module top (add "from typing import TYPE_CHECKING"
-         if missing). No need to add `from __future__ import annotations` as files already have it.
+         if missing). Files already have `from __future__ import annotations`.
 
     Triggered by config: { "python": ["relocate_imports"] }
     """
@@ -52,20 +52,20 @@ class PythonRelocateImportsOperation(AbstractPythonFileOperation):
         imported_value_names: set[str] = set(idx.name_to_from.keys())
 
         # Usage collection
-        # A: runtime usage inside function bodies
-        # B: property type usage inside class body annotations
-        # C: type-only annotations across module if not in A or B
+        # runtime_local: usage inside function bodies
+        # class_level: usage inside class body annotations (needed at definition time)
+        # type_only: type-only annotations across module if not in runtime_local or class_level
         functions_needing_local: DefaultDict[str, set[str]] = defaultdict(
             set
         )  # func_qualified_name -> names
-        used_in_B: set[str] = set()
-        used_in_C_annot: set[str] = set()
+        class_level_names: set[str] = set()
+        type_annotation_names: set[str] = set()
         cast_type_names_anywhere: set[str] = set()
         uc = PythonUsageCollector(
             imported_value_names=imported_value_names,
             functions_needing_local=functions_needing_local,
-            used_in_B=used_in_B,
-            used_in_C_annot=used_in_C_annot,
+            used_in_B=class_level_names,
+            used_in_C_annot=type_annotation_names,
             cast_type_names_anywhere=cast_type_names_anywhere,
         )
         module.visit(uc)
@@ -76,58 +76,57 @@ class PythonRelocateImportsOperation(AbstractPythonFileOperation):
         runtime_used_anywhere: set[str] = rsc.runtime_used_anywhere
 
         # Resolve categories
-        used_in_A_all_functions: set[str] = (
+        runtime_local_all: set[str] = (
             set().union(*functions_needing_local.values())
             if functions_needing_local
             else set()
         )
-        # B has priority over A: if a name is in B, we will NOT local-import it (keep at module level)
-        used_in_A_final: set[str] = {
-            n for n in used_in_A_all_functions if n not in used_in_B
+        # class_level has priority over runtime_local: if a name is class-level, we do NOT local-import it
+        runtime_local_final: set[str] = {
+            n for n in runtime_local_all if n not in class_level_names
         }
-        # C-only = in type annotations but not A_final or B
+        # type_only = in type annotations but not runtime_local_final or class_level
         # Exclude any names that appear in cast() type expressions anywhere from C-only,
         # since casts require runtime availability of the symbol.
-        used_in_C_only: set[str] = {
+        type_only_names: set[str] = {
             n
-            for n in used_in_C_annot
-            if n not in used_in_A_final and n not in used_in_B and n not in cast_type_names_anywhere and n not in runtime_used_anywhere
+            for n in type_annotation_names
+            if n not in runtime_local_final and n not in class_level_names and n not in cast_type_names_anywhere and n not in runtime_used_anywhere
         }
 
         # Names to include under TYPE_CHECKING:
-        # Use C_only (annotation-only, not used at runtime or as B), so anything
-        # that is also used at runtime (A) will NOT be moved under TYPE_CHECKING.
-        used_in_C_for_block: set[str] = set(used_in_C_only)
+        # Use type_only_names (annotation-only, not used at runtime or as class_level)
+        type_only_for_block: set[str] = set(type_only_names)
 
         # For names used inside cast() anywhere in the module:
-        # - do NOT auto-add to TYPE_CHECKING (unless also in annotations via used_in_C_for_block)
-        # - remove module-level import unless also in B (class-level usage)
+        # - do NOT auto-add to TYPE_CHECKING (unless also in annotations via type_only_for_block)
+        # - remove module-level import unless also class_level
         names_to_remove_from_module = (
-            set(used_in_A_final)
-            | set(used_in_C_only)
-            | (set(cast_type_names_anywhere) - set(used_in_B))
-            | (set(used_in_C_for_block) - set(used_in_B))
+            set(runtime_local_final)
+            | set(type_only_names)
+            | (set(cast_type_names_anywhere) - set(class_level_names))
+            | (set(type_only_for_block) - set(class_level_names))
         )
 
         # Debug summary removed
 
         rewritten = module.visit(
             PythonImportRewriter(
-                used_in_B=used_in_B,
+                used_in_B=class_level_names,
                 names_to_remove_from_module=names_to_remove_from_module,
-                used_in_C_only=used_in_C_for_block,
+                used_in_C_only=type_only_for_block,
                 idx=idx,
             )
         )
 
-        # 2) Inject local imports into functions for A names
+        # 2) Inject local imports into functions for runtime_local names
         #    For each function with names, add `from <module> import Name` at top of body.
         final_module = rewritten.visit(
             PythonLocalizeRuntimeImports(
                 idx=idx,
                 functions_needing_local=functions_needing_local,
                 # Do not skip cast-used names so they are localized per method.
-                skip_local_names=set(used_in_B),
+                skip_local_names=set(class_level_names),
             )
         )
 
