@@ -40,19 +40,19 @@ class PythonRelocateImportsOperation(AbstractPythonFileOperation):
     def preview_source_change(cls, target: TargetFileOrDirectoryType) -> str | None:
         from collections import defaultdict
 
-        from wexample_filestate_python.operation.utils.python_import_rewriter import (
+        from wexample_filestate_python.operation.utils.relocate_imports.python_import_rewriter import (
             PythonImportRewriter,
         )
-        from wexample_filestate_python.operation.utils.python_localize_runtime_imports import (
+        from wexample_filestate_python.operation.utils.relocate_imports.python_localize_runtime_imports import (
             PythonLocalizeRuntimeImports,
         )
-        from wexample_filestate_python.operation.utils.python_parser_import_index import (
+        from wexample_filestate_python.operation.utils.relocate_imports.python_parser_import_index import (
             PythonParserImportIndex,
         )
-        from wexample_filestate_python.operation.utils.python_runtime_symbol_collector import (
+        from wexample_filestate_python.operation.utils.relocate_imports.python_runtime_symbol_collector import (
             PythonRuntimeSymbolCollector,
         )
-        from wexample_filestate_python.operation.utils.python_usage_collector import (
+        from wexample_filestate_python.operation.utils.relocate_imports.python_usage_collector import (
             PythonUsageCollector,
         )
 
