@@ -33,6 +33,7 @@ class PythonOrderModuleMetadataOperation(AbstractPythonFileOperation):
         from wexample_filestate_python.operation.utils.python_module_metadata_utils import (
             find_module_metadata_statements,
             group_and_sort_module_metadata,
+            target_index_for_module_metadata,
         )
 
         src = cls._read_current_str_or_fail(target)
@@ -50,12 +51,15 @@ class PythonOrderModuleMetadataOperation(AbstractPythonFileOperation):
         names = [name for _, __, name in found]
         names_sorted = sorted(names, key=lambda n: n.lower())
         already_sorted = names == names_sorted
-        # If both contiguous and sorted, we still need to ensure correct placement; delegate to util
+        # at correct position?
+        desired_index = target_index_for_module_metadata(module)
+        at_target_position = (indices and indices[0] == desired_index)
+
+        # If everything is already correct, avoid making whitespace-only changes
+        if contiguous and already_sorted and at_target_position:
+            return None
+
         modified = group_and_sort_module_metadata(module)
-        if modified.code == module.code:
-            # No change was required
-            if contiguous and already_sorted:
-                return None
         return modified.code
 
     def describe_before(self) -> str:
