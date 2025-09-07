@@ -20,6 +20,8 @@ class PythonConfigOption(AbstractConfigOption):
     OPTION_NAME_ORDER_MODULE_DOCSTRING: ClassVar[str] = "order_module_docstring"
     # Move TYPE_CHECKING blocks to after regular imports
     OPTION_NAME_ORDER_TYPE_CHECKING_BLOCK: ClassVar[str] = "order_type_checking_block"
+    # Group and sort module metadata at module level
+    OPTION_NAME_ORDER_MODULE_METADATA: ClassVar[str] = "order_module_metadata"
 
     @staticmethod
     def get_raw_value_allowed_type() -> Any:
