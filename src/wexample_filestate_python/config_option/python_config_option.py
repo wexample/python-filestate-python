@@ -22,6 +22,8 @@ class PythonConfigOption(AbstractConfigOption):
     OPTION_NAME_ORDER_TYPE_CHECKING_BLOCK: ClassVar[str] = "order_type_checking_block"
     # Group and sort module metadata at module level
     OPTION_NAME_ORDER_MODULE_METADATA: ClassVar[str] = "order_module_metadata"
+    # Sort flagged UPPER_CASE constant blocks at module level
+    OPTION_NAME_ORDER_CONSTANTS: ClassVar[str] = "order_constants"
 
     @staticmethod
     def get_raw_value_allowed_type() -> Any:

@@ -99,9 +99,22 @@ def find_flagged_constant_blocks(module: cst.Module, src: str) -> List[Tuple[int
 def sort_constants_block(nodes: List[cst.SimpleStatementLine]) -> List[cst.SimpleStatementLine]:
     """Return a new list of nodes sorted by variable name (case-insensitive).
 
-    Keep the leading_lines of the first node (to preserve the flag comment),
+    Preserve the flag comment by attaching it to the first node of the
+    sorted block (even if a different node becomes first after sorting),
     and clear leading_lines of subsequent nodes to avoid extra blank lines.
     """
+    # Extract any flag comment leading lines from the original nodes
+    def _extract_flag_leading_lines() -> List[cst.EmptyLine]:
+        collected: List[cst.EmptyLine] = []
+        for node in nodes:
+            for el in node.leading_lines:
+                if el.comment is not None:
+                    if flag_exists(FLAG_NAME, el.comment.value):
+                        collected.append(el)
+        return collected
+
+    flag_leading_lines = _extract_flag_leading_lines()
+
     pairs: List[Tuple[str, cst.SimpleStatementLine]] = []
     for node in nodes:
         name = _get_simple_assignment_name(node)
@@ -113,12 +126,23 @@ def sort_constants_block(nodes: List[cst.SimpleStatementLine]) -> List[cst.Simpl
     # If already sorted, return original
     sorted_pairs = sorted(pairs, key=lambda p: p[0].lower())
     if [n for _, n in sorted_pairs] == [n for _, n in pairs]:
+        # Ensure the flag stays attached to the first node in-place
+        if flag_leading_lines:
+            first = nodes[0]
+            if first.leading_lines != flag_leading_lines:
+                nodes = [first.with_changes(leading_lines=flag_leading_lines)] + [
+                    n if idx == 0 else n for idx, n in enumerate(nodes[1:], start=1)
+                ]
         return nodes
 
     sorted_nodes: List[cst.SimpleStatementLine] = []
     for idx, (_, node) in enumerate(sorted_pairs):
         if idx == 0:
-            sorted_nodes.append(node)
+            # Attach the flag comment to the first node of the sorted block
+            if flag_leading_lines:
+                sorted_nodes.append(node.with_changes(leading_lines=flag_leading_lines))
+            else:
+                sorted_nodes.append(node)
         else:
             sorted_nodes.append(node.with_changes(leading_lines=[]))
     return sorted_nodes
