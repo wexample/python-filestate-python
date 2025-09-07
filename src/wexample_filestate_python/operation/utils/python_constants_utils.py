@@ -162,3 +162,79 @@ def reorder_flagged_constants(module: cst.Module, src: str) -> cst.Module:
         new_body[start:end] = sorted_nodes
 
     return module.with_changes(body=new_body)
+
+
+# -------- Class-level support --------
+
+def find_flagged_constant_blocks_in_class(classdef: cst.ClassDef, src: str) -> List[Tuple[int, int, List[cst.SimpleStatementLine]]]:
+    """Find flagged constant blocks within a class body.
+
+    Returns list of tuples (start_index, end_index_exclusive, nodes_in_block)
+    where indices refer to classdef.body.body positions.
+    """
+    blocks: List[Tuple[int, int, List[cst.SimpleStatementLine]]] = []
+    body_list = list(classdef.body.body)
+    n = len(body_list)
+    i = 0
+    while i < n:
+        item = body_list[i]
+        if isinstance(item, cst.SimpleStatementLine):
+            if _stmt_has_flag(item, src) and _get_simple_assignment_name(item) is not None:
+                j = i
+                nodes: List[cst.SimpleStatementLine] = []
+                while j < n:
+                    s = body_list[j]
+                    if isinstance(s, cst.SimpleStatementLine):
+                        if j != i:
+                            # Stop if separated visually by a non-flag blank line/comment
+                            if any(el.comment is None for el in s.leading_lines):
+                                break
+                            if any(el.comment is not None and not flag_exists(FLAG_NAME, el.comment.value) for el in s.leading_lines):
+                                break
+                        name = _get_simple_assignment_name(s)
+                        if name is None:
+                            break
+                        nodes.append(s)
+                        j += 1
+                        continue
+                    break
+                if nodes:
+                    blocks.append((i, j, nodes))
+                    i = j
+                    continue
+        i += 1
+    return blocks
+
+
+def reorder_flagged_constants_in_classes(module: cst.Module, src: str) -> cst.Module:
+    """Reorder flagged constant blocks inside all class definitions in the module."""
+    changed = False
+    new_module_body = list(module.body)
+
+    for idx, node in enumerate(new_module_body):
+        if isinstance(node, cst.ClassDef):
+            class_body_list = list(node.body.body)
+            blocks = find_flagged_constant_blocks_in_class(node, src)
+            if not blocks:
+                continue
+            # Apply from last to first within the class body
+            for start, end, nodes in reversed(blocks):
+                sorted_nodes = sort_constants_block(nodes)
+                if all(a is b for a, b in zip(nodes, sorted_nodes)):
+                    continue
+                class_body_list[start:end] = sorted_nodes
+                changed = True
+            if changed:
+                new_class_body = node.body.with_changes(body=class_body_list)
+                new_module_body[idx] = node.with_changes(body=new_class_body)
+
+    if not changed:
+        return module
+    return module.with_changes(body=new_module_body)
+
+
+def reorder_flagged_constants_everywhere(module: cst.Module, src: str) -> cst.Module:
+    """Reorder flagged constant blocks at module level and within class bodies."""
+    first = reorder_flagged_constants(module, src)
+    second = reorder_flagged_constants_in_classes(first, src)
+    return second

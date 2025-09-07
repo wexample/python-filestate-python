@@ -30,9 +30,8 @@ class PythonOrderConstantsOperation(AbstractPythonFileOperation):
     def preview_source_change(cls, target: TargetFileOrDirectoryType) -> str | None:
         import libcst as cst
         from wexample_filestate_python.operation.utils.python_constants_utils import (
-            reorder_flagged_constants,
             find_flagged_constant_blocks,
-            sort_constants_block,
+            reorder_flagged_constants_everywhere,
         )
 
         src = cls._read_current_str_or_fail(target)
@@ -43,7 +42,7 @@ class PythonOrderConstantsOperation(AbstractPythonFileOperation):
         if not blocks:
             return None
 
-        modified = reorder_flagged_constants(module, src)
+        modified = reorder_flagged_constants_everywhere(module, src)
         if modified.code == module.code:
             return None
         return modified.code
