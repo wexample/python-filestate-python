@@ -91,15 +91,9 @@ def find_flagged_constant_blocks(module: cst.Module, src: str) -> List[Tuple[int
                     s = body[j]
                     if isinstance(s, cst.SimpleStatementLine):
                         if j != i:
-                            # Stop the block if there is a visual separation (blank line),
-                            # which libcst represents as more than one leading line.
-                            if len(s.leading_lines) > 1:
-                                break
-                            # If there is a non-flag comment immediately above, treat it as a new section
-                            if any(
-                                el.comment is not None and not flag_exists(FLAG_NAME, el.comment.value)
-                                for el in s.leading_lines
-                            ):
+                            # Stop the block ONLY if there is a blank line separation
+                            # (an EmptyLine without a comment) among leading_lines.
+                            if any(el.comment is None for el in s.leading_lines):
                                 break
                         name = _get_simple_assignment_name(s)
                         if name is None:
@@ -125,9 +119,19 @@ def sort_constants_block(nodes: List[cst.SimpleStatementLine]) -> List[cst.Simpl
     sorted block (even if a different node becomes first after sorting),
     and clear leading_lines of subsequent nodes to avoid extra blank lines.
     """
-    # Preserve the entire leading_lines of the original first node in the block
-    # (this includes blank lines and the flag comment), so spacing is not lost.
-    original_first_leading = nodes[0].leading_lines
+    # Preserve the entire leading_lines per node; additionally, capture the flag
+    # comment lines from whichever node currently holds them so we can keep the flag
+    # on the first node after sorting.
+    original_leadings = [n.leading_lines for n in nodes]
+    # Collect flag lines from any node (typically the first) to attach to new first
+    def _flag_lines(ll: Sequence[cst.EmptyLine]) -> list[cst.EmptyLine]:
+        return [el for el in ll if el.comment is not None and flag_exists(FLAG_NAME, el.comment.value)]
+    collected_flag_lines: list[cst.EmptyLine] = []
+    for ll in original_leadings:
+        fl = _flag_lines(ll)
+        if fl:
+            collected_flag_lines = fl
+            break
 
     pairs: List[Tuple[str, cst.SimpleStatementLine]] = []
     for node in nodes:
@@ -137,26 +141,28 @@ def sort_constants_block(nodes: List[cst.SimpleStatementLine]) -> List[cst.Simpl
             continue
         pairs.append((name, node))
 
-    # If already sorted, return original
+    # If already sorted, return original (no changes)
     sorted_pairs = sorted(pairs, key=lambda p: p[0].lower())
     if [n for _, n in sorted_pairs] == [n for _, n in pairs]:
-        # Ensure the leading_lines (including flag and preceding blank line) remain attached
-        first = nodes[0]
-        if first.leading_lines != original_first_leading:
-            nodes = [first.with_changes(leading_lines=original_first_leading)] + [
-                n if idx == 0 else n for idx, n in enumerate(nodes[1:], start=1)
-            ]
         return nodes
 
+    # Build new nodes preserving each node's original leading_lines, but move the
+    # flag comment lines to the new first node (removing them from others).
     sorted_nodes: List[cst.SimpleStatementLine] = []
+    # Pre-clean each node's leading_lines by removing any flag lines to avoid duplicates
+    cleaned_leadings = []
+    for ll in original_leadings:
+        cleaned = [el for el in ll if not (el.comment is not None and flag_exists(FLAG_NAME, el.comment.value))]
+        cleaned_leadings.append(cleaned)
+
     for idx, (_, node) in enumerate(sorted_pairs):
-        if idx == 0:
-            # Attach the full original leading_lines (preserving spacing and flag)
-            sorted_nodes.append(node.with_changes(leading_lines=original_first_leading))
-        else:
-            # Clear all leading_lines on subsequent nodes to prevent duplicating
-            # section headers or introducing extra blank lines within the block.
-            sorted_nodes.append(node.with_changes(leading_lines=[]))
+        orig_idx = pairs.index((node.body[0].targets[0].target.value if isinstance(node.body[0], cst.Assign) else node.body[0].target.value, node)) if False else None  # placeholder not used
+        # Determine the original index of this node in 'nodes' list
+        original_index = next((i for i, (_, n) in enumerate(pairs) if n is node), None)
+        leading = cleaned_leadings[original_index] if original_index is not None else node.leading_lines
+        if idx == 0 and collected_flag_lines:
+            leading = collected_flag_lines + list(leading)
+        sorted_nodes.append(node.with_changes(leading_lines=leading))
     return sorted_nodes
 
 
@@ -202,15 +208,8 @@ def find_flagged_constant_blocks_in_class(classdef: cst.ClassDef, src: str) -> L
                     s = body_list[j]
                     if isinstance(s, cst.SimpleStatementLine):
                         if j != i:
-                            # Stop the block if there is a visual separation (blank line),
-                            # modeled as more than one leading line by libcst.
-                            if len(s.leading_lines) > 1:
-                                break
-                            # Stop if a non-flag comment appears immediately above
-                            if any(
-                                el.comment is not None and not flag_exists(FLAG_NAME, el.comment.value)
-                                for el in s.leading_lines
-                            ):
+                            # Stop the block ONLY on a blank line (no comment) among leading_lines.
+                            if any(el.comment is None for el in s.leading_lines):
                                 break
                         name = _get_simple_assignment_name(s)
                         if name is None:
