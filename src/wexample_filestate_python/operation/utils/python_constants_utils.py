@@ -21,9 +21,9 @@ def _stmt_has_flag(stmt: cst.SimpleStatementLine, src: str) -> bool:
             comment_text = el.comment.value  # includes '#'
             if flag_exists(FLAG_NAME, comment_text):
                 return True
-    # Fallback: try raw search nearby (best-effort)
-    # Using the entire file text could have false positives but acceptable fallback
-    return flag_exists(FLAG_NAME, src)
+    # Do NOT fallback to scanning the entire file; only consider an inline flag
+    # directly attached to this statement via leading_lines.
+    return False
 
 
 def _is_upper_name(name: str) -> bool:
@@ -103,17 +103,9 @@ def sort_constants_block(nodes: List[cst.SimpleStatementLine]) -> List[cst.Simpl
     sorted block (even if a different node becomes first after sorting),
     and clear leading_lines of subsequent nodes to avoid extra blank lines.
     """
-    # Extract any flag comment leading lines from the original nodes
-    def _extract_flag_leading_lines() -> List[cst.EmptyLine]:
-        collected: List[cst.EmptyLine] = []
-        for node in nodes:
-            for el in node.leading_lines:
-                if el.comment is not None:
-                    if flag_exists(FLAG_NAME, el.comment.value):
-                        collected.append(el)
-        return collected
-
-    flag_leading_lines = _extract_flag_leading_lines()
+    # Preserve the entire leading_lines of the original first node in the block
+    # (this includes blank lines and the flag comment), so spacing is not lost.
+    original_first_leading = nodes[0].leading_lines
 
     pairs: List[Tuple[str, cst.SimpleStatementLine]] = []
     for node in nodes:
@@ -126,25 +118,34 @@ def sort_constants_block(nodes: List[cst.SimpleStatementLine]) -> List[cst.Simpl
     # If already sorted, return original
     sorted_pairs = sorted(pairs, key=lambda p: p[0].lower())
     if [n for _, n in sorted_pairs] == [n for _, n in pairs]:
-        # Ensure the flag stays attached to the first node in-place
-        if flag_leading_lines:
-            first = nodes[0]
-            if first.leading_lines != flag_leading_lines:
-                nodes = [first.with_changes(leading_lines=flag_leading_lines)] + [
-                    n if idx == 0 else n for idx, n in enumerate(nodes[1:], start=1)
-                ]
+        # Ensure the leading_lines (including flag and preceding blank line) remain attached
+        first = nodes[0]
+        if first.leading_lines != original_first_leading:
+            nodes = [first.with_changes(leading_lines=original_first_leading)] + [
+                n if idx == 0 else n for idx, n in enumerate(nodes[1:], start=1)
+            ]
         return nodes
+
+    # Helper to filter out only the flag comment from a node's leading_lines,
+    # keeping any other comments intact.
+    def _strip_flag_from_leading(node: cst.SimpleStatementLine) -> cst.SimpleStatementLine:
+        if not node.leading_lines:
+            return node
+        new_leading: List[cst.EmptyLine] = []
+        for el in node.leading_lines:
+            if el.comment is not None and flag_exists(FLAG_NAME, el.comment.value):
+                # drop the flag line for non-first nodes
+                continue
+            new_leading.append(el)
+        return node.with_changes(leading_lines=new_leading)
 
     sorted_nodes: List[cst.SimpleStatementLine] = []
     for idx, (_, node) in enumerate(sorted_pairs):
         if idx == 0:
-            # Attach the flag comment to the first node of the sorted block
-            if flag_leading_lines:
-                sorted_nodes.append(node.with_changes(leading_lines=flag_leading_lines))
-            else:
-                sorted_nodes.append(node)
+            # Attach the full original leading_lines (preserving spacing and flag)
+            sorted_nodes.append(node.with_changes(leading_lines=original_first_leading))
         else:
-            sorted_nodes.append(node.with_changes(leading_lines=[]))
+            sorted_nodes.append(_strip_flag_from_leading(node))
     return sorted_nodes
 
 
