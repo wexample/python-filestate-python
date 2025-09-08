@@ -85,7 +85,18 @@ def _fix_module_docstring_spacing(module: cst.Module) -> cst.Module:
             break
     
     if docstring_idx == -1:
-        return module  # No docstring found
+        # No docstring found - ensure first statement has no leading blank lines
+        if body_list and isinstance(body_list[0], cst.SimpleStatementLine):
+            first_stmt = body_list[0]
+            if first_stmt.leading_lines:
+                new_leading = [line for line in first_stmt.leading_lines if not (isinstance(line, cst.EmptyLine) and line.comment is None)]
+                if len(new_leading) != len(first_stmt.leading_lines):
+                    body_list[0] = first_stmt.with_changes(leading_lines=new_leading)
+                    changed = True
+        
+        if not changed:
+            return module
+        return module.with_changes(body=body_list)
     
     docstring_stmt = body_list[docstring_idx]
     

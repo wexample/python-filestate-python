@@ -15,6 +15,9 @@ class PythonFixBlankLinesOperation(AbstractPythonFileOperation):
     - Remove blank lines immediately after function/method signatures
     - Ensure no blank lines between signature and docstring
     - Ensure no blank lines between docstring and first code line
+    - Module level: 0 blank lines before module docstring
+    - Module level: 1 blank line after module docstring (if present)
+    - Module level: 0 blank lines before first statement (if no docstring)
 
     Triggered by config: { "python": ["fix_blank_lines"] }
     """
