@@ -24,6 +24,7 @@ class PythonFixBlankLinesOperation(AbstractPythonFileOperation):
     - Module level: 0 blank lines before first statement (if no docstring)
     - Prevent double blank lines except: after imports, before classes/functions
     - Compatible with Black: allows blank line after class docstring
+    - Compatible with Black: allows blank line before type aliases and main guard
 
     Triggered by config: { "python": ["fix_blank_lines"] }
     """

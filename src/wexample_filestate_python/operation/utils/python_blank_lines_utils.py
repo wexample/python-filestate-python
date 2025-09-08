@@ -181,6 +181,57 @@ def _is_function_definition(node: cst.CSTNode) -> bool:
     return isinstance(node, cst.FunctionDef)
 
 
+def _is_type_alias(node: cst.CSTNode) -> bool:
+    """Check if node is a type alias assignment (Black compatibility)."""
+    if isinstance(node, cst.SimpleStatementLine):
+        if len(node.body) == 1 and isinstance(node.body[0], cst.Assign):
+            assign = node.body[0]
+            if len(assign.targets) == 1:
+                target = assign.targets[0].target
+                # Type alias: variable name starts with uppercase or contains union (|)
+                if isinstance(target, cst.Name):
+                    name = target.value
+                    # Check if it's a type alias pattern (starts with uppercase)
+                    if name[0].isupper():
+                        return True
+                    # Check if assignment contains union operator (|) indicating type alias
+                    if isinstance(assign.value, cst.BinaryOperation):
+                        return _contains_union_operator(assign.value)
+    return False
+
+
+def _is_main_guard(node: cst.CSTNode) -> bool:
+    """Check if node is an if __name__ == '__main__' block (Black compatibility)."""
+    if isinstance(node, cst.If):
+        test = node.test
+        # Check for __name__ == "__main__" pattern
+        if isinstance(test, cst.Comparison):
+            if (
+                len(test.comparisons) == 1
+                and isinstance(test.left, cst.Name)
+                and test.left.value == "__name__"
+            ):
+                comparison = test.comparisons[0]
+                if (
+                    isinstance(comparison.operator, cst.Equal)
+                    and isinstance(comparison.comparator, cst.SimpleString)
+                    and comparison.comparator.value in ('"__main__"', "'__main__'")
+                ):
+                    return True
+    return False
+
+
+def _contains_union_operator(node: cst.CSTNode) -> bool:
+    """Recursively check if a node contains the union operator (|)."""
+    if isinstance(node, cst.BinaryOperation):
+        if isinstance(node.operator, cst.BitOr):  # | operator
+            return True
+        return _contains_union_operator(node.left) or _contains_union_operator(
+            node.right
+        )
+    return False
+
+
 def _is_import_statement(node: cst.CSTNode) -> bool:
     """Check if node is an import statement."""
     return isinstance(node, (cst.Import, cst.ImportFrom))
@@ -359,6 +410,14 @@ def _normalize_double_blank_lines(module: cst.Module) -> cst.Module:
 
         # Exception 3: Before functions at module level, allow 2 blank lines
         if _is_function_definition(current_node):
+            allowed_blanks = 2
+
+        # Exception 4: Before type aliases (Black compatibility)
+        if _is_type_alias(current_node):
+            allowed_blanks = 2
+
+        # Exception 5: Before if __name__ == "__main__" (Black compatibility)
+        if _is_main_guard(current_node):
             allowed_blanks = 2
 
         # Normalize if we have more blank lines than allowed
