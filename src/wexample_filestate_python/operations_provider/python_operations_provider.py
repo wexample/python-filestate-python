@@ -19,6 +19,9 @@ class PythonOperationsProvider(AbstractOperationsProvider):
         from wexample_filestate_python.operation.python_add_return_types_operation import (
             PythonAddReturnTypesOperation,
         )
+        from wexample_filestate_python.operation.python_fix_blank_lines_operation import (
+            PythonFixBlankLinesOperation,
+        )
         from wexample_filestate_python.operation.python_format_operation import (
             PythonFormatOperation,
         )
@@ -27,6 +30,36 @@ class PythonOperationsProvider(AbstractOperationsProvider):
         )
         from wexample_filestate_python.operation.python_modernize_typing_operation import (
             PythonModernizeTypingOperation,
+        )
+        from wexample_filestate_python.operation.python_order_class_attributes_operation import (
+            PythonOrderClassAttributesOperation,
+        )
+        from wexample_filestate_python.operation.python_order_class_docstring_operation import (
+            PythonOrderClassDocstringOperation,
+        )
+        from wexample_filestate_python.operation.python_order_class_methods_operation import (
+            PythonOrderClassMethodsOperation,
+        )
+        from wexample_filestate_python.operation.python_order_constants_operation import (
+            PythonOrderConstantsOperation,
+        )
+        from wexample_filestate_python.operation.python_order_iterable_items_operation import (
+            PythonOrderIterableItemsOperation,
+        )
+        from wexample_filestate_python.operation.python_order_main_guard_operation import (
+            PythonOrderMainGuardOperation,
+        )
+        from wexample_filestate_python.operation.python_order_module_docstring_operation import (
+            PythonOrderModuleDocstringOperation,
+        )
+        from wexample_filestate_python.operation.python_order_module_functions_operation import (
+            PythonOrderModuleFunctionsOperation,
+        )
+        from wexample_filestate_python.operation.python_order_module_metadata_operation import (
+            PythonOrderModuleMetadataOperation,
+        )
+        from wexample_filestate_python.operation.python_order_type_checking_block_operation import (
+            PythonOrderTypeCheckingBlockOperation,
         )
         from wexample_filestate_python.operation.python_relocate_imports_operation import (
             PythonRelocateImportsOperation,
@@ -39,39 +72,6 @@ class PythonOperationsProvider(AbstractOperationsProvider):
         )
         from wexample_filestate_python.operation.python_unquote_annotations_operation import (
             PythonUnquoteAnnotationsOperation,
-        )
-        from wexample_filestate_python.operation.python_order_module_docstring_operation import (
-            PythonOrderModuleDocstringOperation,
-        )
-        from wexample_filestate_python.operation.python_order_type_checking_block_operation import (
-            PythonOrderTypeCheckingBlockOperation,
-        )
-        from wexample_filestate_python.operation.python_order_module_metadata_operation import (
-            PythonOrderModuleMetadataOperation,
-        )
-        from wexample_filestate_python.operation.python_order_constants_operation import (
-            PythonOrderConstantsOperation,
-        )
-        from wexample_filestate_python.operation.python_order_main_guard_operation import (
-            PythonOrderMainGuardOperation,
-        )
-        from wexample_filestate_python.operation.python_order_module_functions_operation import (
-            PythonOrderModuleFunctionsOperation,
-        )
-        from wexample_filestate_python.operation.python_order_iterable_items_operation import (
-            PythonOrderIterableItemsOperation,
-        )
-        from wexample_filestate_python.operation.python_order_class_docstring_operation import (
-            PythonOrderClassDocstringOperation,
-        )
-        from wexample_filestate_python.operation.python_order_class_methods_operation import (
-            PythonOrderClassMethodsOperation,
-        )
-        from wexample_filestate_python.operation.python_order_class_attributes_operation import (
-            PythonOrderClassAttributesOperation,
-        )
-        from wexample_filestate_python.operation.python_fix_blank_lines_operation import (
-            PythonFixBlankLinesOperation,
         )
 
         return [

@@ -3,7 +3,6 @@ from __future__ import annotations
 from typing import List, Optional, Sequence, Tuple
 
 import libcst as cst
-
 from wexample_filestate.helpers.flag import flag_exists
 
 FLAG_NAME = "python-constant-sort"

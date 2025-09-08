@@ -28,9 +28,9 @@ class PythonOrderMainGuardOperation(AbstractPythonFileOperation):
     def preview_source_change(cls, target: TargetFileOrDirectoryType) -> str | None:
         import libcst as cst
         from wexample_filestate_python.operation.utils.python_main_guard_utils import (
+            find_main_guard_blocks,
             is_main_guard_at_end,
             move_main_guard_to_end,
-            find_main_guard_blocks,
         )
 
         src = cls._read_current_str_or_fail(target)

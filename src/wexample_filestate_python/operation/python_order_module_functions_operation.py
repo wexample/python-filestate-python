@@ -28,8 +28,8 @@ class PythonOrderModuleFunctionsOperation(AbstractPythonFileOperation):
     def preview_source_change(cls, target: TargetFileOrDirectoryType) -> str | None:
         import libcst as cst
         from wexample_filestate_python.operation.utils.python_functions_utils import (
-            reorder_module_functions,
             module_functions_sorted_before_classes,
+            reorder_module_functions,
         )
 
         src = cls._read_current_str_or_fail(target)
