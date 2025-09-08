@@ -70,6 +70,9 @@ class PythonOperationsProvider(AbstractOperationsProvider):
         from wexample_filestate_python.operation.python_order_class_attributes_operation import (
             PythonOrderClassAttributesOperation,
         )
+        from wexample_filestate_python.operation.python_fix_blank_lines_operation import (
+            PythonFixBlankLinesOperation,
+        )
 
         return [
             # filestate: python-iterable-sort
@@ -86,6 +89,7 @@ class PythonOperationsProvider(AbstractOperationsProvider):
             PythonOrderClassDocstringOperation,
             PythonOrderClassMethodsOperation,
             PythonOrderClassAttributesOperation,
+            PythonFixBlankLinesOperation,
             PythonOrderModuleDocstringOperation,
             PythonOrderTypeCheckingBlockOperation,
             PythonRelocateImportsOperation,
