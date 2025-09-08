@@ -16,7 +16,6 @@ class PythonOrderMainGuardOperation(AbstractPythonFileOperation):
 
     Triggered by config: { "python": ["order_main_guard"] }
     """
-
     @classmethod
     def get_option_name(cls) -> str:
         from wexample_filestate_python.config_option.python_config_option import (

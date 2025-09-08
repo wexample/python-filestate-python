@@ -16,7 +16,6 @@ class PythonAddFutureAnnotationsOperation(AbstractPythonFileOperation):
     Note: This operation historically removed __future__ imports; we repurpose it
     to add the annotations future consistently across the codebase, per new policy.
     """
-
     @classmethod
     def get_option_name(cls) -> str:
         from wexample_filestate_python.config_option.python_config_option import (

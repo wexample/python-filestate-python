@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from typing import List, Optional, Tuple
 from collections.abc import Sequence
+from typing import List, Optional, Tuple
 
 import libcst as cst
 from wexample_filestate.helpers.flag import flag_exists

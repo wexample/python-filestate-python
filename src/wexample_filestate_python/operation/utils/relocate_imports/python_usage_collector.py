@@ -13,7 +13,6 @@ class PythonUsageCollector(cst.CSTVisitor):
 
     The collector mutates the provided buckets so the caller can reuse shared storage.
     """
-
     DEFAULT_CAST_FUNCTION_CANDIDATES: ClassVar[set[str]] = {"cast"}
 
     def __init__(

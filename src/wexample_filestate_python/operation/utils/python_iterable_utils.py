@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from typing import List, Tuple
 
 from wexample_filestate.helpers.flag import flag_exists
 
