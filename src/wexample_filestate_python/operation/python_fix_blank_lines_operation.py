@@ -13,6 +13,7 @@ class PythonFixBlankLinesOperation(AbstractPythonFileOperation):
 
     Current rules:
     - Remove blank lines immediately after function/method signatures
+    - Remove blank lines immediately after class definitions
     - Ensure no blank lines between signature and docstring
     - Ensure no blank lines between docstring and first code line
     - Module level: 0 blank lines before module docstring
@@ -47,10 +48,10 @@ class PythonFixBlankLinesOperation(AbstractPythonFileOperation):
         return modified.code
 
     def describe_after(self) -> str:
-        return "Blank lines after function signatures have been removed."
+        return "Blank lines after function signatures and class definitions have been removed."
 
     def describe_before(self) -> str:
-        return "Functions have unnecessary blank lines after signatures."
+        return "Functions and classes have unnecessary blank lines after signatures."
 
     def description(self) -> str:
-        return "Remove blank lines immediately after function/method signatures and between signatures and docstrings."
+        return "Remove blank lines immediately after function/method signatures, class definitions, and between signatures and docstrings."

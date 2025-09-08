@@ -280,12 +280,13 @@ def _fix_module_docstring_spacing(module: cst.Module) -> cst.Module:
 
 
 def fix_function_blank_lines(module: cst.Module) -> cst.Module:
-    """Remove blank lines after function/method signatures throughout the module.
+    """Remove blank lines after function/method signatures and class definitions throughout the module.
     
     This applies to:
     - Module-level functions
     - Class methods
     - Nested functions
+    - Class definitions (no blank lines after class signature)
     """
     
     class BlankLinesFixer(cst.CSTTransformer):
