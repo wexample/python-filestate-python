@@ -5,32 +5,6 @@ from typing import List, Tuple
 import libcst as cst
 
 
-def _is_name_eq_main(test: cst.BaseExpression) -> bool:
-    # Match patterns: __name__ == "__main__" or '__main__'
-    if not isinstance(test, cst.Comparison):
-        return False
-    # Expect a single comparator with Eq
-    if len(test.comparisons) != 1:
-        return False
-    comp = test.comparisons[0]
-    if not isinstance(comp.operator, cst.Equal):
-        return False
-    # Left should be Name("__name__") (optionally with parentheses tolerated by CST?)
-    left_ok = isinstance(test.left, cst.Name) and test.left.value == "__name__"
-    if not left_ok:
-        return False
-    # Right should be SimpleString of __main__
-    right = comp.comparator
-    if isinstance(right, cst.SimpleString):
-        s = right.evaluated_value  # libcst provides unescaped python value
-        return s == "__main__"
-    return False
-
-
-def is_main_guard_if(node: cst.CSTNode) -> bool:
-    return isinstance(node, cst.If) and _is_name_eq_main(node.test)
-
-
 def find_main_guard_blocks(module: cst.Module) -> list[tuple[int, cst.If]]:
     """Return list of (index, IfNode) for all top-level __main__ guard blocks."""
     res: list[tuple[int, cst.If]] = []
@@ -53,6 +27,10 @@ def is_main_guard_at_end(module: cst.Module) -> bool:
             last_non_empty = i
             break
     return last_index == last_non_empty
+
+
+def is_main_guard_if(node: cst.CSTNode) -> bool:
+    return isinstance(node, cst.If) and _is_name_eq_main(node.test)
 
 
 def move_main_guard_to_end(module: cst.Module) -> cst.Module:
@@ -80,3 +58,25 @@ def move_main_guard_to_end(module: cst.Module) -> cst.Module:
         new_body.insert(insert_at + offset, node)
 
     return module.with_changes(body=new_body)
+
+
+def _is_name_eq_main(test: cst.BaseExpression) -> bool:
+    # Match patterns: __name__ == "__main__" or '__main__'
+    if not isinstance(test, cst.Comparison):
+        return False
+    # Expect a single comparator with Eq
+    if len(test.comparisons) != 1:
+        return False
+    comp = test.comparisons[0]
+    if not isinstance(comp.operator, cst.Equal):
+        return False
+    # Left should be Name("__name__") (optionally with parentheses tolerated by CST?)
+    left_ok = isinstance(test.left, cst.Name) and test.left.value == "__name__"
+    if not left_ok:
+        return False
+    # Right should be SimpleString of __main__
+    right = comp.comparator
+    if isinstance(right, cst.SimpleString):
+        s = right.evaluated_value  # libcst provides unescaped python value
+        return s == "__main__"
+    return False

@@ -9,85 +9,18 @@ SPECIAL_ATTR_NAMES = {"__slots__", "__match_args__"}
 SPECIAL_INNER_CLASS_NAMES = {"Config"}
 
 
-def _is_attribute_statement(node: cst.CSTNode) -> bool:
-    """Return True if node is a class-level attribute we should order.
-
-    We consider:
-      - Simple single-target Name assignments (Assign/AnnAssign) whose target name is NOT UPPER_CASE
-      - Inner class definitions (e.g., Config) as attributes for ordering
-
-    Uppercase names are ignored here (treated as constants in another operation).
-    """
-    if isinstance(node, cst.SimpleStatementLine) and len(node.body) == 1:
-        small = node.body[0]
-        if isinstance(small, cst.Assign):
-            # Only simple single-target Name assignments
-            if len(small.targets) != 1:
-                return False
-            target = small.targets[0].target
-            if isinstance(target, cst.Name):
-                # Ignore UPPER_CASE constants
-                if target.value.isupper():
-                    return False
-                return True
-            return False
-        if isinstance(small, cst.AnnAssign):
-            target = small.target
-            if isinstance(target, cst.Name):
-                if target.value.isupper():
-                    return False
-                return True
-            return False
-    # Pydantic / config style inner classes are considered attributes for ordering
-    if isinstance(node, cst.ClassDef) and isinstance(node.name, cst.Name):
-        return True
-    return False
-
-
-def _attr_name(node: cst.CSTNode) -> str | None:
-    if isinstance(node, cst.SimpleStatementLine) and len(node.body) == 1:
-        small = node.body[0]
-        if isinstance(small, cst.Assign):
-            tgt = small.targets[0].target
-            if isinstance(tgt, cst.Name):
-                return tgt.value
-        if isinstance(small, cst.AnnAssign):
-            tgt = small.target
-            if isinstance(tgt, cst.Name):
-                return tgt.value
-    if isinstance(node, cst.ClassDef):
-        return node.name.value
-    return None
-
-
-def _is_special_attribute(node: cst.CSTNode) -> bool:
-    name = _attr_name(node)
-    if name is None:
-        return False
-    if name in SPECIAL_ATTR_NAMES:
-        return True
-    if isinstance(node, cst.ClassDef) and name in SPECIAL_INNER_CLASS_NAMES:
-        return True
-    return False
-
-
-def _is_blank_separator(node: cst.CSTNode) -> bool:
-    # A blank separator is an EmptyLine without a comment
-    return isinstance(node, cst.EmptyLine) and node.comment is None
-
-
-def _is_comment_line(node: cst.CSTNode) -> bool:
-    return isinstance(node, cst.EmptyLine) and node.comment is not None
-
-
-def _is_public(name: str) -> bool:
-    return not name.startswith("_")
-
-
-def _sort_key(name: str) -> tuple:
-    # Case-insensitive A-Z; ensure '_' sorts after letters
-    # We achieve this by key: (name without leading '_', is_private)
-    return (name.lstrip("_").lower(), name.startswith("_"))
+def ensure_order_class_attributes_in_module(module: cst.Module) -> cst.Module:
+    changed = False
+    new_body = list(module.body)
+    for idx, node in enumerate(new_body):
+        if isinstance(node, cst.ClassDef):
+            updated = reorder_class_attributes(node)
+            if updated is not node:
+                new_body[idx] = updated
+                changed = True
+    if not changed:
+        return module
+    return module.with_changes(body=new_body)
 
 
 def find_attribute_blocks_in_class(
@@ -192,15 +125,82 @@ def reorder_class_attributes(classdef: cst.ClassDef) -> cst.ClassDef:
     return classdef.with_changes(body=classdef.body.with_changes(body=body_list))
 
 
-def ensure_order_class_attributes_in_module(module: cst.Module) -> cst.Module:
-    changed = False
-    new_body = list(module.body)
-    for idx, node in enumerate(new_body):
-        if isinstance(node, cst.ClassDef):
-            updated = reorder_class_attributes(node)
-            if updated is not node:
-                new_body[idx] = updated
-                changed = True
-    if not changed:
-        return module
-    return module.with_changes(body=new_body)
+def _attr_name(node: cst.CSTNode) -> str | None:
+    if isinstance(node, cst.SimpleStatementLine) and len(node.body) == 1:
+        small = node.body[0]
+        if isinstance(small, cst.Assign):
+            tgt = small.targets[0].target
+            if isinstance(tgt, cst.Name):
+                return tgt.value
+        if isinstance(small, cst.AnnAssign):
+            tgt = small.target
+            if isinstance(tgt, cst.Name):
+                return tgt.value
+    if isinstance(node, cst.ClassDef):
+        return node.name.value
+    return None
+
+
+def _is_attribute_statement(node: cst.CSTNode) -> bool:
+    """Return True if node is a class-level attribute we should order.
+
+    We consider:
+      - Simple single-target Name assignments (Assign/AnnAssign) whose target name is NOT UPPER_CASE
+      - Inner class definitions (e.g., Config) as attributes for ordering
+
+    Uppercase names are ignored here (treated as constants in another operation).
+    """
+    if isinstance(node, cst.SimpleStatementLine) and len(node.body) == 1:
+        small = node.body[0]
+        if isinstance(small, cst.Assign):
+            # Only simple single-target Name assignments
+            if len(small.targets) != 1:
+                return False
+            target = small.targets[0].target
+            if isinstance(target, cst.Name):
+                # Ignore UPPER_CASE constants
+                if target.value.isupper():
+                    return False
+                return True
+            return False
+        if isinstance(small, cst.AnnAssign):
+            target = small.target
+            if isinstance(target, cst.Name):
+                if target.value.isupper():
+                    return False
+                return True
+            return False
+    # Pydantic / config style inner classes are considered attributes for ordering
+    if isinstance(node, cst.ClassDef) and isinstance(node.name, cst.Name):
+        return True
+    return False
+
+
+def _is_blank_separator(node: cst.CSTNode) -> bool:
+    # A blank separator is an EmptyLine without a comment
+    return isinstance(node, cst.EmptyLine) and node.comment is None
+
+
+def _is_comment_line(node: cst.CSTNode) -> bool:
+    return isinstance(node, cst.EmptyLine) and node.comment is not None
+
+
+def _is_public(name: str) -> bool:
+    return not name.startswith("_")
+
+
+def _is_special_attribute(node: cst.CSTNode) -> bool:
+    name = _attr_name(node)
+    if name is None:
+        return False
+    if name in SPECIAL_ATTR_NAMES:
+        return True
+    if isinstance(node, cst.ClassDef) and name in SPECIAL_INNER_CLASS_NAMES:
+        return True
+    return False
+
+
+def _sort_key(name: str) -> tuple:
+    # Case-insensitive A-Z; ensure '_' sorts after letters
+    # We achieve this by key: (name without leading '_', is_private)
+    return (name.lstrip("_").lower(), name.startswith("_"))

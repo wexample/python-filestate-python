@@ -13,6 +13,7 @@ class PythonRemoveUnusedOperation(AbstractPythonFileOperation):
 
     Triggered by config: { "python": ["remove_unused_imports"] }
     """
+
     @classmethod
     def get_option_name(cls) -> str:
         from wexample_filestate_python.config_option.python_config_option import (

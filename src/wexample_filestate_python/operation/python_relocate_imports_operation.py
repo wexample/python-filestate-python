@@ -27,6 +27,7 @@ class PythonRelocateImportsOperation(AbstractPythonFileOperation):
 
     Triggered by config: { "python": ["relocate_imports"] }
     """
+
     @classmethod
     def get_option_name(cls) -> str:
         from wexample_filestate_python.config_option.python_config_option import (
@@ -123,7 +124,7 @@ class PythonRelocateImportsOperation(AbstractPythonFileOperation):
             | (set(cast_type_names_anywhere) - set(class_level_names))
             | (set(type_only_for_block) - set(class_level_names))
         )
-        
+
         # Debug summary removed
         rewritten = module.visit(
             PythonImportRewriter(

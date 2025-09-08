@@ -25,80 +25,18 @@ for gi, group in enumerate(DUnderGroups):
         _DUNDER_ORDER[name] = (gi, si)
 
 
-def _has_decorator(func: cst.FunctionDef, decorator_name: str) -> bool:
-    for dec in func.decorators:
-        expr = dec.decorator
-        # @decorator
-        if isinstance(expr, cst.Name) and expr.value == decorator_name:
-            return True
-        # @module.decorator
-        if (
-            isinstance(expr, cst.Attribute)
-            and isinstance(expr.attr, cst.Name)
-            and expr.attr.value == decorator_name
-        ):
-            return True
-    return False
-
-
-def _property_kind(func: cst.FunctionDef) -> tuple[str | None, str | None]:
-    """Return (base_name, kind) where kind in {getter, setter, deleter} or (None, None).
-    For setters/deleters, decorator is like @<name>.setter or @<name>.deleter.
-    """
-    # Getter: @property on a function whose name is the property name
-    if _has_decorator(func, "property"):
-        return func.name.value, "getter"
-    # Setter/deleter: look for Attribute decorator <name>.setter / <name>.deleter
-    for dec in func.decorators:
-        expr = dec.decorator
-        if isinstance(expr, cst.Attribute) and isinstance(expr.attr, cst.Name):
-            if expr.attr.value in {"setter", "deleter"}:
-                # base name is left side of the attribute if it's a Name
-                base = expr.value
-                if isinstance(base, cst.Name):
-                    return base.value, (
-                        "setter" if expr.attr.value == "setter" else "deleter"
-                    )
-    return None, None
-
-
-def _is_dunder(name: str) -> bool:
-    return name.startswith("__") and name.endswith("__")
-
-
-def _is_private(name: str) -> bool:
-    return name.startswith("_") and not _is_dunder(name)
-
-
-def _sort_key_alpha(name: str) -> tuple:
-    # Case-insensitive, underscore after letters
-    return (name.lstrip("_").lower(), name.startswith("_"))
-
-
-def _classify_method(func: cst.FunctionDef) -> tuple[str, dict]:
-    """Classify a FunctionDef into one of: dunder, classmethod, staticmethod, property, instance.
-    Returns (kind, meta) where meta provides extra info like name, dunder order, property base/kind.
-    """
-    name = func.name.value
-    # Properties first (they may also have classmethod/staticmethod in theory, ignore that)
-    base, pkind = _property_kind(func)
-    if base is not None:
-        return "property", {"base": base, "kind": pkind, "node": func}
-    # Classmethod / staticmethod
-    if _has_decorator(func, "classmethod"):
-        return "classmethod", {"name": name, "node": func}
-    if _has_decorator(func, "staticmethod"):
-        return "staticmethod", {"name": name, "node": func}
-    # Dunder methods
-    if _is_dunder(name):
-        order = _DUNDER_ORDER.get(name, (999, 999))
-        return "dunder", {"name": name, "order": order, "node": func}
-    # Instance method
-    return "instance", {"name": name, "node": func}
-
-
-def _is_method_node(node: cst.CSTNode) -> bool:
-    return isinstance(node, cst.FunctionDef)
+def ensure_order_class_methods_in_module(module: cst.Module) -> cst.Module:
+    changed = False
+    new_body = list(module.body)
+    for idx, node in enumerate(new_body):
+        if isinstance(node, cst.ClassDef):
+            updated = reorder_class_methods(node)
+            if updated is not node:
+                new_body[idx] = updated
+                changed = True
+    if not changed:
+        return module
+    return module.with_changes(body=new_body)
 
 
 def reorder_class_methods(classdef: cst.ClassDef) -> cst.ClassDef:
@@ -218,15 +156,77 @@ def reorder_class_methods(classdef: cst.ClassDef) -> cst.ClassDef:
     return classdef.with_changes(body=new_suite)
 
 
-def ensure_order_class_methods_in_module(module: cst.Module) -> cst.Module:
-    changed = False
-    new_body = list(module.body)
-    for idx, node in enumerate(new_body):
-        if isinstance(node, cst.ClassDef):
-            updated = reorder_class_methods(node)
-            if updated is not node:
-                new_body[idx] = updated
-                changed = True
-    if not changed:
-        return module
-    return module.with_changes(body=new_body)
+def _classify_method(func: cst.FunctionDef) -> tuple[str, dict]:
+    """Classify a FunctionDef into one of: dunder, classmethod, staticmethod, property, instance.
+    Returns (kind, meta) where meta provides extra info like name, dunder order, property base/kind.
+    """
+    name = func.name.value
+    # Properties first (they may also have classmethod/staticmethod in theory, ignore that)
+    base, pkind = _property_kind(func)
+    if base is not None:
+        return "property", {"base": base, "kind": pkind, "node": func}
+    # Classmethod / staticmethod
+    if _has_decorator(func, "classmethod"):
+        return "classmethod", {"name": name, "node": func}
+    if _has_decorator(func, "staticmethod"):
+        return "staticmethod", {"name": name, "node": func}
+    # Dunder methods
+    if _is_dunder(name):
+        order = _DUNDER_ORDER.get(name, (999, 999))
+        return "dunder", {"name": name, "order": order, "node": func}
+    # Instance method
+    return "instance", {"name": name, "node": func}
+
+
+def _has_decorator(func: cst.FunctionDef, decorator_name: str) -> bool:
+    for dec in func.decorators:
+        expr = dec.decorator
+        # @decorator
+        if isinstance(expr, cst.Name) and expr.value == decorator_name:
+            return True
+        # @module.decorator
+        if (
+            isinstance(expr, cst.Attribute)
+            and isinstance(expr.attr, cst.Name)
+            and expr.attr.value == decorator_name
+        ):
+            return True
+    return False
+
+
+def _is_dunder(name: str) -> bool:
+    return name.startswith("__") and name.endswith("__")
+
+
+def _is_method_node(node: cst.CSTNode) -> bool:
+    return isinstance(node, cst.FunctionDef)
+
+
+def _is_private(name: str) -> bool:
+    return name.startswith("_") and not _is_dunder(name)
+
+
+def _property_kind(func: cst.FunctionDef) -> tuple[str | None, str | None]:
+    """Return (base_name, kind) where kind in {getter, setter, deleter} or (None, None).
+    For setters/deleters, decorator is like @<name>.setter or @<name>.deleter.
+    """
+    # Getter: @property on a function whose name is the property name
+    if _has_decorator(func, "property"):
+        return func.name.value, "getter"
+    # Setter/deleter: look for Attribute decorator <name>.setter / <name>.deleter
+    for dec in func.decorators:
+        expr = dec.decorator
+        if isinstance(expr, cst.Attribute) and isinstance(expr.attr, cst.Name):
+            if expr.attr.value in {"setter", "deleter"}:
+                # base name is left side of the attribute if it's a Name
+                base = expr.value
+                if isinstance(base, cst.Name):
+                    return base.value, (
+                        "setter" if expr.attr.value == "setter" else "deleter"
+                    )
+    return None, None
+
+
+def _sort_key_alpha(name: str) -> tuple:
+    # Case-insensitive, underscore after letters
+    return (name.lstrip("_").lower(), name.startswith("_"))
