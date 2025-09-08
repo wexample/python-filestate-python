@@ -85,7 +85,6 @@ class PythonAddFutureAnnotationsOperation(AbstractPythonFileOperation):
 
         # Avoid inserting duplicate blank lines: if previous line is not blank and not newline, keep
         # If there are existing future imports right after docstring, we can insert alongside them; no special handling needed
-
         lines.insert(insert_index, future_line)
         # If there isn't a blank line after the future import and next line is not blank, add one for readability
         j = insert_index + 1

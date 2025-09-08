@@ -38,7 +38,6 @@ class PythonAddReturnTypesOperation(AbstractPythonFileOperation):
         # robust, formatting-preserving edits. We extend inference to:
         # - simple literals (None, bool, str, int, float)
         # - simple class instantiation returns (MyClass() or via a variable assigned once)
-
         def _infer_literal_type(expr: cst.BaseExpression) -> str | None:
             if isinstance(expr, cst.Name):
                 if expr.value in ("True", "False"):

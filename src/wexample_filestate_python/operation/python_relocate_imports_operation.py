@@ -123,9 +123,8 @@ class PythonRelocateImportsOperation(AbstractPythonFileOperation):
             | (set(cast_type_names_anywhere) - set(class_level_names))
             | (set(type_only_for_block) - set(class_level_names))
         )
-
+        
         # Debug summary removed
-
         rewritten = module.visit(
             PythonImportRewriter(
                 used_in_B=class_level_names,

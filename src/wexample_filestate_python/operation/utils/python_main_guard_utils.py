@@ -70,7 +70,6 @@ def move_main_guard_to_end(module: cst.Module) -> cst.Module:
 
     # Strip leading_lines of the first moved guard only if it would create extra blank lines at end
     # In practice, we keep existing leading_lines to minimize diffs.
-
     # Append guards at the end (before trailing EmptyLines, if any)
     # Find insertion point: just before trailing EmptyLines
     insert_at = len(new_body)
