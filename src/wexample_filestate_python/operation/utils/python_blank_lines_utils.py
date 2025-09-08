@@ -64,6 +64,77 @@ def _remove_leading_blank_lines_from_suite(suite: cst.Suite) -> cst.Suite:
     return suite.with_changes(body=body_list)
 
 
+def _is_import_statement(node: cst.CSTNode) -> bool:
+    """Check if node is an import statement (import or from...import)."""
+    return isinstance(node, (cst.Import, cst.ImportFrom))
+
+
+def _is_class_definition(node: cst.CSTNode) -> bool:
+    """Check if node is a class definition."""
+    return isinstance(node, cst.ClassDef)
+
+
+def _is_function_definition(node: cst.CSTNode) -> bool:
+    """Check if node is a function definition."""
+    return isinstance(node, cst.FunctionDef)
+
+
+def _normalize_double_blank_lines(module: cst.Module) -> cst.Module:
+    """Remove double blank lines except after imports, before classes, before module functions."""
+    body_list = list(module.body)
+    if len(body_list) < 2:
+        return module
+    
+    changed = False
+    
+    # Process each element and its following blank lines
+    i = 0
+    while i < len(body_list):
+        current = body_list[i]
+        
+        # Look ahead for consecutive blank lines
+        blank_count = 0
+        j = i + 1
+        while j < len(body_list) and isinstance(body_list[j], cst.EmptyLine) and body_list[j].comment is None:
+            blank_count += 1
+            j += 1
+        
+        # Determine if we should allow 2 blank lines or reduce to 1
+        allow_double = False
+        
+        if j < len(body_list):  # There's a next non-blank element
+            next_element = body_list[j]
+            
+            # Allow 2 blank lines after imports (before non-import)
+            if _is_import_statement(current) and not _is_import_statement(next_element):
+                allow_double = True
+            
+            # Allow 2 blank lines before class definitions at module level
+            elif _is_class_definition(next_element):
+                allow_double = True
+            
+            # Allow 2 blank lines before function definitions at module level
+            elif _is_function_definition(next_element):
+                allow_double = True
+        
+        # Normalize blank lines
+        if blank_count > 1:
+            target_count = 2 if allow_double else 1
+            if blank_count != target_count:
+                # Remove excess blank lines
+                excess = blank_count - target_count
+                for _ in range(excess):
+                    body_list.pop(i + 1)
+                changed = True
+        
+        i += 1
+    
+    if not changed:
+        return module
+    
+    return module.with_changes(body=body_list)
+
+
 def _fix_module_docstring_spacing(module: cst.Module) -> cst.Module:
     """Fix spacing around module docstring: 0 lines before, 1 line after."""
     body_list = list(module.body)
@@ -172,5 +243,8 @@ def fix_function_blank_lines(module: cst.Module) -> cst.Module:
     
     # Also fix module-level docstring spacing
     modified_module = _fix_module_docstring_spacing(modified_module)
+    
+    # Normalize double blank lines
+    modified_module = _normalize_double_blank_lines(modified_module)
     
     return modified_module
