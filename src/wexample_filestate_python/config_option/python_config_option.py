@@ -37,6 +37,8 @@ class PythonConfigOption(AbstractConfigOption):
     OPTION_NAME_ORDER_CLASS_ATTRIBUTES: ClassVar[str] = "order_class_attributes"
     # Order class methods (dunders sequence, class/staticmethods, properties, instances)
     OPTION_NAME_ORDER_CLASS_METHODS: ClassVar[str] = "order_class_methods"
+    # Enforce spacing rules across module, classes, functions
+    OPTION_NAME_ENFORCE_SPACING: ClassVar[str] = "enforce_spacing"
     # Normalize blank lines between program structures (spacing rules)
     OPTION_NAME_ORDER_SPACING: ClassVar[str] = "order_spacing"
 

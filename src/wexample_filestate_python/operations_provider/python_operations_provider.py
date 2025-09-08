@@ -70,6 +70,9 @@ class PythonOperationsProvider(AbstractOperationsProvider):
         from wexample_filestate_python.operation.python_order_class_attributes_operation import (
             PythonOrderClassAttributesOperation,
         )
+        from wexample_filestate_python.operation.python_enforce_spacing_operation import (
+            PythonEnforceSpacingOperation,
+        )
         from wexample_filestate_python.operation.python_order_spacing_operation import (
             PythonOrderSpacingOperation,
         )
@@ -89,6 +92,7 @@ class PythonOperationsProvider(AbstractOperationsProvider):
             PythonOrderClassDocstringOperation,
             PythonOrderClassMethodsOperation,
             PythonOrderClassAttributesOperation,
+            PythonEnforceSpacingOperation,
             PythonOrderModuleDocstringOperation,
             PythonOrderTypeCheckingBlockOperation,
             PythonOrderSpacingOperation,
