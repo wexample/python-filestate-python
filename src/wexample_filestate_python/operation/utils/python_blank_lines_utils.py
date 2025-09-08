@@ -58,10 +58,11 @@ def _remove_leading_blank_lines_from_suite(suite: cst.Suite) -> cst.Suite:
                         body_list[i] = next_stmt.with_changes(leading_lines=new_leading)
                         changed = True
     
-    if not changed:
-        return suite
+    # Normalize double blank lines in the function body
+    temp_suite = suite.with_changes(body=body_list) if changed else suite
+    normalized_suite = _normalize_double_blank_lines_in_suite(temp_suite)
     
-    return suite.with_changes(body=body_list)
+    return normalized_suite
 
 
 def _is_import_statement(node: cst.CSTNode) -> bool:
@@ -77,6 +78,39 @@ def _is_class_definition(node: cst.CSTNode) -> bool:
 def _is_function_definition(node: cst.CSTNode) -> bool:
     """Check if node is a function definition."""
     return isinstance(node, cst.FunctionDef)
+
+
+def _normalize_double_blank_lines_in_suite(suite: cst.Suite) -> cst.Suite:
+    """Normalize double blank lines inside function/method/class bodies to single blank lines."""
+    body_list = list(suite.body)
+    if len(body_list) <= 1:
+        return suite
+    
+    changed = False
+    
+    for i in range(1, len(body_list)):
+        current_node = body_list[i]
+        
+        if not hasattr(current_node, 'leading_lines'):
+            continue
+            
+        # Count blank lines in leading_lines
+        blank_count = sum(1 for line in current_node.leading_lines 
+                         if isinstance(line, cst.EmptyLine) and line.comment is None)
+        
+        # Inside function/class bodies, allow maximum 1 blank line
+        if blank_count > 1:
+            # Keep non-blank leading lines and add exactly 1 blank line
+            non_blank_leading = [line for line in current_node.leading_lines 
+                               if not (isinstance(line, cst.EmptyLine) and line.comment is None)]
+            new_leading = [cst.EmptyLine()] + non_blank_leading
+            body_list[i] = current_node.with_changes(leading_lines=new_leading)
+            changed = True
+    
+    if not changed:
+        return suite
+    
+    return suite.with_changes(body=body_list)
 
 
 def _remove_leading_blank_lines_from_class_suite(suite: cst.Suite) -> cst.Suite:
@@ -128,10 +162,11 @@ def _remove_leading_blank_lines_from_class_suite(suite: cst.Suite) -> cst.Suite:
                         body_list[i] = next_stmt.with_changes(leading_lines=new_leading)
                         changed = True
     
-    if not changed:
-        return suite
+    # Normalize double blank lines in the rest of the class body
+    temp_suite = suite.with_changes(body=body_list) if changed else suite
+    normalized_suite = _normalize_double_blank_lines_in_suite(temp_suite)
     
-    return suite.with_changes(body=body_list)
+    return normalized_suite
 
 
 def _normalize_double_blank_lines(module: cst.Module) -> cst.Module:
