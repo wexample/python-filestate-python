@@ -231,6 +231,14 @@ def normalize_class_spacing(classdef: cst.ClassDef) -> cst.ClassDef:
             desired = 1
             if _is_property_method(cur) and _is_property_method(nxt):
                 desired = 0
+            # If there are any comment EmptyLines between the two methods,
+            # consider comments as the visual separator and avoid adding a blank line.
+            has_comment_between = any(
+                isinstance(body[k], cst.EmptyLine) and body[k].comment is not None
+                for k in range(i + 1, j)
+            )
+            if has_comment_between:
+                desired = 0
             new_body = _set_blank_between(body, i, j, desired)
             if new_body is not body:
                 body = new_body
