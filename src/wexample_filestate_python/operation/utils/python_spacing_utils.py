@@ -70,25 +70,49 @@ def _ensure_blank_after(seq: List[cst.CSTNode], idx: int, desired: int) -> List[
 
 
 def _ensure_blank_before(seq: List[cst.CSTNode], idx: int, desired: int) -> List[cst.CSTNode]:
-    # Look backwards skipping comment lines
-    i = idx - 1
-    while i >= 0 and _is_comment_emptyline(seq[i]):
-        i -= 1
-    if i < 0:
-        # At file or suite start; ensure 0 blank lines by removing leading blanks
-        # Remove any blank at very beginning
-        k = 0
+    """Ensure there are desired visual separation lines before idx.
+
+    Visual separation lines are the contiguous sequence of EmptyLine nodes immediately
+    preceding idx (both blank and comment EmptyLines). We apply conservative rules:
+    - If there are any comment EmptyLines in that contiguous run, we do NOT insert or
+      remove additional blank lines (we assume comments serve as separation).
+    - Otherwise, we adjust the number of blank EmptyLines to match desired.
+    """
+    # Scan contiguous EmptyLines immediately before idx
+    j = idx - 1
+    blank_count = 0
+    comment_count = 0
+    while j >= 0 and isinstance(seq[j], cst.EmptyLine):
+        if seq[j].comment is None:
+            blank_count += 1
+        else:
+            comment_count += 1
+        j -= 1
+
+    # If comments present in separation, don't touch spacing
+    if comment_count > 0:
+        return seq
+
+    # No comments in separation; j now points to previous non-emptyline node (or -1)
+    prev_index = j
+    if prev_index < 0:
+        # Beginning; normalize leading blanks to desired
         new_seq = list(seq)
+        # Remove all leading blanks
+        k = 0
         while k < len(new_seq) and _is_blank_emptyline(new_seq[k]):
             new_seq.pop(k)
-        # If desired > 0 at start, insert desired blanks at front
+        # Insert desired blanks at front
         for _ in range(desired):
             new_seq.insert(0, cst.EmptyLine())
         return new_seq
-    current = _count_blank_between(seq, i, idx)
-    if current == desired:
+
+    # Current blank separation equals blank_count; adjust to desired
+    if blank_count == desired:
         return seq
-    return _set_blank_between(seq, i, idx, desired)
+
+    # We need to set blank lines between prev_index and idx to desired
+    return _set_blank_between(seq, prev_index, idx, desired)
 
 
 from wexample_filestate_python.operation.utils.python_docstring_utils import (
