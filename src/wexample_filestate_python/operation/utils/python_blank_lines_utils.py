@@ -233,13 +233,16 @@ def _normalize_class_properties_spacing(suite: cst.Suite) -> cst.Suite:
 
     # Process properties section (skip if first element is docstring to avoid Black conflicts)
     start_idx = 1
-    if (body_list and isinstance(body_list[0], cst.SimpleStatementLine) and 
-        len(body_list[0].body) == 1 and 
-        isinstance(body_list[0].body[0], cst.Expr) and 
-        isinstance(body_list[0].body[0].value, cst.SimpleString)):
+    if (
+        body_list
+        and isinstance(body_list[0], cst.SimpleStatementLine)
+        and len(body_list[0].body) == 1
+        and isinstance(body_list[0].body[0], cst.Expr)
+        and isinstance(body_list[0].body[0].value, cst.SimpleString)
+    ):
         # First element is a docstring, start processing from index 2 to avoid modifying after docstring
         start_idx = 2
-    
+
     for i in range(start_idx, first_method_idx):
         current_node = body_list[i]
         prev_node = body_list[i - 1]
