@@ -56,6 +56,27 @@ def _set_blank_between(seq: List[cst.CSTNode], start_idx: int, end_idx: int, des
     return new_seq
 
 
+def _cap_blank_between(seq: List[cst.CSTNode], start_idx: int, end_idx: int, max_allowed: int) -> List[cst.CSTNode]:
+    """Trim blank EmptyLines between start and end to at most max_allowed; never add new blanks.
+    Comment EmptyLines are preserved.
+    """
+    current = _count_blank_between(seq, start_idx, end_idx)
+    if current <= max_allowed:
+        return seq
+    # Remove (current - max_allowed) blank lines closest to end_idx
+    to_remove = current - max_allowed
+    new_seq = list(seq)
+    # Iterate backwards to remove later blanks first
+    i = end_idx - 1
+    while i > start_idx and to_remove > 0:
+        if _is_blank_emptyline(new_seq[i]):
+            new_seq.pop(i)
+            to_remove -= 1
+            end_idx -= 1
+        i -= 1
+    return new_seq
+
+
 def _ensure_blank_after(seq: List[cst.CSTNode], idx: int, desired: int) -> List[cst.CSTNode]:
     # Find next non-comment node index after idx
     j = idx + 1
@@ -124,32 +145,59 @@ def normalize_module_spacing(module: cst.Module) -> cst.Module:
     body = list(module.body)
     changed = False
 
-    # 1) 1 blank line after module docstring (if present)
+    # 1) 1 blank line after module docstring (if present) — cap only, do not add
     ds_node, ds_idx = find_module_docstring(module)
     if ds_node is not None and len(body) > ds_idx + 1:
-        new_body = _ensure_blank_after(body, ds_idx, 1)
+        # Cap blanks to at most 1
+        # Find next non-comment node index
+        j = ds_idx + 1
+        while j < len(body) and _is_comment_emptyline(body[j]):
+            j += 1
+        if j < len(body):
+            new_body = _cap_blank_between(body, ds_idx, j, 1)
+        else:
+            new_body = body
         if new_body is not body:
             body = new_body
             changed = True
 
-    # 2) 1 blank line after TYPE_CHECKING blocks (top-level)
+    # 2) 1 blank line after TYPE_CHECKING blocks (top-level) — cap only
     for idx, stmt in enumerate(body):
         if isinstance(stmt, cst.If):
             # if TYPE_CHECKING
             test = stmt.test
             if isinstance(test, cst.Name) and test.value == "TYPE_CHECKING":
-                new_body = _ensure_blank_after(body, idx, 1)
+                # Cap to at most 1
+                # Find next non-comment node index
+                j = idx + 1
+                while j < len(body) and _is_comment_emptyline(body[j]):
+                    j += 1
+                if j < len(body):
+                    new_body = _cap_blank_between(body, idx, j, 1)
+                else:
+                    new_body = body
                 if new_body is not body:
                     body = new_body
                     changed = True
 
-    # 3) Ensure 2 blank lines before top-level classes and functions
+    # 3) Ensure at most 2 blank lines before top-level classes and functions (do not add)
     for idx, stmt in enumerate(body):
         if isinstance(stmt, (cst.ClassDef, cst.FunctionDef)):
             # Don't enforce before the first statement in the file
             if idx == 0:
                 continue
-            new_body = _ensure_blank_before(body, idx, 2)
+            # Cap only: count current blanks/comments before; if comments present, skip; else cap blanks to 2
+            # Determine previous non-emptyline index
+            j = idx - 1
+            has_comment = False
+            while j >= 0 and isinstance(body[j], cst.EmptyLine):
+                if body[j].comment is not None:
+                    has_comment = True
+                j -= 1
+            if not has_comment and j >= 0:
+                new_body = _cap_blank_between(body, j, idx, 2)
+            else:
+                new_body = body
             if new_body is not body:
                 body = new_body
                 changed = True
@@ -169,7 +217,7 @@ def _ensure_one_blank_after_docstring_in_suite(suite: cst.IndentedBlock) -> cst.
         and isinstance(first.body[0], cst.Expr)
         and isinstance(first.body[0].value, cst.SimpleString)
     ):
-        # Ensure 0 blanks after signature: remove leading blank EmptyLines
+        # Non-docstring start: remove any leading blank EmptyLines (non-expansive)
         k = 0
         changed = False
         while k < len(body) and _is_blank_emptyline(body[k]):
@@ -177,17 +225,19 @@ def _ensure_one_blank_after_docstring_in_suite(suite: cst.IndentedBlock) -> cst.
             changed = True
         return suite if not changed else suite.with_changes(body=body)
 
-    # After docstring, ensure exactly 1 blank line before next non-comment
-    # Find next non-comment node index after docstring
+    # Docstring present: cap blanks after it to at most 1; never insert if 0.
+    # Find next non-comment node after docstring
     j = 1
     while j < len(body) and _is_comment_emptyline(body[j]):
         j += 1
     if j >= len(body):
         return suite
     current = _count_blank_between(body, 0, j)
-    if current == 1:
+    # If there are comment EmptyLines immediately after docstring, treat as separator; don't add blanks
+    # Already handled by counting only blank EmptyLines; if current == 0, do nothing
+    if current <= 1:
         return suite
-    new_body = _set_blank_between(body, 0, j, 1)
+    new_body = _cap_blank_between(body, 0, j, 1)
     return suite.with_changes(body=new_body)
 
 
@@ -200,7 +250,7 @@ def normalize_class_spacing(classdef: cst.ClassDef) -> cst.ClassDef:
     changed = False
     body = list(classdef.body.body)
 
-    # 1) 1 blank line after class docstring
+    # 1) At most 1 blank line after class docstring (do not add)
     if body:
         first = body[0]
         if (
@@ -209,7 +259,14 @@ def normalize_class_spacing(classdef: cst.ClassDef) -> cst.ClassDef:
             and isinstance(first.body[0], cst.Expr)
             and isinstance(first.body[0].value, cst.SimpleString)
         ):
-            new_body = _ensure_blank_after(body, 0, 1)
+            # Cap only
+            j = 1
+            while j < len(body) and _is_comment_emptyline(body[j]):
+                j += 1
+            if j < len(body):
+                new_body = _cap_blank_between(body, 0, j, 1)
+            else:
+                new_body = body
             if new_body is not body:
                 body = new_body
                 changed = True
@@ -227,19 +284,18 @@ def normalize_class_spacing(classdef: cst.ClassDef) -> cst.ClassDef:
             break
         nxt = body[j]
         if isinstance(cur, cst.FunctionDef) and isinstance(nxt, cst.FunctionDef):
-            # Determine desired blanks
-            desired = 1
+            # Determine max blanks
+            max_allowed = 1
             if _is_property_method(cur) and _is_property_method(nxt):
-                desired = 0
-            # If there are any comment EmptyLines between the two methods,
-            # consider comments as the visual separator and avoid adding a blank line.
+                max_allowed = 0
+            # If there are comment EmptyLines between the two methods, do not add blanks; only trim
             has_comment_between = any(
                 isinstance(body[k], cst.EmptyLine) and body[k].comment is not None
                 for k in range(i + 1, j)
             )
             if has_comment_between:
-                desired = 0
-            new_body = _set_blank_between(body, i, j, desired)
+                max_allowed = 0
+            new_body = _cap_blank_between(body, i, j, max_allowed)
             if new_body is not body:
                 body = new_body
                 changed = True
@@ -247,7 +303,7 @@ def normalize_class_spacing(classdef: cst.ClassDef) -> cst.ClassDef:
             continue
         i += 1
 
-    # 3) Normalize function/method suites: 1 blank after docstring, 0 leading blanks otherwise
+    # 3) Normalize function/method suites: cap to at most 1 blank after docstring; remove leading blanks otherwise
     new_body2 = list(body)
     for idx, node in enumerate(new_body2):
         if isinstance(node, cst.FunctionDef) and isinstance(node.body, cst.IndentedBlock):
