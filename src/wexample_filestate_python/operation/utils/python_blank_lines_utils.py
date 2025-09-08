@@ -79,6 +79,61 @@ def _is_function_definition(node: cst.CSTNode) -> bool:
     return isinstance(node, cst.FunctionDef)
 
 
+def _remove_leading_blank_lines_from_class_suite(suite: cst.Suite) -> cst.Suite:
+    """Remove any leading blank lines from a class body suite.
+    
+    This ensures no blank lines appear immediately after the class signature.
+    The first item (docstring, property, or method) should be directly under the class signature.
+    If the first item is a docstring, the next item should be directly after the docstring.
+    """
+    body_list = list(suite.body)
+    if not body_list:
+        return suite
+    
+    changed = False
+    
+    # Check first element for leading_lines with blank lines
+    if body_list and isinstance(body_list[0], (cst.SimpleStatementLine, cst.FunctionDef, cst.ClassDef)):
+        first_stmt = body_list[0]
+        if hasattr(first_stmt, 'leading_lines') and first_stmt.leading_lines:
+            # Remove blank leading lines from the first statement
+            new_leading = [line for line in first_stmt.leading_lines if not (isinstance(line, cst.EmptyLine) and line.comment is None)]
+            if len(new_leading) != len(first_stmt.leading_lines):
+                body_list[0] = first_stmt.with_changes(leading_lines=new_leading)
+                changed = True
+    
+    # Remove leading blank EmptyLine nodes
+    while body_list and _is_blank_line(body_list[0]):
+        body_list.pop(0)
+        changed = True
+    
+    # If first statement is a docstring, ensure no blank lines after it
+    if body_list and isinstance(body_list[0], cst.SimpleStatementLine):
+        first_stmt = body_list[0]
+        if (len(first_stmt.body) == 1 and 
+            isinstance(first_stmt.body[0], cst.Expr) and 
+            isinstance(first_stmt.body[0].value, cst.SimpleString)):
+            # This is a docstring, remove blank lines after it
+            i = 1
+            while i < len(body_list) and _is_blank_line(body_list[i]):
+                body_list.pop(i)
+                changed = True
+            
+            # Also check if the next statement has blank leading_lines
+            if i < len(body_list):
+                next_stmt = body_list[i]
+                if hasattr(next_stmt, 'leading_lines') and next_stmt.leading_lines:
+                    new_leading = [line for line in next_stmt.leading_lines if not (isinstance(line, cst.EmptyLine) and line.comment is None)]
+                    if len(new_leading) != len(next_stmt.leading_lines):
+                        body_list[i] = next_stmt.with_changes(leading_lines=new_leading)
+                        changed = True
+    
+    if not changed:
+        return suite
+    
+    return suite.with_changes(body=body_list)
+
+
 def _normalize_double_blank_lines(module: cst.Module) -> cst.Module:
     """Prevent double blank lines except after imports and before classes/functions at module level."""
     body_list = list(module.body)
@@ -237,6 +292,13 @@ def fix_function_blank_lines(module: cst.Module) -> cst.Module:
         def leave_FunctionDef(self, original_node: cst.FunctionDef, updated_node: cst.FunctionDef) -> cst.FunctionDef:
             # Fix blank lines in the function body
             new_body = _remove_leading_blank_lines_from_suite(updated_node.body)
+            if new_body is not updated_node.body:
+                return updated_node.with_changes(body=new_body)
+            return updated_node
+        
+        def leave_ClassDef(self, original_node: cst.ClassDef, updated_node: cst.ClassDef) -> cst.ClassDef:
+            # Fix blank lines in the class body
+            new_body = _remove_leading_blank_lines_from_class_suite(updated_node.body)
             if new_body is not updated_node.body:
                 return updated_node.with_changes(body=new_body)
             return updated_node
