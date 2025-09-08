@@ -39,31 +39,40 @@ class PythonOrderModuleDocstringOperation(AbstractPythonFileOperation):
 
         # Check if there's a docstring and if it needs to be moved
         docstring_node, position = find_module_docstring(module)
-        
+
         if docstring_node is None:
             # No docstring found, nothing to do
             return None
-            
+
         if is_module_docstring_at_top(module):
             # Check if quotes need normalization
-            if len(docstring_node.body) > 0 and isinstance(docstring_node.body[0], cst.Expr):
+            if len(docstring_node.body) > 0 and isinstance(
+                docstring_node.body[0], cst.Expr
+            ):
                 expr = docstring_node.body[0]
                 if isinstance(expr.value, cst.SimpleString):
                     quote = expr.value.quote
-                    if quote.startswith("'''") or (quote.startswith("'") and not quote.startswith('"')):
+                    if quote.startswith("'''") or (
+                        quote.startswith("'") and not quote.startswith('"')
+                    ):
                         # Need to normalize quotes
                         from wexample_filestate_python.operation.utils.python_docstring_utils import (
                             normalize_docstring_quotes,
                         )
-                        normalized_docstring = normalize_docstring_quotes(docstring_node)
+
+                        normalized_docstring = normalize_docstring_quotes(
+                            docstring_node
+                        )
                         # Ensure no leading whitespace for the docstring at top
-                        clean_docstring = normalized_docstring.with_changes(leading_lines=[])
+                        clean_docstring = normalized_docstring.with_changes(
+                            leading_lines=[]
+                        )
                         new_body = [clean_docstring] + list(module.body[1:])
                         modified_module = module.with_changes(body=new_body)
                         return modified_module.code
             # Already at top and quotes are fine
             return None
-            
+
         # Move docstring to top (this also normalizes quotes)
         modified_module = move_docstring_to_top(module)
         return modified_module.code

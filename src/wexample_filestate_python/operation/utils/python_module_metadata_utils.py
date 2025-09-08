@@ -23,7 +23,9 @@ METADATA_NAMES: tuple[str, ...] = (
 )
 
 
-def find_module_metadata_statements(module: cst.Module) -> List[Tuple[int, cst.SimpleStatementLine, str]]:
+def find_module_metadata_statements(
+    module: cst.Module,
+) -> List[Tuple[int, cst.SimpleStatementLine, str]]:
     """Find all module-level metadata assignments.
 
     Returns list of tuples: (index_in_body, node, metadata_name)

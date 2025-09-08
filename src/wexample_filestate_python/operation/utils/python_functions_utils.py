@@ -7,7 +7,9 @@ import libcst as cst
 from libcst import matchers as m
 
 
-def collect_module_function_groups(module: cst.Module) -> List[Tuple[int, FunctionGroup]]:
+def collect_module_function_groups(
+    module: cst.Module,
+) -> List[Tuple[int, FunctionGroup]]:
     """Collect top-level functions into groups, preserving overload sequences.
 
     A group is formed by consecutive FunctionDef nodes with the same name when
@@ -28,7 +30,10 @@ def collect_module_function_groups(module: cst.Module) -> List[Tuple[int, Functi
             # collect further overloads of the same name that are directly consecutive
             while j < n:
                 next_node = body[j]
-                if isinstance(next_node, cst.FunctionDef) and _func_name(next_node) == name:
+                if (
+                    isinstance(next_node, cst.FunctionDef)
+                    and _func_name(next_node) == name
+                ):
                     collected.append(next_node)
                     j += 1
                     continue
@@ -98,14 +103,25 @@ def reorder_module_functions(module: cst.Module) -> cst.Module:
         if isinstance(test, cst.Comparison):
             left = test.left
             comps = test.comparisons
-            if len(comps) == 1 and isinstance(left, cst.Name) and left.value == "__name__":
+            if (
+                len(comps) == 1
+                and isinstance(left, cst.Name)
+                and left.value == "__name__"
+            ):
                 comp = comps[0]
                 # operator should be ==
                 if isinstance(comp.operator, cst.Equal):
                     right = comp.comparator
                     if isinstance(right, cst.SimpleString):
-                        val = right.evaluated_value if hasattr(right, "evaluated_value") else right.value.strip('"\'')
-                        return val == "__main__" or right.value.strip() in ("'__main__'", '"__main__"')
+                        val = (
+                            right.evaluated_value
+                            if hasattr(right, "evaluated_value")
+                            else right.value.strip("\"'")
+                        )
+                        return val == "__main__" or right.value.strip() in (
+                            "'__main__'",
+                            '"__main__"',
+                        )
         return False
 
     # Anchor = index of first function in original body
@@ -145,7 +161,9 @@ def reorder_module_functions(module: cst.Module) -> cst.Module:
         original_first_leading = g.nodes[0].leading_lines
         for k, fn in enumerate(g.nodes):
             if k == 0:
-                rebuilt_functions.append(fn.with_changes(leading_lines=original_first_leading))
+                rebuilt_functions.append(
+                    fn.with_changes(leading_lines=original_first_leading)
+                )
             else:
                 rebuilt_functions.append(fn.with_changes(leading_lines=[]))
 

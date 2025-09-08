@@ -9,7 +9,9 @@ from wexample_filestate.helpers.flag import flag_exists
 FLAG_NAME = "python-constant-sort"
 
 
-def find_flagged_constant_blocks(module: cst.Module, src: str) -> List[Tuple[int, int, List[cst.SimpleStatementLine]]]:
+def find_flagged_constant_blocks(
+    module: cst.Module, src: str
+) -> List[Tuple[int, int, List[cst.SimpleStatementLine]]]:
     """Find blocks of contiguous UPPER_CASE assignments following the filestate flag.
 
     A block starts at the first assignment statement that has the flag in its leading
@@ -59,7 +61,10 @@ def find_flagged_constant_blocks(module: cst.Module, src: str) -> List[Tuple[int
 
 # -------- Class-level support --------
 
-def find_flagged_constant_blocks_in_class(classdef: cst.ClassDef, src: str) -> List[Tuple[int, int, List[cst.SimpleStatementLine]]]:
+
+def find_flagged_constant_blocks_in_class(
+    classdef: cst.ClassDef, src: str
+) -> List[Tuple[int, int, List[cst.SimpleStatementLine]]]:
     """Find flagged constant blocks within a class body.
 
     Returns list of tuples (start_index, end_index_exclusive, nodes_in_block)
@@ -151,7 +156,9 @@ def reorder_flagged_constants_in_classes(module: cst.Module, src: str) -> cst.Mo
     return module.with_changes(body=new_module_body)
 
 
-def sort_constants_block(nodes: List[cst.SimpleStatementLine]) -> List[cst.SimpleStatementLine]:
+def sort_constants_block(
+    nodes: List[cst.SimpleStatementLine],
+) -> List[cst.SimpleStatementLine]:
     """Return a new list of nodes sorted by variable name (case-insensitive).
 
     Preserve the flag comment by attaching it to the first node of the
@@ -162,9 +169,15 @@ def sort_constants_block(nodes: List[cst.SimpleStatementLine]) -> List[cst.Simpl
     # comment lines from whichever node currently holds them so we can keep the flag
     # on the first node after sorting.
     original_leadings = [n.leading_lines for n in nodes]
+
     # Collect flag lines from any node (typically the first) to attach to new first
     def _flag_lines(ll: Sequence[cst.EmptyLine]) -> list[cst.EmptyLine]:
-        return [el for el in ll if el.comment is not None and flag_exists(FLAG_NAME, el.comment.value)]
+        return [
+            el
+            for el in ll
+            if el.comment is not None and flag_exists(FLAG_NAME, el.comment.value)
+        ]
+
     collected_flag_lines: list[cst.EmptyLine] = []
     for ll in original_leadings:
         fl = _flag_lines(ll)
@@ -191,14 +204,35 @@ def sort_constants_block(nodes: List[cst.SimpleStatementLine]) -> List[cst.Simpl
     # Pre-clean each node's leading_lines by removing any flag lines to avoid duplicates
     cleaned_leadings = []
     for ll in original_leadings:
-        cleaned = [el for el in ll if not (el.comment is not None and flag_exists(FLAG_NAME, el.comment.value))]
+        cleaned = [
+            el
+            for el in ll
+            if not (el.comment is not None and flag_exists(FLAG_NAME, el.comment.value))
+        ]
         cleaned_leadings.append(cleaned)
 
     for idx, (_, node) in enumerate(sorted_pairs):
-        orig_idx = pairs.index((node.body[0].targets[0].target.value if isinstance(node.body[0], cst.Assign) else node.body[0].target.value, node)) if False else None  # placeholder not used
+        orig_idx = (
+            pairs.index(
+                (
+                    (
+                        node.body[0].targets[0].target.value
+                        if isinstance(node.body[0], cst.Assign)
+                        else node.body[0].target.value
+                    ),
+                    node,
+                )
+            )
+            if False
+            else None
+        )  # placeholder not used
         # Determine the original index of this node in 'nodes' list
         original_index = next((i for i, (_, n) in enumerate(pairs) if n is node), None)
-        leading = cleaned_leadings[original_index] if original_index is not None else node.leading_lines
+        leading = (
+            cleaned_leadings[original_index]
+            if original_index is not None
+            else node.leading_lines
+        )
         if idx == 0 and collected_flag_lines:
             leading = collected_flag_lines + list(leading)
         sorted_nodes.append(node.with_changes(leading_lines=leading))

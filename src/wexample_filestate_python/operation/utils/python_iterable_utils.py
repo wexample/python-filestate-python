@@ -55,7 +55,7 @@ def reorder_flagged_iterables(src: str) -> str:
             if not ln.lstrip().startswith("#"):
                 # Remove trailing comma for comparison but don't modify actual text
                 item = ln.strip()
-                if item.endswith(','):
+                if item.endswith(","):
                     item = item[:-1]
                 return item.lower()
         return ""  # fallback

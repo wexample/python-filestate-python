@@ -5,7 +5,9 @@ from typing import List, Optional, Tuple
 import libcst as cst
 
 
-def find_class_docstring_nodes(classdef: cst.ClassDef) -> Tuple[Optional[cst.SimpleStatementLine], int]:
+def find_class_docstring_nodes(
+    classdef: cst.ClassDef,
+) -> Tuple[Optional[cst.SimpleStatementLine], int]:
     """Return (docstring_node, index) inside class body if present, else (None, -1).
 
     According to Python conventions, a class docstring is a first statement that's a
@@ -15,7 +17,9 @@ def find_class_docstring_nodes(classdef: cst.ClassDef) -> Tuple[Optional[cst.Sim
     for i, elem in enumerate(body_elems):
         if isinstance(elem, cst.SimpleStatementLine) and len(elem.body) == 1:
             small = elem.body[0]
-            if isinstance(small, cst.Expr) and isinstance(small.value, cst.SimpleString):
+            if isinstance(small, cst.Expr) and isinstance(
+                small.value, cst.SimpleString
+            ):
                 return elem, i
         # If we hit a non-simple line before finding a docstring, there's no docstring
         if not isinstance(elem, cst.SimpleStatementLine):
@@ -29,7 +33,9 @@ def is_class_docstring_first(classdef: cst.ClassDef) -> bool:
     return node is not None and idx == 0
 
 
-def normalize_docstring_quotes_stmt(stmt: cst.SimpleStatementLine) -> cst.SimpleStatementLine:
+def normalize_docstring_quotes_stmt(
+    stmt: cst.SimpleStatementLine,
+) -> cst.SimpleStatementLine:
     """Normalize class docstring quotes to double quotes, similar to module behavior."""
     if not (isinstance(stmt, cst.SimpleStatementLine) and len(stmt.body) == 1):
         return stmt
@@ -37,7 +43,7 @@ def normalize_docstring_quotes_stmt(stmt: cst.SimpleStatementLine) -> cst.Simple
     if not (isinstance(small, cst.Expr) and isinstance(small.value, cst.SimpleString)):
         return stmt
     q = small.value.quote
-    if q.startswith("\"\"\"") or q.startswith('"'):
+    if q.startswith('"""') or q.startswith('"'):
         return stmt
     # Convert starting quote to double
     new_quote = '"""' if q.startswith("'''") else '"'

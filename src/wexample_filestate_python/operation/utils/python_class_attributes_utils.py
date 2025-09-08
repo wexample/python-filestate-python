@@ -90,7 +90,9 @@ def _sort_key(name: str) -> tuple:
     return (name.lstrip("_").lower(), name.startswith("_"))
 
 
-def find_attribute_blocks_in_class(classdef: cst.ClassDef) -> List[Tuple[int, int, List[cst.CSTNode]]]:
+def find_attribute_blocks_in_class(
+    classdef: cst.ClassDef,
+) -> List[Tuple[int, int, List[cst.CSTNode]]]:
     """Find contiguous blocks of class attributes within the class body.
 
     A block starts at an attribute statement and continues through subsequent
@@ -146,6 +148,7 @@ def reorder_attribute_block(nodes: List[cst.CSTNode]) -> List[cst.CSTNode]:
       2) Public A–Z
       3) Private/protected A–Z
     """
+
     def cat(node: cst.CSTNode) -> tuple:
         name = _attr_name(node) or ""
         if _is_special_attribute(node):

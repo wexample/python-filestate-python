@@ -32,7 +32,11 @@ def _has_decorator(func: cst.FunctionDef, decorator_name: str) -> bool:
         if isinstance(expr, cst.Name) and expr.value == decorator_name:
             return True
         # @module.decorator
-        if isinstance(expr, cst.Attribute) and isinstance(expr.attr, cst.Name) and expr.attr.value == decorator_name:
+        if (
+            isinstance(expr, cst.Attribute)
+            and isinstance(expr.attr, cst.Name)
+            and expr.attr.value == decorator_name
+        ):
             return True
     return False
 
@@ -52,7 +56,9 @@ def _property_kind(func: cst.FunctionDef) -> tuple[Optional[str], Optional[str]]
                 # base name is left side of the attribute if it's a Name
                 base = expr.value
                 if isinstance(base, cst.Name):
-                    return base.value, "setter" if expr.attr.value == "setter" else "deleter"
+                    return base.value, (
+                        "setter" if expr.attr.value == "setter" else "deleter"
+                    )
     return None, None
 
 
@@ -152,8 +158,12 @@ def reorder_class_methods(classdef: cst.ClassDef) -> cst.ClassDef:
     def sort_by_visibility(items: List[dict]) -> List[cst.FunctionDef]:
         pub = [i for i in items if not _is_private(i["name"])]
         priv = [i for i in items if _is_private(i["name"])]
-        pub_sorted = [i["node"] for i in sorted(pub, key=lambda x: _sort_key_alpha(x["name"]))]
-        priv_sorted = [i["node"] for i in sorted(priv, key=lambda x: _sort_key_alpha(x["name"]))]
+        pub_sorted = [
+            i["node"] for i in sorted(pub, key=lambda x: _sort_key_alpha(x["name"]))
+        ]
+        priv_sorted = [
+            i["node"] for i in sorted(priv, key=lambda x: _sort_key_alpha(x["name"]))
+        ]
         return pub_sorted + priv_sorted
 
     classmethods_ordered = sort_by_visibility(classmethods)
@@ -166,7 +176,9 @@ def reorder_class_methods(classdef: cst.ClassDef) -> cst.ClassDef:
         base = m["base"]
         kind = m["kind"]
         node = m["node"]
-        g = prop_groups.setdefault(base, {"getter": None, "setter": None, "deleter": None})
+        g = prop_groups.setdefault(
+            base, {"getter": None, "setter": None, "deleter": None}
+        )
         g[kind] = node
 
     def prop_group_to_nodes(base: str, g: Dict[str, Optional[cst.FunctionDef]]):

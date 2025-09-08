@@ -46,14 +46,18 @@ class PythonOrderModuleMetadataOperation(AbstractPythonFileOperation):
         # Determine if already grouped and sorted at the correct position
         indices = [i for i, _, _ in found]
         # contiguous block?
-        contiguous = indices == list(range(indices[0], indices[0] + len(indices))) if indices else True
+        contiguous = (
+            indices == list(range(indices[0], indices[0] + len(indices)))
+            if indices
+            else True
+        )
         # names sorted?
         names = [name for _, __, name in found]
         names_sorted = sorted(names, key=lambda n: n.lower())
         already_sorted = names == names_sorted
         # at correct position?
         desired_index = target_index_for_module_metadata(module)
-        at_target_position = (indices and indices[0] == desired_index)
+        at_target_position = indices and indices[0] == desired_index
 
         # If everything is already correct, avoid making whitespace-only changes
         if contiguous and already_sorted and at_target_position:

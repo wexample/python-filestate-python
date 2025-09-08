@@ -44,14 +44,10 @@ class PythonOrderClassMethodsOperation(AbstractPythonFileOperation):
         return modified.code
 
     def describe_after(self) -> str:
-        return (
-            "Class methods have been ordered: dunders in logical sequence, then classmethods, staticmethods, properties, and instance methods."
-        )
+        return "Class methods have been ordered: dunders in logical sequence, then classmethods, staticmethods, properties, and instance methods."
 
     def describe_before(self) -> str:
-        return (
-            "Class methods are not ordered: dunders, class/staticmethods, properties, instance methods."
-        )
+        return "Class methods are not ordered: dunders, class/staticmethods, properties, instance methods."
 
     def description(self) -> str:
         return "Order class methods and properties according to standardized rules (13–17)."
