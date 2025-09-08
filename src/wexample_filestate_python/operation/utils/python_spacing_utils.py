@@ -91,30 +91,18 @@ def _ensure_blank_before(seq: List[cst.CSTNode], idx: int, desired: int) -> List
     return _set_blank_between(seq, i, idx, desired)
 
 
+from wexample_filestate_python.operation.utils.python_docstring_utils import (
+    find_module_docstring,
+)
+
+
 def normalize_module_spacing(module: cst.Module) -> cst.Module:
     body = list(module.body)
     changed = False
 
     # 1) 1 blank line after module docstring (if present)
-    if module.has_docstring and len(body) > 1:
-        # Docstring should be at body[0] if earlier operations applied; handle otherwise too
-        ds_idx = 0
-        if not (
-            isinstance(body[0], cst.SimpleStatementLine)
-            and len(body[0].body) == 1
-            and isinstance(body[0].body[0], cst.Expr)
-            and isinstance(body[0].body[0].value, cst.SimpleString)
-        ):
-            # Find first docstring
-            for i, stmt in enumerate(body):
-                if (
-                    isinstance(stmt, cst.SimpleStatementLine)
-                    and len(stmt.body) == 1
-                    and isinstance(stmt.body[0], cst.Expr)
-                    and isinstance(stmt.body[0].value, cst.SimpleString)
-                ):
-                    ds_idx = i
-                    break
+    ds_node, ds_idx = find_module_docstring(module)
+    if ds_node is not None and len(body) > ds_idx + 1:
         new_body = _ensure_blank_after(body, ds_idx, 1)
         if new_body is not body:
             body = new_body
