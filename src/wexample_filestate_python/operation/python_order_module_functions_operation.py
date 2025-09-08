@@ -48,11 +48,11 @@ class PythonOrderModuleFunctionsOperation(AbstractPythonFileOperation):
             return None
         return modified.code
 
-    def describe_before(self) -> str:
-        return "Module-level functions are not ordered (public then private) and/or appear after classes."
-
     def describe_after(self) -> str:
         return "Module-level functions grouped by overloads, sorted (public A–Z then private A–Z), and placed before classes."
+
+    def describe_before(self) -> str:
+        return "Module-level functions are not ordered (public then private) and/or appear after classes."
 
     def description(self) -> str:
         return "Order module-level functions: public A–Z, then private (_*), keeping @overload groups, and move them before classes."

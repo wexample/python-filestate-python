@@ -25,15 +25,6 @@ class PythonAddFutureAnnotationsOperation(AbstractPythonFileOperation):
 
         return PythonConfigOption.OPTION_NAME_ADD_FUTURE_ANNOTATIONS
 
-    def describe_before(self) -> str:
-        return "The file may be missing `from __future__ import annotations` at the module top."
-
-    def describe_after(self) -> str:
-        return "`from __future__ import annotations` has been added in the correct position."
-
-    def description(self) -> str:
-        return "Add `from __future__ import annotations` at the proper location (after shebang/encoding and module docstring)."
-
     @classmethod
     def preview_source_change(cls, target: TargetFileOrDirectoryType) -> str | None:
         """Return source with a `from __future__ import annotations` inserted
@@ -104,3 +95,12 @@ class PythonAddFutureAnnotationsOperation(AbstractPythonFileOperation):
                 lines.insert(j, "\n")
 
         return "".join(lines)
+
+    def describe_after(self) -> str:
+        return "`from __future__ import annotations` has been added in the correct position."
+
+    def describe_before(self) -> str:
+        return "The file may be missing `from __future__ import annotations` at the module top."
+
+    def description(self) -> str:
+        return "Add `from __future__ import annotations` at the proper location (after shebang/encoding and module docstring)."

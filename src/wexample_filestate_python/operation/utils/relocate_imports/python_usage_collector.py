@@ -44,93 +44,22 @@ class PythonUsageCollector(cst.CSTVisitor):
         self._in_param_default_stack: list[bool] = []
         self._in_param_annot_stack: list[bool] = []
 
-    # ----- Stack management -----
-    def visit_ClassDef(self, node: cst.ClassDef) -> bool:  # type: ignore[override]
-        self.class_stack.append(node.name.value)
-        # Treat symbols in the inheritance list as B (must be available at class creation)
-        for base in node.bases:
-            try:
-                self._walk_expr_for_names(base.value, self.used_in_B)
-            except Exception:
-                pass
-        return True
-
-    def leave_ClassDef(self, node: cst.ClassDef) -> None:  # type: ignore[override]
-        self.class_stack.pop()
-
-    def visit_FunctionDef(self, node: cst.FunctionDef) -> bool:  # type: ignore[override]
-        self.func_stack.append(self._qualified_func_name(node.name.value))
-        # Record return annotation for C
-        if node.returns is not None:
-            self._record_type_names(node.returns.annotation, self.used_in_C_annot)
-        return True
-
-    def leave_FunctionDef(self, node: cst.FunctionDef) -> None:  # type: ignore[override]
-        self.func_stack.pop()
-
-    def visit_AsyncFunctionDef(self, node: cst.AsyncFunctionDef) -> bool:  # type: ignore[override]
-        self.func_stack.append(self._qualified_func_name(node.name.value))
-        # Record return annotation for C
-        if node.returns is not None:
-            self._record_type_names(node.returns.annotation, self.used_in_C_annot)
-        return True
-
-    def leave_AsyncFunctionDef(self, node: cst.AsyncFunctionDef) -> None:  # type: ignore[override]
-        self.func_stack.pop()
-
-    # Track annotation context to avoid misclassifying annotation names as runtime
-    def visit_Annotation(self, node: cst.Annotation) -> bool:  # type: ignore[override]
-        self._in_annotation_stack.append(True)
-        return True
-
     def leave_Annotation(self, node: cst.Annotation) -> None:  # type: ignore[override]
         if self._in_annotation_stack:
             self._in_annotation_stack.pop()
 
-    # Track decorator context to avoid treating decorator names as runtime usage
-    def visit_Decorator(self, node: cst.Decorator) -> bool:  # type: ignore[override]
-        self._in_decorator_stack.append(True)
-        return True
+    def leave_AsyncFunctionDef(self, node: cst.AsyncFunctionDef) -> None:  # type: ignore[override]
+        self.func_stack.pop()
+
+    def leave_ClassDef(self, node: cst.ClassDef) -> None:  # type: ignore[override]
+        self.class_stack.pop()
 
     def leave_Decorator(self, node: cst.Decorator) -> None:  # type: ignore[override]
         if self._in_decorator_stack:
             self._in_decorator_stack.pop()
 
-    # Track param default context; defaults are evaluated at definition time (module init), not runtime
-    def visit_Param(self, node: cst.Param) -> bool:  # type: ignore[override]
-        has_default = node.default is not None
-        self._in_param_default_stack.append(has_default)
-        # Mark that we are in a parameter annotation while traversing children
-        in_annot = node.annotation is not None
-        self._in_param_annot_stack.append(in_annot)
-        # Record parameter annotation types into C (annotation usage)
-        if node.annotation is not None:
-            self._record_type_names(node.annotation.annotation, self.used_in_C_annot)
-        # Names in defaults are needed at definition time: treat as B
-        if has_default:
-            try:
-                # Collect base identifiers even if not recognized as imported yet
-                collected: set[str] = set()
-
-                def _collect_base_names(expr: cst.BaseExpression) -> None:
-                    if isinstance(expr, cst.Name):
-                        collected.add(expr.value)
-                    elif isinstance(expr, cst.Attribute):
-                        _collect_base_names(expr.value)
-                    elif isinstance(expr, cst.Subscript):
-                        _collect_base_names(expr.value)
-                        for e in expr.slice:
-                            if isinstance(e, cst.SubscriptElement) and isinstance(
-                                e.slice, cst.Index
-                            ):
-                                _collect_base_names(e.slice.value)
-
-                _collect_base_names(node.default)
-                self.used_in_B.update(collected)
-            except Exception:
-                pass
-        # We still record annotation as C elsewhere
-        return True
+    def leave_FunctionDef(self, node: cst.FunctionDef) -> None:  # type: ignore[override]
+        self.func_stack.pop()
 
     def leave_Param(self, node: cst.Param) -> None:  # type: ignore[override]
         if self._in_param_default_stack:
@@ -138,72 +67,37 @@ class PythonUsageCollector(cst.CSTVisitor):
         if self._in_param_annot_stack:
             self._in_param_annot_stack.pop()
 
-    # Fallback: explicitly scan Parameters node for defaults (some environments may not trigger visit_Param)
-    def visit_Parameters(self, node: cst.Parameters) -> bool:  # type: ignore[override]
-        try:
-            self.func_stack[-1] if self.func_stack else "<module>"
-            # Aggregate all parameter-like collections
-            all_params: list[cst.Param] = []
-            all_params.extend(list(node.params))
-            all_params.extend(list(node.posonly_params))
-            all_params.extend(list(node.kwonly_params))
-            if node.star_arg is not None and isinstance(node.star_arg, cst.Param):
-                all_params.append(node.star_arg)
-            if node.star_kwarg is not None and isinstance(node.star_kwarg, cst.Param):
-                all_params.append(node.star_kwarg)
+    # ----- B: class-level property annotations -----
+    def visit_AnnAssign(self, node: cst.AnnAssign) -> None:  # type: ignore[override]
+        if not self.class_stack:
+            # module-level annotated assignment -> C
+            self._record_type_names(node.annotation.annotation, self.used_in_C_annot)
+            return
+        self._record_type_names(node.annotation.annotation, self.used_in_B)
 
-            for p in all_params:
-                has_default = p.default is not None
-                if not has_default:
-                    continue
-                collected: set[str] = set()
-
-                def _collect_base_names(expr: cst.BaseExpression) -> None:
-                    if isinstance(expr, cst.Name):
-                        collected.add(expr.value)
-                    elif isinstance(expr, cst.Attribute):
-                        _collect_base_names(expr.value)
-                    elif isinstance(expr, cst.Subscript):
-                        _collect_base_names(expr.value)
-                        for e in expr.slice:
-                            if isinstance(e, cst.SubscriptElement) and isinstance(
-                                e.slice, cst.Index
-                            ):
-                                _collect_base_names(e.slice.value)
-
-                _collect_base_names(p.default)  # type: ignore[arg-type]
-                self.used_in_B.update(collected)
-        except Exception:
-            pass
+    # Track annotation context to avoid misclassifying annotation names as runtime
+    def visit_Annotation(self, node: cst.Annotation) -> bool:  # type: ignore[override]
+        self._in_annotation_stack.append(True)
         return True
 
-    # Treat bare Name usage inside function bodies as runtime usage (A)
-    def visit_Name(self, node: cst.Name) -> None:  # type: ignore[override]
-        if not self.func_stack:
+    # Also treat class-level simple assignments where RHS references imported names as B.
+    # Example: SERVICE_CLASS = GithubRemote
+    def visit_Assign(self, node: cst.Assign) -> None:  # type: ignore[override]
+        if not self.class_stack:
             return
-        if (
-            self._in_annotation_stack
-            or self._in_decorator_stack
-            or any(self._in_param_default_stack)
-            or any(self._in_param_annot_stack)
-        ):
+        # Record any imported names appearing in the value expression as B
+        try:
+            value = node.value
+        except Exception:
             return
-        val = node.value
-        # Do not treat 'cast' identifier as runtime usage; keep typing at module level
-        if val == "cast":
-            return
-        if val in self.imported_value_names:
-            # Resolve module to avoid misclassifying annotation-only names like Mapping
-            resolved_mod = None
-            try:
-                if hasattr(self, "idx") and getattr(self, "idx") is not None:  # type: ignore[attr-defined]
-                    resolved_mod = getattr(self, "idx").name_to_from.get(val, (None, None))[0]  # type: ignore[index]
-            except Exception:
-                resolved_mod = None
-            # Skip if module is unknown or belongs to typing/collections.abc
-            if resolved_mod in (None, "typing", "collections", "collections.abc"):
-                return
-            self.functions_needing_local[self.func_stack[-1]].add(val)
+        self._walk_expr_for_names(value, self.used_in_B)
+
+    def visit_AsyncFunctionDef(self, node: cst.AsyncFunctionDef) -> bool:  # type: ignore[override]
+        self.func_stack.append(self._qualified_func_name(node.name.value))
+        # Record return annotation for C
+        if node.returns is not None:
+            self._record_type_names(node.returns.annotation, self.used_in_C_annot)
+        return True
 
     # ----- A: runtime usages inside functions -----
     def visit_Call(self, node: cst.Call) -> None:  # type: ignore[override]
@@ -251,30 +145,152 @@ class PythonUsageCollector(cst.CSTVisitor):
                         self.functions_needing_local[self.func_stack[-1]].add(n)
                 return
 
-    # ----- B: class-level property annotations -----
-    def visit_AnnAssign(self, node: cst.AnnAssign) -> None:  # type: ignore[override]
-        if not self.class_stack:
-            # module-level annotated assignment -> C
-            self._record_type_names(node.annotation.annotation, self.used_in_C_annot)
-            return
-        self._record_type_names(node.annotation.annotation, self.used_in_B)
+    # ----- Stack management -----
+    def visit_ClassDef(self, node: cst.ClassDef) -> bool:  # type: ignore[override]
+        self.class_stack.append(node.name.value)
+        # Treat symbols in the inheritance list as B (must be available at class creation)
+        for base in node.bases:
+            try:
+                self._walk_expr_for_names(base.value, self.used_in_B)
+            except Exception:
+                pass
+        return True
 
-    # Also treat class-level simple assignments where RHS references imported names as B.
-    # Example: SERVICE_CLASS = GithubRemote
-    def visit_Assign(self, node: cst.Assign) -> None:  # type: ignore[override]
-        if not self.class_stack:
+    # Track decorator context to avoid treating decorator names as runtime usage
+    def visit_Decorator(self, node: cst.Decorator) -> bool:  # type: ignore[override]
+        self._in_decorator_stack.append(True)
+        return True
+
+    def visit_FunctionDef(self, node: cst.FunctionDef) -> bool:  # type: ignore[override]
+        self.func_stack.append(self._qualified_func_name(node.name.value))
+        # Record return annotation for C
+        if node.returns is not None:
+            self._record_type_names(node.returns.annotation, self.used_in_C_annot)
+        return True
+
+    # Treat bare Name usage inside function bodies as runtime usage (A)
+    def visit_Name(self, node: cst.Name) -> None:  # type: ignore[override]
+        if not self.func_stack:
             return
-        # Record any imported names appearing in the value expression as B
-        try:
-            value = node.value
-        except Exception:
+        if (
+            self._in_annotation_stack
+            or self._in_decorator_stack
+            or any(self._in_param_default_stack)
+            or any(self._in_param_annot_stack)
+        ):
             return
-        self._walk_expr_for_names(value, self.used_in_B)
+        val = node.value
+        # Do not treat 'cast' identifier as runtime usage; keep typing at module level
+        if val == "cast":
+            return
+        if val in self.imported_value_names:
+            # Resolve module to avoid misclassifying annotation-only names like Mapping
+            resolved_mod = None
+            try:
+                if hasattr(self, "idx") and getattr(self, "idx") is not None:  # type: ignore[attr-defined]
+                    resolved_mod = getattr(self, "idx").name_to_from.get(val, (None, None))[0]  # type: ignore[index]
+            except Exception:
+                resolved_mod = None
+            # Skip if module is unknown or belongs to typing/collections.abc
+            if resolved_mod in (None, "typing", "collections", "collections.abc"):
+                return
+            self.functions_needing_local[self.func_stack[-1]].add(val)
+
+    # Track param default context; defaults are evaluated at definition time (module init), not runtime
+    def visit_Param(self, node: cst.Param) -> bool:  # type: ignore[override]
+        has_default = node.default is not None
+        self._in_param_default_stack.append(has_default)
+        # Mark that we are in a parameter annotation while traversing children
+        in_annot = node.annotation is not None
+        self._in_param_annot_stack.append(in_annot)
+        # Record parameter annotation types into C (annotation usage)
+        if node.annotation is not None:
+            self._record_type_names(node.annotation.annotation, self.used_in_C_annot)
+        # Names in defaults are needed at definition time: treat as B
+        if has_default:
+            try:
+                # Collect base identifiers even if not recognized as imported yet
+                collected: set[str] = set()
+
+                def _collect_base_names(expr: cst.BaseExpression) -> None:
+                    if isinstance(expr, cst.Name):
+                        collected.add(expr.value)
+                    elif isinstance(expr, cst.Attribute):
+                        _collect_base_names(expr.value)
+                    elif isinstance(expr, cst.Subscript):
+                        _collect_base_names(expr.value)
+                        for e in expr.slice:
+                            if isinstance(e, cst.SubscriptElement) and isinstance(
+                                e.slice, cst.Index
+                            ):
+                                _collect_base_names(e.slice.value)
+
+                _collect_base_names(node.default)
+                self.used_in_B.update(collected)
+            except Exception:
+                pass
+        # We still record annotation as C elsewhere
+        return True
 
     # ----- C: function param annotations -----
     def visit_Param(self, node: cst.Param) -> None:  # type: ignore[override]
         if node.annotation is not None:
             self._record_type_names(node.annotation.annotation, self.used_in_C_annot)
+
+    # Fallback: explicitly scan Parameters node for defaults (some environments may not trigger visit_Param)
+    def visit_Parameters(self, node: cst.Parameters) -> bool:  # type: ignore[override]
+        try:
+            self.func_stack[-1] if self.func_stack else "<module>"
+            # Aggregate all parameter-like collections
+            all_params: list[cst.Param] = []
+            all_params.extend(list(node.params))
+            all_params.extend(list(node.posonly_params))
+            all_params.extend(list(node.kwonly_params))
+            if node.star_arg is not None and isinstance(node.star_arg, cst.Param):
+                all_params.append(node.star_arg)
+            if node.star_kwarg is not None and isinstance(node.star_kwarg, cst.Param):
+                all_params.append(node.star_kwarg)
+
+            for p in all_params:
+                has_default = p.default is not None
+                if not has_default:
+                    continue
+                collected: set[str] = set()
+
+                def _collect_base_names(expr: cst.BaseExpression) -> None:
+                    if isinstance(expr, cst.Name):
+                        collected.add(expr.value)
+                    elif isinstance(expr, cst.Attribute):
+                        _collect_base_names(expr.value)
+                    elif isinstance(expr, cst.Subscript):
+                        _collect_base_names(expr.value)
+                        for e in expr.slice:
+                            if isinstance(e, cst.SubscriptElement) and isinstance(
+                                e.slice, cst.Index
+                            ):
+                                _collect_base_names(e.slice.value)
+
+                _collect_base_names(p.default)  # type: ignore[arg-type]
+                self.used_in_B.update(collected)
+        except Exception:
+            pass
+        return True
+
+    # Collect names inside a type expression (Name, Attribute tail, Subscript args)
+    def _collect_names_from_type_expr(self, expr: cst.BaseExpression) -> set[str]:
+        acc: set[str] = set()
+        # Handle forward-ref style: cast("Foo", x) or cast("dict[str, Foo]", x)
+        if isinstance(expr, cst.SimpleString):
+            try:
+                # Remove surrounding quotes; libcst handles raw string quotes
+                text = expr.evaluated_value
+                parsed = cst.parse_expression(text)
+                self._walk_expr_for_names(parsed, acc)
+                return acc
+            except Exception:
+                return acc
+        self._walk_expr_for_names(expr, acc)
+        return acc
 
     # ----- internals -----
     def _qualified_func_name(self, base: str) -> str:
@@ -315,19 +331,3 @@ class PythonUsageCollector(cst.CSTVisitor):
                     e.slice, cst.Index
                 ):
                     self._walk_expr_for_names(e.slice.value, bucket)
-
-    # Collect names inside a type expression (Name, Attribute tail, Subscript args)
-    def _collect_names_from_type_expr(self, expr: cst.BaseExpression) -> set[str]:
-        acc: set[str] = set()
-        # Handle forward-ref style: cast("Foo", x) or cast("dict[str, Foo]", x)
-        if isinstance(expr, cst.SimpleString):
-            try:
-                # Remove surrounding quotes; libcst handles raw string quotes
-                text = expr.evaluated_value
-                parsed = cst.parse_expression(text)
-                self._walk_expr_for_names(parsed, acc)
-                return acc
-            except Exception:
-                return acc
-        self._walk_expr_for_names(expr, acc)
-        return acc

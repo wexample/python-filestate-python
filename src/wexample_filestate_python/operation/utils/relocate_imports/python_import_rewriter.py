@@ -66,52 +66,13 @@ class PythonImportRewriter(cst.CSTTransformer):
             return ".".join(parts) if parts else None
         return None
 
-    def leave_SimpleStatementLine(
-        self,
-        original_node: cst.SimpleStatementLine,
-        updated_node: cst.SimpleStatementLine,
-    ) -> cst.BaseStatement:
-        # Detect `from typing import TYPE_CHECKING`
-        if len(updated_node.body) == 1 and isinstance(
-            updated_node.body[0], cst.ImportFrom
-        ):
-            imp: cst.ImportFrom = updated_node.body[0]
-            if (
-                imp.module
-                and isinstance(imp.module, cst.Name)
-                and imp.module.value == "typing"
-                and imp.names
-                and not isinstance(imp.names, cst.ImportStar)
-            ):
-                for alias in imp.names:
-                    if isinstance(alias, cst.ImportAlias) and isinstance(
-                        alias.name, cst.Name
-                    ):
-                        if alias.name.value == "TYPE_CHECKING":
-                            self.found_type_checking_import = True
-        return updated_node
-
-    def visit_ClassDef(self, node: cst.ClassDef) -> bool:  # type: ignore[override]
-        self._inside_class_func_stack.append("class")
-        return True
-
     def leave_ClassDef(self, original_node: cst.ClassDef, updated_node: cst.ClassDef) -> cst.BaseStatement:  # type: ignore[override]
         self._inside_class_func_stack.pop()
         return updated_node
 
-    def visit_FunctionDef(self, node: cst.FunctionDef) -> bool:  # type: ignore[override]
-        self._inside_class_func_stack.append("function")
-        return True
-
     def leave_FunctionDef(self, original_node: cst.FunctionDef, updated_node: cst.FunctionDef) -> cst.BaseStatement:  # type: ignore[override]
         self._inside_class_func_stack.pop()
         return updated_node
-
-    def visit_If(self, node: cst.If) -> bool:  # type: ignore[override]
-        # Track whether we are under `if TYPE_CHECKING:`
-        inside = isinstance(node.test, cst.Name) and node.test.value == "TYPE_CHECKING"
-        self._inside_type_checking_stack.append(inside)
-        return True
 
     def leave_If(self, original_node: cst.If, updated_node: cst.If) -> cst.If:  # type: ignore[override]
         self._inside_type_checking_stack.pop()
@@ -382,3 +343,42 @@ class PythonImportRewriter(cst.CSTTransformer):
         new_body.insert(insert_index, type_checking_if)
 
         return updated_node.with_changes(body=new_body)
+
+    def leave_SimpleStatementLine(
+        self,
+        original_node: cst.SimpleStatementLine,
+        updated_node: cst.SimpleStatementLine,
+    ) -> cst.BaseStatement:
+        # Detect `from typing import TYPE_CHECKING`
+        if len(updated_node.body) == 1 and isinstance(
+            updated_node.body[0], cst.ImportFrom
+        ):
+            imp: cst.ImportFrom = updated_node.body[0]
+            if (
+                imp.module
+                and isinstance(imp.module, cst.Name)
+                and imp.module.value == "typing"
+                and imp.names
+                and not isinstance(imp.names, cst.ImportStar)
+            ):
+                for alias in imp.names:
+                    if isinstance(alias, cst.ImportAlias) and isinstance(
+                        alias.name, cst.Name
+                    ):
+                        if alias.name.value == "TYPE_CHECKING":
+                            self.found_type_checking_import = True
+        return updated_node
+
+    def visit_ClassDef(self, node: cst.ClassDef) -> bool:  # type: ignore[override]
+        self._inside_class_func_stack.append("class")
+        return True
+
+    def visit_FunctionDef(self, node: cst.FunctionDef) -> bool:  # type: ignore[override]
+        self._inside_class_func_stack.append("function")
+        return True
+
+    def visit_If(self, node: cst.If) -> bool:  # type: ignore[override]
+        # Track whether we are under `if TYPE_CHECKING:`
+        inside = isinstance(node.test, cst.Name) and node.test.value == "TYPE_CHECKING"
+        self._inside_type_checking_stack.append(inside)
+        return True

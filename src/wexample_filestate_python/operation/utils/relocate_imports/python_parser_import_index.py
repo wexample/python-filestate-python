@@ -35,6 +35,9 @@ class PythonParserImportIndex(cst.CSTVisitor):
             return module.evaluated_value
         return None
 
+    def visit_Import(self, node: cst.Import) -> None:  # type: ignore[override]
+        self.other_import_nodes.append(node)
+
     def visit_ImportFrom(self, node: cst.ImportFrom) -> None:  # type: ignore[override]
         self.importfrom_nodes.append(node)
         if node.names is None or isinstance(node.names, cst.ImportStar):
@@ -49,6 +52,3 @@ class PythonParserImportIndex(cst.CSTVisitor):
                         module_name,
                         asname,
                     )
-
-    def visit_Import(self, node: cst.Import) -> None:  # type: ignore[override]
-        self.other_import_nodes.append(node)

@@ -17,13 +17,13 @@ class PythonRuntimeSymbolCollector(cst.CSTVisitor):
         self.in_annotation_stack: list[bool] = []
         self.runtime_used_anywhere: set[str] = set()
 
+    def leave_Annotation(self, node: cst.Annotation) -> None:  # type: ignore[override]
+        self.in_annotation_stack.pop()
+
     # Track entering/leaving annotations
     def visit_Annotation(self, node: cst.Annotation) -> bool:  # type: ignore[override]
         self.in_annotation_stack.append(True)
         return True
-
-    def leave_Annotation(self, node: cst.Annotation) -> None:  # type: ignore[override]
-        self.in_annotation_stack.pop()
 
     def visit_Name(self, node: cst.Name) -> None:  # type: ignore[override]
         if self.in_annotation_stack:

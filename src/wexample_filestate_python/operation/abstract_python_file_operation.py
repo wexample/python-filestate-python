@@ -14,33 +14,15 @@ if TYPE_CHECKING:
 
 
 class AbstractPythonFileOperation(AbstractExistingFileOperation):
+
+    @classmethod
+    def get_option_name(cls) -> str:
+        raise NotImplementedError
     @classmethod
     def get_scope(cls) -> Scope:
         from wexample_filestate.enum.scopes import Scope
 
         return Scope.CONTENT
-
-    @classmethod
-    def get_option_name(cls) -> str:
-        raise NotImplementedError
-
-    def applicable_for_option(self, option: AbstractConfigOption) -> bool:
-        """Generic applicability for Python file transforms controlled by a single option name."""
-        from wexample_filestate_python.config_option.python_config_option import (
-            PythonConfigOption,
-        )
-
-        # Option type
-        if not isinstance(option, PythonConfigOption):
-            return False
-
-        # Option value must contain our specific option name
-        value = option.get_value()
-        if value is None or not value.has_item_in_list(self.get_option_name()):
-            return False
-
-        # Delegate change detection to the base helper
-        return self.source_need_change(self.target)
 
     @classmethod
     def _execute_and_wrap_stdout(cls, callback):
@@ -82,3 +64,21 @@ class AbstractPythonFileOperation(AbstractExistingFileOperation):
                 print(file=sys.stderr)
 
         return result
+
+    def applicable_for_option(self, option: AbstractConfigOption) -> bool:
+        """Generic applicability for Python file transforms controlled by a single option name."""
+        from wexample_filestate_python.config_option.python_config_option import (
+            PythonConfigOption,
+        )
+
+        # Option type
+        if not isinstance(option, PythonConfigOption):
+            return False
+
+        # Option value must contain our specific option name
+        value = option.get_value()
+        if value is None or not value.has_item_in_list(self.get_option_name()):
+            return False
+
+        # Delegate change detection to the base helper
+        return self.source_need_change(self.target)

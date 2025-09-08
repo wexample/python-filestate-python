@@ -91,11 +91,11 @@ class PythonUnquoteAnnotationsOperation(AbstractPythonFileOperation):
         new_mod = module.visit(_Unquoter())
         return new_mod.code
 
-    def describe_before(self) -> str:
-        return "The Python file contains stringized (quoted) type annotations."
-
     def describe_after(self) -> str:
         return "Quoted type annotations have been converted back to expressions."
+
+    def describe_before(self) -> str:
+        return "The Python file contains stringized (quoted) type annotations."
 
     def description(self) -> str:
         return "Unquote type annotations (arguments, returns, variables) using LibCST."

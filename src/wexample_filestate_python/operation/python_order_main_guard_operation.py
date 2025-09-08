@@ -48,11 +48,11 @@ class PythonOrderMainGuardOperation(AbstractPythonFileOperation):
         modified = move_main_guard_to_end(module)
         return modified.code
 
-    def describe_before(self) -> str:
-        return "Main guard block is not positioned at the end of the file."
-
     def describe_after(self) -> str:
         return "Main guard block has been moved to the very end of the file."
+
+    def describe_before(self) -> str:
+        return "Main guard block is not positioned at the end of the file."
 
     def description(self) -> str:
         return "Ensure the if __name__ == '__main__': block is the last non-empty statement in the module."

@@ -276,11 +276,11 @@ class PythonAddReturnTypesOperation(AbstractPythonFileOperation):
         new_module = module.visit(AddReturnTypesTransformer(ktc.known))
         return new_module.code
 
-    def describe_before(self) -> str:
-        return "Some Python functions are missing obvious return type annotations."
-
     def describe_after(self) -> str:
         return "Functions have been annotated with simple return types where obvious."
+
+    def describe_before(self) -> str:
+        return "Some Python functions are missing obvious return type annotations."
 
     def description(self) -> str:
         return "Add simple return type annotations (None/bool/str/int/float) when trivially inferable."
