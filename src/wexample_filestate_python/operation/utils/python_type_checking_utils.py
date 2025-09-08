@@ -5,9 +5,9 @@ from typing import List, Tuple
 import libcst as cst
 
 
-def find_type_checking_blocks(module: cst.Module) -> List[Tuple[int, cst.If]]:
+def find_type_checking_blocks(module: cst.Module) -> list[tuple[int, cst.If]]:
     """Return list of (index, IfNode) for all top-level `if TYPE_CHECKING:` blocks."""
-    results: List[Tuple[int, cst.If]] = []
+    results: list[tuple[int, cst.If]] = []
     for i, stmt in enumerate(module.body):
         if isinstance(stmt, cst.If) and _is_type_checking_test(stmt.test):
             results.append((i, stmt))
@@ -28,7 +28,7 @@ def move_type_checking_blocks_after_imports(module: cst.Module) -> cst.Module:
     # Remove blocks from body (from highest index to lowest to keep indices valid)
     remove_indices = sorted((i for i, _ in blocks), reverse=True)
     new_body = list(module.body)
-    moved_blocks: List[cst.If] = []
+    moved_blocks: list[cst.If] = []
     for idx in remove_indices:
         node = new_body.pop(idx)
         assert isinstance(node, cst.If)

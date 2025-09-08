@@ -44,7 +44,7 @@ def _is_attribute_statement(node: cst.CSTNode) -> bool:
     return False
 
 
-def _attr_name(node: cst.CSTNode) -> Optional[str]:
+def _attr_name(node: cst.CSTNode) -> str | None:
     if isinstance(node, cst.SimpleStatementLine) and len(node.body) == 1:
         small = node.body[0]
         if isinstance(small, cst.Assign):
@@ -92,7 +92,7 @@ def _sort_key(name: str) -> tuple:
 
 def find_attribute_blocks_in_class(
     classdef: cst.ClassDef,
-) -> List[Tuple[int, int, List[cst.CSTNode]]]:
+) -> list[tuple[int, int, list[cst.CSTNode]]]:
     """Find contiguous blocks of class attributes within the class body.
 
     A block starts at an attribute statement and continues through subsequent
@@ -105,14 +105,14 @@ def find_attribute_blocks_in_class(
     """
     body_list = list(classdef.body.body)
     n = len(body_list)
-    blocks: List[Tuple[int, int, List[cst.CSTNode]]] = []
+    blocks: list[tuple[int, int, list[cst.CSTNode]]] = []
     i = 0
     while i < n:
         node = body_list[i]
         if _is_attribute_statement(node):
             # Start a block
             j = i
-            nodes: List[cst.CSTNode] = []
+            nodes: list[cst.CSTNode] = []
             while j < n:
                 cur = body_list[j]
                 if _is_attribute_statement(cur):
@@ -140,7 +140,7 @@ def find_attribute_blocks_in_class(
     return blocks
 
 
-def reorder_attribute_block(nodes: List[cst.CSTNode]) -> List[cst.CSTNode]:
+def reorder_attribute_block(nodes: list[cst.CSTNode]) -> list[cst.CSTNode]:
     """Reorder one attribute block by categories, preserving per-node leading comments.
 
     Order:
@@ -169,7 +169,7 @@ def reorder_attribute_block(nodes: List[cst.CSTNode]) -> List[cst.CSTNode]:
 
     # Preserve each node's own leading_lines; we don't need to move comments across nodes
     # because comments directly above an attribute are attached to that attribute's leading_lines.
-    out: List[cst.CSTNode] = []
+    out: list[cst.CSTNode] = []
     for node in sorted_nodes:
         out.append(node)
     return out

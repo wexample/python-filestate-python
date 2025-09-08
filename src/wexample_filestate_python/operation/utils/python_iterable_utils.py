@@ -28,9 +28,9 @@ def reorder_flagged_iterables(src: str) -> str:
 
     changed = False
 
-    def split_into_groups(block_lines: List[str]) -> List[List[str]]:
-        groups: List[List[str]] = []
-        pending_comments: List[str] = []
+    def split_into_groups(block_lines: list[str]) -> list[list[str]]:
+        groups: list[list[str]] = []
+        pending_comments: list[str] = []
         for ln in block_lines:
             if ln.lstrip().startswith("#"):
                 pending_comments.append(ln)
@@ -48,7 +48,7 @@ def reorder_flagged_iterables(src: str) -> str:
                 groups.append(pending_comments)
         return groups
 
-    def group_key(g: List[str]) -> str:
+    def group_key(g: list[str]) -> str:
         # Use the first non-comment line in group as key
         for ln in g:
             if not ln.lstrip().startswith("#"):
@@ -75,7 +75,7 @@ def reorder_flagged_iterables(src: str) -> str:
             continue
 
         # Flatten groups back to lines
-        new_block: List[str] = []
+        new_block: list[str] = []
         for g in sorted_groups:
             new_block.extend(g)
 
@@ -85,7 +85,7 @@ def reorder_flagged_iterables(src: str) -> str:
     return "\n".join(lines) if changed else src
 
 
-def _collect_iterable_block(lines: List[str], flag_idx: int) -> Tuple[int, int]:
+def _collect_iterable_block(lines: list[str], flag_idx: int) -> tuple[int, int]:
     """Given the index of the flag line, collect the contiguous item block range.
 
     Returns (start_idx, end_idx_exclusive) of lines to sort. We start at the next
@@ -123,10 +123,10 @@ def _collect_iterable_block(lines: List[str], flag_idx: int) -> Tuple[int, int]:
     return start, end
 
 
-def _find_flag_line_indices(src: str) -> List[int]:
+def _find_flag_line_indices(src: str) -> list[int]:
     """Return line indices where the iterable sort flag appears."""
     lines = src.splitlines()
-    indices: List[int] = []
+    indices: list[int] = []
     for i, line in enumerate(lines):
         if flag_exists(FLAG_NAME, line):
             indices.append(i)

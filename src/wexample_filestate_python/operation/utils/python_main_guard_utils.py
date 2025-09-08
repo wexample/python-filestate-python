@@ -31,9 +31,9 @@ def is_main_guard_if(node: cst.CSTNode) -> bool:
     return isinstance(node, cst.If) and _is_name_eq_main(node.test)
 
 
-def find_main_guard_blocks(module: cst.Module) -> List[Tuple[int, cst.If]]:
+def find_main_guard_blocks(module: cst.Module) -> list[tuple[int, cst.If]]:
     """Return list of (index, IfNode) for all top-level __main__ guard blocks."""
-    res: List[Tuple[int, cst.If]] = []
+    res: list[tuple[int, cst.If]] = []
     for i, stmt in enumerate(module.body):
         if is_main_guard_if(stmt):
             res.append((i, stmt))
@@ -63,7 +63,7 @@ def move_main_guard_to_end(module: cst.Module) -> cst.Module:
     new_body = list(module.body)
 
     # Remove all blocks first (from highest index to lowest)
-    removed: List[cst.If] = []
+    removed: list[cst.If] = []
     for idx, node in sorted(blocks, key=lambda t: t[0], reverse=True):
         removed.append(new_body.pop(idx))
     removed.reverse()  # preserve original order

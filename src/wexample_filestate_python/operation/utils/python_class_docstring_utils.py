@@ -7,7 +7,7 @@ import libcst as cst
 
 def find_class_docstring_nodes(
     classdef: cst.ClassDef,
-) -> Tuple[Optional[cst.SimpleStatementLine], int]:
+) -> tuple[cst.SimpleStatementLine | None, int]:
     """Return (docstring_node, index) inside class body if present, else (None, -1).
 
     According to Python conventions, a class docstring is a first statement that's a

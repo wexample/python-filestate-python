@@ -5,7 +5,7 @@ from typing import Dict, List, Optional, Tuple
 import libcst as cst
 
 # Dunder ordering groups per guideline
-DUnderGroups: List[List[str]] = [
+DUnderGroups: list[list[str]] = [
     ["__new__", "__init__"],
     ["__repr__", "__str__"],
     ["__lt__", "__le__", "__eq__", "__ne__", "__gt__", "__ge__", "__hash__"],
@@ -19,7 +19,7 @@ DUnderGroups: List[List[str]] = [
 ]
 
 # Build a lookup map: name -> (group_index, index_within_group)
-_DUNDER_ORDER: Dict[str, Tuple[int, int]] = {}
+_DUNDER_ORDER: dict[str, tuple[int, int]] = {}
 for gi, group in enumerate(DUnderGroups):
     for si, name in enumerate(group):
         _DUNDER_ORDER[name] = (gi, si)
@@ -41,7 +41,7 @@ def _has_decorator(func: cst.FunctionDef, decorator_name: str) -> bool:
     return False
 
 
-def _property_kind(func: cst.FunctionDef) -> tuple[Optional[str], Optional[str]]:
+def _property_kind(func: cst.FunctionDef) -> tuple[str | None, str | None]:
     """Return (base_name, kind) where kind in {getter, setter, deleter} or (None, None).
     For setters/deleters, decorator is like @<name>.setter or @<name>.deleter.
     """
@@ -117,8 +117,8 @@ def reorder_class_methods(classdef: cst.ClassDef) -> cst.ClassDef:
     body_list = list(classdef.body.body)
 
     # Collect method nodes and their indices
-    method_indices: List[int] = []
-    method_nodes: List[cst.FunctionDef] = []
+    method_indices: list[int] = []
+    method_nodes: list[cst.FunctionDef] = []
     for idx, node in enumerate(body_list):
         if _is_method_node(node):
             method_indices.append(idx)
@@ -128,11 +128,11 @@ def reorder_class_methods(classdef: cst.ClassDef) -> cst.ClassDef:
         return classdef
 
     # Classify
-    dunders: List[dict] = []
-    classmethods: List[dict] = []
-    staticmethods: List[dict] = []
-    properties: List[dict] = []
-    instances: List[dict] = []
+    dunders: list[dict] = []
+    classmethods: list[dict] = []
+    staticmethods: list[dict] = []
+    properties: list[dict] = []
+    instances: list[dict] = []
 
     for f in method_nodes:
         kind, meta = _classify_method(f)
@@ -155,7 +155,7 @@ def reorder_class_methods(classdef: cst.ClassDef) -> cst.ClassDef:
     dunder_ordered = [m["node"] for m in known_sorted + unknown_sorted]
 
     # Sort classmethods/staticmethods and instances: public first then private
-    def sort_by_visibility(items: List[dict]) -> List[cst.FunctionDef]:
+    def sort_by_visibility(items: list[dict]) -> list[cst.FunctionDef]:
         pub = [i for i in items if not _is_private(i["name"])]
         priv = [i for i in items if _is_private(i["name"])]
         pub_sorted = [
@@ -171,7 +171,7 @@ def reorder_class_methods(classdef: cst.ClassDef) -> cst.ClassDef:
     instances_ordered = sort_by_visibility(instances)
 
     # Group properties by base name, order getter, setter, deleter within group
-    prop_groups: Dict[str, Dict[str, Optional[cst.FunctionDef]]] = {}
+    prop_groups: dict[str, dict[str, cst.FunctionDef | None]] = {}
     for m in properties:
         base = m["base"]
         kind = m["kind"]
@@ -181,7 +181,7 @@ def reorder_class_methods(classdef: cst.ClassDef) -> cst.ClassDef:
         )
         g[kind] = node
 
-    def prop_group_to_nodes(base: str, g: Dict[str, Optional[cst.FunctionDef]]):
+    def prop_group_to_nodes(base: str, g: dict[str, cst.FunctionDef | None]):
         order = []
         if g.get("getter") is not None:
             order.append(g["getter"])  # type: ignore
@@ -191,12 +191,12 @@ def reorder_class_methods(classdef: cst.ClassDef) -> cst.ClassDef:
             order.append(g["deleter"])  # type: ignore
         return order
 
-    props_ordered: List[cst.FunctionDef] = []
+    props_ordered: list[cst.FunctionDef] = []
     for base in sorted(prop_groups.keys(), key=lambda n: n.lower()):
         props_ordered.extend(prop_group_to_nodes(base, prop_groups[base]))
 
     # Final ordered list: dunder -> classmethods -> staticmethods -> properties -> instances
-    ordered_methods: List[cst.FunctionDef] = (
+    ordered_methods: list[cst.FunctionDef] = (
         dunder_ordered
         + classmethods_ordered
         + staticmethods_ordered

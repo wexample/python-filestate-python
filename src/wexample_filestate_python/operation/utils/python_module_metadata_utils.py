@@ -25,12 +25,12 @@ METADATA_NAMES: tuple[str, ...] = (
 
 def find_module_metadata_statements(
     module: cst.Module,
-) -> List[Tuple[int, cst.SimpleStatementLine, str]]:
+) -> list[tuple[int, cst.SimpleStatementLine, str]]:
     """Find all module-level metadata assignments.
 
     Returns list of tuples: (index_in_body, node, metadata_name)
     """
-    results: List[Tuple[int, cst.SimpleStatementLine, str]] = []
+    results: list[tuple[int, cst.SimpleStatementLine, str]] = []
     for i, stmt in enumerate(module.body):
         name = _get_assignment_target_name(stmt)
         if name is not None:
@@ -57,8 +57,8 @@ def group_and_sort_module_metadata(module: cst.Module) -> cst.Module:
 
     # Remove from body (reverse order) and collect nodes with cleaned leading lines
     to_remove_indices = sorted([i for i, _, _ in found], reverse=True)
-    new_body: List[cst.CSTNode] = list(module.body)
-    moved: List[Tuple[str, cst.SimpleStatementLine]] = []
+    new_body: list[cst.CSTNode] = list(module.body)
+    moved: list[tuple[str, cst.SimpleStatementLine]] = []
 
     for idx in to_remove_indices:
         node = new_body.pop(idx)
@@ -117,7 +117,7 @@ def target_index_for_module_metadata(module: cst.Module) -> int:
     return 0
 
 
-def _get_assignment_target_name(stmt: cst.CSTNode) -> Optional[str]:
+def _get_assignment_target_name(stmt: cst.CSTNode) -> str | None:
     """Return the variable name if this statement is an assignment to a metadata name.
 
     Only supports simple module-level assignments like `__version__ = ...` or

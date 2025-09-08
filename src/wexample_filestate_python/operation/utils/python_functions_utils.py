@@ -8,7 +8,7 @@ import libcst as cst
 
 def collect_module_function_groups(
     module: cst.Module,
-) -> List[Tuple[int, FunctionGroup]]:
+) -> list[tuple[int, FunctionGroup]]:
     """Collect top-level functions into groups, preserving overload sequences.
 
     A group is formed by consecutive FunctionDef nodes with the same name when
@@ -16,7 +16,7 @@ def collect_module_function_groups(
     have @overload in stub-only modules). If there are multiple consecutive
     @overload for a name but no implementation following, they still form a group.
     """
-    groups: List[Tuple[int, FunctionGroup]] = []
+    groups: list[tuple[int, FunctionGroup]] = []
     i = 0
     body = module.body
     n = len(body)
@@ -25,7 +25,7 @@ def collect_module_function_groups(
         if isinstance(node, cst.FunctionDef):
             name = _func_name(node)
             j = i + 1
-            collected: List[cst.FunctionDef] = [node]
+            collected: list[cst.FunctionDef] = [node]
             # collect further overloads of the same name that are directly consecutive
             while j < n:
                 next_node = body[j]
@@ -82,7 +82,7 @@ def reorder_module_functions(module: cst.Module) -> cst.Module:
         remove_indices.extend(range(idx, idx + len(g.nodes)))
     remove_indices = sorted(set(remove_indices))
 
-    new_body: List[cst.CSTNode] = []
+    new_body: list[cst.CSTNode] = []
     for idx, node in enumerate(module.body):
         if idx in remove_indices:
             continue
@@ -124,7 +124,7 @@ def reorder_module_functions(module: cst.Module) -> cst.Module:
         return False
 
     # Anchor = index of first function in original body
-    first_func_index: Optional[int] = None
+    first_func_index: int | None = None
     for idx, node in enumerate(module.body):
         if isinstance(node, cst.FunctionDef):
             first_func_index = idx
@@ -154,7 +154,7 @@ def reorder_module_functions(module: cst.Module) -> cst.Module:
         insert_at = first_class_index
 
     # Build function nodes preserving each group's comments/spacing on first element
-    rebuilt_functions: List[cst.CSTNode] = []
+    rebuilt_functions: list[cst.CSTNode] = []
     for g in sorted_groups:
         # Preserve leading_lines of the original first node in the group
         original_first_leading = g.nodes[0].leading_lines
@@ -172,7 +172,7 @@ def reorder_module_functions(module: cst.Module) -> cst.Module:
     return module.with_changes(body=new_body)
 
 
-def sort_function_groups(groups: List[FunctionGroup]) -> List[FunctionGroup]:
+def sort_function_groups(groups: list[FunctionGroup]) -> list[FunctionGroup]:
     """Sort groups by public (A–Z) then private (_*), each alphabetically case-insensitive."""
     public = [g for g in groups if not _is_private_name(g.name)]
     private = [g for g in groups if _is_private_name(g.name)]
@@ -210,4 +210,4 @@ def _is_private_name(name: str) -> bool:
 @dataclass(frozen=True)
 class FunctionGroup:
     name: str
-    nodes: Tuple[cst.FunctionDef, ...]
+    nodes: tuple[cst.FunctionDef, ...]

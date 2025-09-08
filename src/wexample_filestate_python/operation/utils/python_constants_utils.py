@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from typing import List, Optional, Sequence, Tuple
+from typing import List, Optional, Tuple
+from collections.abc import Sequence
 
 import libcst as cst
 from wexample_filestate.helpers.flag import flag_exists
@@ -10,7 +11,7 @@ FLAG_NAME = "python-constant-sort"
 
 def find_flagged_constant_blocks(
     module: cst.Module, src: str
-) -> List[Tuple[int, int, List[cst.SimpleStatementLine]]]:
+) -> list[tuple[int, int, list[cst.SimpleStatementLine]]]:
     """Find blocks of contiguous UPPER_CASE assignments following the filestate flag.
 
     A block starts at the first assignment statement that has the flag in its leading
@@ -20,7 +21,7 @@ def find_flagged_constant_blocks(
     Returns list of tuples (start_index, end_index_exclusive, nodes_in_block)
     where indices refer to module.body positions.
     """
-    blocks: List[Tuple[int, int, List[cst.SimpleStatementLine]]] = []
+    blocks: list[tuple[int, int, list[cst.SimpleStatementLine]]] = []
 
     i = 0
     body = module.body
@@ -32,7 +33,7 @@ def find_flagged_constant_blocks(
             if has_flag and _get_simple_assignment_name(stmt) is not None:
                 # Start a block at i
                 j = i
-                nodes: List[cst.SimpleStatementLine] = []
+                nodes: list[cst.SimpleStatementLine] = []
                 while j < n:
                     s = body[j]
                     if isinstance(s, cst.SimpleStatementLine):
@@ -61,13 +62,13 @@ def find_flagged_constant_blocks(
 # -------- Class-level support --------
 def find_flagged_constant_blocks_in_class(
     classdef: cst.ClassDef, src: str
-) -> List[Tuple[int, int, List[cst.SimpleStatementLine]]]:
+) -> list[tuple[int, int, list[cst.SimpleStatementLine]]]:
     """Find flagged constant blocks within a class body.
 
     Returns list of tuples (start_index, end_index_exclusive, nodes_in_block)
     where indices refer to classdef.body.body positions.
     """
-    blocks: List[Tuple[int, int, List[cst.SimpleStatementLine]]] = []
+    blocks: list[tuple[int, int, list[cst.SimpleStatementLine]]] = []
     body_list = list(classdef.body.body)
     n = len(body_list)
     i = 0
@@ -77,7 +78,7 @@ def find_flagged_constant_blocks_in_class(
             has_flag = _stmt_has_flag(item, src) or _prev_line_has_flag(body_list, i)
             if has_flag and _get_simple_assignment_name(item) is not None:
                 j = i
-                nodes: List[cst.SimpleStatementLine] = []
+                nodes: list[cst.SimpleStatementLine] = []
                 while j < n:
                     s = body_list[j]
                     if isinstance(s, cst.SimpleStatementLine):
@@ -154,8 +155,8 @@ def reorder_flagged_constants_in_classes(module: cst.Module, src: str) -> cst.Mo
 
 
 def sort_constants_block(
-    nodes: List[cst.SimpleStatementLine],
-) -> List[cst.SimpleStatementLine]:
+    nodes: list[cst.SimpleStatementLine],
+) -> list[cst.SimpleStatementLine]:
     """Return a new list of nodes sorted by variable name (case-insensitive).
 
     Preserve the flag comment by attaching it to the first node of the
@@ -182,7 +183,7 @@ def sort_constants_block(
             collected_flag_lines = fl
             break
 
-    pairs: List[Tuple[str, cst.SimpleStatementLine]] = []
+    pairs: list[tuple[str, cst.SimpleStatementLine]] = []
     for node in nodes:
         name = _get_simple_assignment_name(node)
         if name is None:
@@ -197,7 +198,7 @@ def sort_constants_block(
 
     # Build new nodes preserving each node's original leading_lines, but move the
     # flag comment lines to the new first node (removing them from others).
-    sorted_nodes: List[cst.SimpleStatementLine] = []
+    sorted_nodes: list[cst.SimpleStatementLine] = []
     # Pre-clean each node's leading_lines by removing any flag lines to avoid duplicates
     cleaned_leadings = []
     for ll in original_leadings:
@@ -236,7 +237,7 @@ def sort_constants_block(
     return sorted_nodes
 
 
-def _get_simple_assignment_name(stmt: cst.SimpleStatementLine) -> Optional[str]:
+def _get_simple_assignment_name(stmt: cst.SimpleStatementLine) -> str | None:
     if len(stmt.body) != 1:
         return None
     small = stmt.body[0]
