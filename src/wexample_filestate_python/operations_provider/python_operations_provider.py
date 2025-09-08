@@ -19,6 +19,9 @@ class PythonOperationsProvider(AbstractOperationsProvider):
         from wexample_filestate_python.operation.python_add_return_types_operation import (
             PythonAddReturnTypesOperation,
         )
+        from wexample_filestate_python.operation.python_fix_attrs_operation import (
+            PythonFixAttrsOperation,
+        )
         from wexample_filestate_python.operation.python_fix_blank_lines_operation import (
             PythonFixBlankLinesOperation,
         )
@@ -78,6 +81,7 @@ class PythonOperationsProvider(AbstractOperationsProvider):
             # filestate: python-iterable-sort
             PythonAddFutureAnnotationsOperation,
             PythonAddReturnTypesOperation,
+            PythonFixAttrsOperation,
             PythonFixBlankLinesOperation,
             PythonFormatOperation,
             PythonFStringifyOperation,

@@ -8,6 +8,8 @@ class PythonConfigOption(AbstractConfigOption):
     # New preferred option name to add `from __future__ import annotations`
     OPTION_NAME_ADD_FUTURE_ANNOTATIONS: ClassVar[str] = "add_future_annotations"
     OPTION_NAME_ADD_RETURN_TYPES: ClassVar[str] = "add_return_types"
+    # Fix attrs usage (ensure kw_only=True, etc.)
+    OPTION_NAME_FIX_ATTRS: ClassVar[str] = "fix_attrs"
     # Fix blank lines in Python files (after signatures, docstrings, etc.)
     OPTION_NAME_FIX_BLANK_LINES: ClassVar[str] = "fix_blank_lines"
     OPTION_NAME_FORMAT: ClassVar[str] = "format"
