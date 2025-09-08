@@ -37,6 +37,8 @@ class PythonConfigOption(AbstractConfigOption):
     OPTION_NAME_ORDER_CLASS_ATTRIBUTES: ClassVar[str] = "order_class_attributes"
     # Order class methods (dunders sequence, class/staticmethods, properties, instances)
     OPTION_NAME_ORDER_CLASS_METHODS: ClassVar[str] = "order_class_methods"
+    # Normalize blank lines between program structures (spacing rules)
+    OPTION_NAME_ORDER_SPACING: ClassVar[str] = "order_spacing"
 
     @staticmethod
     def get_raw_value_allowed_type() -> Any:

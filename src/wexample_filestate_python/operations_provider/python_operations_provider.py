@@ -70,6 +70,9 @@ class PythonOperationsProvider(AbstractOperationsProvider):
         from wexample_filestate_python.operation.python_order_class_attributes_operation import (
             PythonOrderClassAttributesOperation,
         )
+        from wexample_filestate_python.operation.python_order_spacing_operation import (
+            PythonOrderSpacingOperation,
+        )
 
         return [
             # filestate: python-iterable-sort
@@ -88,6 +91,7 @@ class PythonOperationsProvider(AbstractOperationsProvider):
             PythonOrderClassAttributesOperation,
             PythonOrderModuleDocstringOperation,
             PythonOrderTypeCheckingBlockOperation,
+            PythonOrderSpacingOperation,
             PythonRelocateImportsOperation,
             PythonRemoveUnusedOperation,
             PythonSortImportsOperation,

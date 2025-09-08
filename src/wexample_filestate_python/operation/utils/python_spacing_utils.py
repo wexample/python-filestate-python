@@ -1,0 +1,262 @@
+from __future__ import annotations
+
+from typing import List, Optional, Tuple
+
+import libcst as cst
+
+# Reuse property detection from methods utils
+try:
+    from wexample_filestate_python.operation.utils.python_class_methods_utils import (
+        _property_kind,
+    )
+except Exception:  # pragma: no cover - fallback if import graph changes
+    def _property_kind(func: cst.FunctionDef) -> tuple[Optional[str], Optional[str]]:
+        return None, None
+
+
+def _is_comment_emptyline(node: cst.CSTNode) -> bool:
+    return isinstance(node, cst.EmptyLine) and node.comment is not None
+
+
+def _is_blank_emptyline(node: cst.CSTNode) -> bool:
+    return isinstance(node, cst.EmptyLine) and node.comment is None
+
+
+def _trim_blank_emptylines(seq: List[cst.CSTNode]) -> List[cst.CSTNode]:
+    return [n for n in seq if not _is_blank_emptyline(n)]
+
+
+def _count_blank_between(seq: List[cst.CSTNode], start_idx: int, end_idx: int) -> int:
+    count = 0
+    for i in range(start_idx + 1, end_idx):
+        if _is_blank_emptyline(seq[i]):
+            count += 1
+    return count
+
+
+def _set_blank_between(seq: List[cst.CSTNode], start_idx: int, end_idx: int, desired: int) -> List[cst.CSTNode]:
+    """Return new list where the number of blank EmptyLine nodes between start and end is set to desired.
+    Comment EmptyLines are preserved and not counted.
+    """
+    # Collect indices for removal (blank lines only)
+    new_seq = list(seq)
+    # First remove all blank lines in (start_idx, end_idx)
+    removes = []
+    for i in range(start_idx + 1, end_idx):
+        if _is_blank_emptyline(new_seq[i]):
+            removes.append(i)
+    for i in reversed(removes):
+        new_seq.pop(i)
+    # Recompute insertion position: after start_idx, before (adjusted) end
+    insert_pos = start_idx + 1
+    # Insert desired number of blank lines, but keep any comment EmptyLines already present
+    for _ in range(desired):
+        new_seq.insert(insert_pos, cst.EmptyLine())
+        insert_pos += 1
+    return new_seq
+
+
+def _ensure_blank_after(seq: List[cst.CSTNode], idx: int, desired: int) -> List[cst.CSTNode]:
+    # Find next non-comment node index after idx
+    j = idx + 1
+    while j < len(seq) and _is_comment_emptyline(seq[j]):
+        j += 1
+    if j >= len(seq):
+        return seq
+    current = _count_blank_between(seq, idx, j)
+    if current == desired:
+        return seq
+    return _set_blank_between(seq, idx, j, desired)
+
+
+def _ensure_blank_before(seq: List[cst.CSTNode], idx: int, desired: int) -> List[cst.CSTNode]:
+    # Look backwards skipping comment lines
+    i = idx - 1
+    while i >= 0 and _is_comment_emptyline(seq[i]):
+        i -= 1
+    if i < 0:
+        # At file or suite start; ensure 0 blank lines by removing leading blanks
+        # Remove any blank at very beginning
+        k = 0
+        new_seq = list(seq)
+        while k < len(new_seq) and _is_blank_emptyline(new_seq[k]):
+            new_seq.pop(k)
+        # If desired > 0 at start, insert desired blanks at front
+        for _ in range(desired):
+            new_seq.insert(0, cst.EmptyLine())
+        return new_seq
+    current = _count_blank_between(seq, i, idx)
+    if current == desired:
+        return seq
+    return _set_blank_between(seq, i, idx, desired)
+
+
+def normalize_module_spacing(module: cst.Module) -> cst.Module:
+    body = list(module.body)
+    changed = False
+
+    # 1) 1 blank line after module docstring (if present)
+    if module.has_docstring and len(body) > 1:
+        # Docstring should be at body[0] if earlier operations applied; handle otherwise too
+        ds_idx = 0
+        if not (
+            isinstance(body[0], cst.SimpleStatementLine)
+            and len(body[0].body) == 1
+            and isinstance(body[0].body[0], cst.Expr)
+            and isinstance(body[0].body[0].value, cst.SimpleString)
+        ):
+            # Find first docstring
+            for i, stmt in enumerate(body):
+                if (
+                    isinstance(stmt, cst.SimpleStatementLine)
+                    and len(stmt.body) == 1
+                    and isinstance(stmt.body[0], cst.Expr)
+                    and isinstance(stmt.body[0].value, cst.SimpleString)
+                ):
+                    ds_idx = i
+                    break
+        new_body = _ensure_blank_after(body, ds_idx, 1)
+        if new_body is not body:
+            body = new_body
+            changed = True
+
+    # 2) 1 blank line after TYPE_CHECKING blocks (top-level)
+    for idx, stmt in enumerate(body):
+        if isinstance(stmt, cst.If):
+            # if TYPE_CHECKING
+            test = stmt.test
+            if isinstance(test, cst.Name) and test.value == "TYPE_CHECKING":
+                new_body = _ensure_blank_after(body, idx, 1)
+                if new_body is not body:
+                    body = new_body
+                    changed = True
+
+    # 3) Ensure 2 blank lines before top-level classes and functions
+    for idx, stmt in enumerate(body):
+        if isinstance(stmt, (cst.ClassDef, cst.FunctionDef)):
+            # Don't enforce before the first statement in the file
+            if idx == 0:
+                continue
+            new_body = _ensure_blank_before(body, idx, 2)
+            if new_body is not body:
+                body = new_body
+                changed = True
+
+    return module if not changed else module.with_changes(body=body)
+
+
+def _ensure_one_blank_after_docstring_in_suite(suite: cst.IndentedBlock) -> cst.IndentedBlock:
+    body = list(suite.body)
+    if not body:
+        return suite
+    # Detect docstring at first statement
+    first = body[0]
+    if not (
+        isinstance(first, cst.SimpleStatementLine)
+        and len(first.body) == 1
+        and isinstance(first.body[0], cst.Expr)
+        and isinstance(first.body[0].value, cst.SimpleString)
+    ):
+        # Ensure 0 blanks after signature: remove leading blank EmptyLines
+        k = 0
+        changed = False
+        while k < len(body) and _is_blank_emptyline(body[k]):
+            body.pop(k)
+            changed = True
+        return suite if not changed else suite.with_changes(body=body)
+
+    # After docstring, ensure exactly 1 blank line before next non-comment
+    # Find next non-comment node index after docstring
+    j = 1
+    while j < len(body) and _is_comment_emptyline(body[j]):
+        j += 1
+    if j >= len(body):
+        return suite
+    current = _count_blank_between(body, 0, j)
+    if current == 1:
+        return suite
+    new_body = _set_blank_between(body, 0, j, 1)
+    return suite.with_changes(body=new_body)
+
+
+def _is_property_method(func: cst.FunctionDef) -> bool:
+    base, kind = _property_kind(func)
+    return base is not None
+
+
+def normalize_class_spacing(classdef: cst.ClassDef) -> cst.ClassDef:
+    changed = False
+    body = list(classdef.body.body)
+
+    # 1) 1 blank line after class docstring
+    if body:
+        first = body[0]
+        if (
+            isinstance(first, cst.SimpleStatementLine)
+            and len(first.body) == 1
+            and isinstance(first.body[0], cst.Expr)
+            and isinstance(first.body[0].value, cst.SimpleString)
+        ):
+            new_body = _ensure_blank_after(body, 0, 1)
+            if new_body is not body:
+                body = new_body
+                changed = True
+
+    # 2) 1 blank line between class methods; 0 between consecutive property group members
+    # Walk through body and normalize blanks between consecutive FunctionDef nodes
+    i = 0
+    while i < len(body) - 1:
+        cur = body[i]
+        j = i + 1
+        # skip comment empty lines when determining adjacency target
+        while j < len(body) and _is_comment_emptyline(body[j]):
+            j += 1
+        if j >= len(body):
+            break
+        nxt = body[j]
+        if isinstance(cur, cst.FunctionDef) and isinstance(nxt, cst.FunctionDef):
+            # Determine desired blanks
+            desired = 1
+            if _is_property_method(cur) and _is_property_method(nxt):
+                desired = 0
+            new_body = _set_blank_between(body, i, j, desired)
+            if new_body is not body:
+                body = new_body
+                changed = True
+            i = j
+            continue
+        i += 1
+
+    # 3) Normalize function/method suites: 1 blank after docstring, 0 leading blanks otherwise
+    new_body2 = list(body)
+    for idx, node in enumerate(new_body2):
+        if isinstance(node, cst.FunctionDef) and isinstance(node.body, cst.IndentedBlock):
+            new_suite = _ensure_one_blank_after_docstring_in_suite(node.body)
+            if new_suite is not node.body:
+                new_body2[idx] = node.with_changes(body=new_suite)
+                changed = True
+
+    return classdef if not changed else classdef.with_changes(body=classdef.body.with_changes(body=new_body2))
+
+
+def normalize_spacing_everywhere(module: cst.Module) -> cst.Module:
+    # Module-level rules
+    mod = normalize_module_spacing(module)
+
+    # Class-level rules for each class
+    new_body = list(mod.body)
+    changed = False
+    for idx, node in enumerate(new_body):
+        if isinstance(node, cst.ClassDef):
+            new_node = normalize_class_spacing(node)
+            if new_node is not node:
+                new_body[idx] = new_node
+                changed = True
+        if isinstance(node, cst.FunctionDef) and isinstance(node.body, cst.IndentedBlock):
+            # Function-level: normalize suite blank after docstring and no initial blank
+            new_suite = _ensure_one_blank_after_docstring_in_suite(node.body)
+            if new_suite is not node.body:
+                new_body[idx] = node.with_changes(body=new_suite)
+                changed = True
+
+    return mod if not changed else mod.with_changes(body=new_body)
