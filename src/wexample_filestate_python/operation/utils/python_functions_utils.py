@@ -4,7 +4,6 @@ from dataclasses import dataclass
 from typing import List, Optional, Tuple
 
 import libcst as cst
-from libcst import matchers as m
 
 
 def collect_module_function_groups(

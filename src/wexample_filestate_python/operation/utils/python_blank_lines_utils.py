@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from typing import List
 
 import libcst as cst
 
@@ -138,7 +137,6 @@ def _normalize_class_properties_spacing(suite: cst.Suite) -> cst.Suite:
         first_method_idx = len(body_list)
     
     # Process properties section
-    prev_was_uppercase = False
     for i in range(1, first_method_idx):
         current_node = body_list[i]
         prev_node = body_list[i - 1]
