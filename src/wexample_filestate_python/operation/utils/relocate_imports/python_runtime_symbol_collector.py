@@ -10,6 +10,7 @@ class PythonRuntimeSymbolCollector(cst.CSTVisitor):
     elsewhere, so callers can conservatively treat them as runtime-used and keep
     their imports at module level (and/or avoid moving them under TYPE_CHECKING).
     """
+
     def __init__(self, imported_value_names: set[str]) -> None:
         super().__init__()
         self.imported_value_names = imported_value_names

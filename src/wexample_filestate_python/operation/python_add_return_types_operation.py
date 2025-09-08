@@ -16,6 +16,7 @@ class PythonAddReturnTypesOperation(AbstractPythonFileOperation):
 
     Triggered by config: { "python": ["add_return_types"] }.
     """
+
     @classmethod
     def get_option_name(cls) -> str:
         from wexample_filestate_python.config_option.python_config_option import (
@@ -79,6 +80,7 @@ class PythonAddReturnTypesOperation(AbstractPythonFileOperation):
             We stay conservative: only names directly available in the module namespace
             (class definitions and `from x import Name [as Alias]`).
             """
+
             def __init__(self) -> None:
                 self.known: set[str] = set()
 
@@ -102,6 +104,7 @@ class PythonAddReturnTypesOperation(AbstractPythonFileOperation):
             and call target resolves to a known type. If a variable is assigned multiple
             times to different types, it is discarded.
             """
+
             def __init__(self, known_types: set[str]) -> None:
                 self.known_types = known_types
                 self.var_type: dict[str, str] = {}

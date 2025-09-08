@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-
 import libcst as cst
 
 # Special attribute names and inner classes to prioritize

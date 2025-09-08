@@ -15,6 +15,7 @@ class PythonLocalizeRuntimeImports(cst.CSTTransformer):
     inserts grouped `from <module> import Name` statements at the top of the function body,
     after a docstring if present.
     """
+
     def __init__(
         self,
         idx: PythonParserImportIndex,

@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-
 import libcst as cst
 
 from .python_type_checking_utils import (

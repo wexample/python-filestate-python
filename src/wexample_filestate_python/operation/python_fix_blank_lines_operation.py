@@ -13,7 +13,7 @@ class PythonFixBlankLinesOperation(AbstractPythonFileOperation):
 
     Current rules:
     - Remove blank lines immediately after function/method signatures
-    - Remove blank lines immediately after class definitions
+    - Remove blank lines immediately after class definitions (except after docstrings)
     - Ensure no blank lines between signature and docstring
     - Ensure no blank lines between docstring and first code line (functions only)
     - Normalize double blank lines inside function/class bodies to maximum 1 blank line
@@ -27,6 +27,7 @@ class PythonFixBlankLinesOperation(AbstractPythonFileOperation):
 
     Triggered by config: { "python": ["fix_blank_lines"] }
     """
+
     @classmethod
     def get_option_name(cls) -> str:
         from wexample_filestate_python.config_option.python_config_option import (

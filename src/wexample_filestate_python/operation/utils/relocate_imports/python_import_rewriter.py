@@ -15,6 +15,7 @@ class PythonImportRewriter(cst.CSTTransformer):
     - Adding a TYPE_CHECKING block with required imports for C-only symbols
     - Ensuring `from typing import TYPE_CHECKING` is present
     """
+
     def __init__(
         self,
         *,

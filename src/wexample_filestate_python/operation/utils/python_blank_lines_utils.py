@@ -436,14 +436,18 @@ def _remove_leading_blank_lines_from_class_suite(suite: cst.Suite) -> cst.Suite:
                 body_list[0] = first_stmt.with_changes(leading_lines=new_leading)
                 changed = True
 
-    # Remove leading blank EmptyLine nodes
-    while body_list and _is_blank_line(body_list[0]):
-        body_list.pop(0)
-        changed = True
-
-    # If first statement is a docstring, allow Black's formatting (keep blank line after docstring)
-    # No modification needed - let Black handle docstring spacing in classes
-
+    # Remove leading blank EmptyLine nodes (but only before non-docstring elements)
+    # Skip removal if first element is a docstring to avoid conflict with Black
+    if body_list and not (isinstance(body_list[0], cst.SimpleStatementLine) and 
+                         len(body_list[0].body) == 1 and 
+                         isinstance(body_list[0].body[0], cst.Expr) and 
+                         isinstance(body_list[0].body[0].value, cst.SimpleString)):
+        # First element is not a docstring, safe to remove blank lines
+        while body_list and _is_blank_line(body_list[0]):
+            body_list.pop(0)
+            changed = True
+    
+    # Allow Black's formatting for class docstrings - no blank line modifications
     # Normalize class properties spacing
     temp_suite = suite.with_changes(body=body_list) if changed else suite
     properties_normalized = _normalize_class_properties_spacing(temp_suite)
