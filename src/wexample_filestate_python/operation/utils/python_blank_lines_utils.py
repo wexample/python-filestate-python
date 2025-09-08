@@ -65,7 +65,7 @@ def _remove_leading_blank_lines_from_suite(suite: cst.Suite) -> cst.Suite:
 
 
 def _is_import_statement(node: cst.CSTNode) -> bool:
-    """Check if node is an import statement (import or from...import)."""
+    """Check if node is an import statement."""
     return isinstance(node, (cst.Import, cst.ImportFrom))
 
 
@@ -80,54 +80,57 @@ def _is_function_definition(node: cst.CSTNode) -> bool:
 
 
 def _normalize_double_blank_lines(module: cst.Module) -> cst.Module:
-    """Remove double blank lines except after imports, before classes, before module functions."""
+    """Prevent double blank lines except after imports and before classes/functions at module level."""
     body_list = list(module.body)
-    if len(body_list) < 2:
+    if len(body_list) <= 1:
         return module
     
     changed = False
     
-    # Process each element and its following blank lines
-    i = 0
-    while i < len(body_list):
-        current = body_list[i]
+    for i in range(1, len(body_list)):
+        current_node = body_list[i]
+        prev_node = body_list[i - 1]
         
-        # Look ahead for consecutive blank lines
-        blank_count = 0
-        j = i + 1
-        while j < len(body_list) and isinstance(body_list[j], cst.EmptyLine) and body_list[j].comment is None:
-            blank_count += 1
-            j += 1
-        
-        # Determine if we should allow 2 blank lines or reduce to 1
-        allow_double = False
-        
-        if j < len(body_list):  # There's a next non-blank element
-            next_element = body_list[j]
+        if not hasattr(current_node, 'leading_lines'):
+            continue
             
-            # Allow 2 blank lines after imports (before non-import)
-            if _is_import_statement(current) and not _is_import_statement(next_element):
-                allow_double = True
-            
-            # Allow 2 blank lines before class definitions at module level
-            elif _is_class_definition(next_element):
-                allow_double = True
-            
-            # Allow 2 blank lines before function definitions at module level
-            elif _is_function_definition(next_element):
-                allow_double = True
+        # Count blank lines in leading_lines
+        blank_count = sum(1 for line in current_node.leading_lines 
+                         if isinstance(line, cst.EmptyLine) and line.comment is None)
         
-        # Normalize blank lines
-        if blank_count > 1:
-            target_count = 2 if allow_double else 1
-            if blank_count != target_count:
-                # Remove excess blank lines
-                excess = blank_count - target_count
-                for _ in range(excess):
-                    body_list.pop(i + 1)
-                changed = True
+        # Determine allowed blank lines based on context
+        allowed_blanks = 1  # Default: max 1 blank line
         
-        i += 1
+        # Exception 1: After imports, allow 2 blank lines
+        if _is_import_statement(prev_node):
+            # Check if this is the last import in a sequence
+            is_last_import = True
+            for j in range(i, len(body_list)):
+                if _is_import_statement(body_list[j]):
+                    is_last_import = False
+                    break
+                elif not isinstance(body_list[j], cst.EmptyLine):
+                    break
+            
+            if is_last_import:
+                allowed_blanks = 2
+        
+        # Exception 2: Before classes at module level, allow 2 blank lines
+        if _is_class_definition(current_node):
+            allowed_blanks = 2
+            
+        # Exception 3: Before functions at module level, allow 2 blank lines
+        if _is_function_definition(current_node):
+            allowed_blanks = 2
+        
+        # Normalize if we have more blank lines than allowed
+        if blank_count > allowed_blanks:
+            # Keep non-blank leading lines and add exactly the allowed number of blanks
+            non_blank_leading = [line for line in current_node.leading_lines 
+                               if not (isinstance(line, cst.EmptyLine) and line.comment is None)]
+            new_leading = [cst.EmptyLine()] * allowed_blanks + non_blank_leading
+            body_list[i] = current_node.with_changes(leading_lines=new_leading)
+            changed = True
     
     if not changed:
         return module

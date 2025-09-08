@@ -60,8 +60,6 @@ def find_flagged_constant_blocks(
 
 
 # -------- Class-level support --------
-
-
 def find_flagged_constant_blocks_in_class(
     classdef: cst.ClassDef, src: str
 ) -> List[Tuple[int, int, List[cst.SimpleStatementLine]]]:
