@@ -48,6 +48,15 @@ def _remove_leading_blank_lines_from_suite(suite: cst.Suite) -> cst.Suite:
             while i < len(body_list) and _is_blank_line(body_list[i]):
                 body_list.pop(i)
                 changed = True
+            
+            # Also check if the next statement has blank leading_lines
+            if i < len(body_list) and isinstance(body_list[i], cst.SimpleStatementLine):
+                next_stmt = body_list[i]
+                if next_stmt.leading_lines:
+                    new_leading = [line for line in next_stmt.leading_lines if not (isinstance(line, cst.EmptyLine) and line.comment is None)]
+                    if len(new_leading) != len(next_stmt.leading_lines):
+                        body_list[i] = next_stmt.with_changes(leading_lines=new_leading)
+                        changed = True
     
     if not changed:
         return suite
