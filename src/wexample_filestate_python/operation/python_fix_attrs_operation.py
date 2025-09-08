@@ -48,4 +48,6 @@ class PythonFixAttrsOperation(AbstractPythonFileOperation):
         return "Attrs decorators are missing kw_only=True parameter."
 
     def description(self) -> str:
-        return "Ensure attrs decorators (@attrs.define, @attr.s) always use kw_only=True."
+        return (
+            "Ensure attrs decorators (@attrs.define, @attr.s) always use kw_only=True."
+        )
