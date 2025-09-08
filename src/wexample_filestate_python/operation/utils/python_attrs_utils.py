@@ -75,6 +75,15 @@ def fix_attrs_kw_only(module: cst.Module) -> cst.Module:
     return modified_module
 
 
+def _has_kw_only_arg(call: cst.Call) -> bool:
+    """Check if the call already has a kw_only argument."""
+    for arg in call.args:
+        if (isinstance(arg.keyword, cst.Name) and 
+            arg.keyword.value == "kw_only"):
+            return True
+    return False
+
+
 def _is_attrs_decorator(decorator: cst.Decorator) -> bool:
     """Check if decorator is an attrs decorator (@attrs.define, @attr.s, etc.)."""
     
@@ -99,13 +108,4 @@ def _is_attrs_decorator(decorator: cst.Decorator) -> bool:
             base_decorator.attr.value == "s"):
             return True
     
-    return False
-
-
-def _has_kw_only_arg(call: cst.Call) -> bool:
-    """Check if the call already has a kw_only argument."""
-    for arg in call.args:
-        if (isinstance(arg.keyword, cst.Name) and 
-            arg.keyword.value == "kw_only"):
-            return True
     return False
