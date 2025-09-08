@@ -72,6 +72,19 @@ def _fix_module_docstring_spacing(module: cst.Module) -> cst.Module:
     
     changed = False
     
+    # Check if module has header with blank lines
+    if module.header:
+        # Remove blank lines from module header
+        new_header = [line for line in module.header if not (isinstance(line, cst.EmptyLine) and line.comment is None)]
+        if len(new_header) != len(module.header):
+            module = module.with_changes(header=new_header)
+            changed = True
+    
+    # First, remove any leading EmptyLine elements at the start of the module
+    while body_list and isinstance(body_list[0], cst.EmptyLine) and body_list[0].comment is None:
+        body_list.pop(0)
+        changed = True
+    
     # Find module docstring (first statement that's a string literal)
     docstring_idx = -1
     for i, stmt in enumerate(body_list):
@@ -86,9 +99,9 @@ def _fix_module_docstring_spacing(module: cst.Module) -> cst.Module:
     
     if docstring_idx == -1:
         # No docstring found - ensure first statement has no leading blank lines
-        if body_list and isinstance(body_list[0], cst.SimpleStatementLine):
+        if body_list:
             first_stmt = body_list[0]
-            if first_stmt.leading_lines:
+            if hasattr(first_stmt, 'leading_lines') and first_stmt.leading_lines:
                 new_leading = [line for line in first_stmt.leading_lines if not (isinstance(line, cst.EmptyLine) and line.comment is None)]
                 if len(new_leading) != len(first_stmt.leading_lines):
                     body_list[0] = first_stmt.with_changes(leading_lines=new_leading)
