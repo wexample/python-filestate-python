@@ -64,6 +64,68 @@ def _remove_leading_blank_lines_from_suite(suite: cst.Suite) -> cst.Suite:
     return suite.with_changes(body=body_list)
 
 
+def _fix_module_docstring_spacing(module: cst.Module) -> cst.Module:
+    """Fix spacing around module docstring: 0 lines before, 1 line after."""
+    body_list = list(module.body)
+    if not body_list:
+        return module
+    
+    changed = False
+    
+    # Find module docstring (first statement that's a string literal)
+    docstring_idx = -1
+    for i, stmt in enumerate(body_list):
+        if isinstance(stmt, cst.SimpleStatementLine) and len(stmt.body) == 1:
+            small = stmt.body[0]
+            if isinstance(small, cst.Expr) and isinstance(small.value, cst.SimpleString):
+                docstring_idx = i
+                break
+        # Stop at first non-simple statement
+        elif not isinstance(stmt, cst.SimpleStatementLine):
+            break
+    
+    if docstring_idx == -1:
+        return module  # No docstring found
+    
+    docstring_stmt = body_list[docstring_idx]
+    
+    # Rule 1: 0 blank lines before module docstring
+    if docstring_idx == 0:
+        # Docstring is first - remove any leading blank lines
+        if docstring_stmt.leading_lines:
+            new_leading = [line for line in docstring_stmt.leading_lines if not (isinstance(line, cst.EmptyLine) and line.comment is None)]
+            if len(new_leading) != len(docstring_stmt.leading_lines):
+                body_list[docstring_idx] = docstring_stmt.with_changes(leading_lines=new_leading)
+                changed = True
+    
+    # Rule 2: 1 blank line after module docstring
+    next_idx = docstring_idx + 1
+    if next_idx < len(body_list):
+        next_stmt = body_list[next_idx]
+        
+        # Count existing blank lines after docstring
+        blank_count = 0
+        if isinstance(next_stmt, cst.SimpleStatementLine):
+            # Count blank leading_lines
+            for line in next_stmt.leading_lines:
+                if isinstance(line, cst.EmptyLine) and line.comment is None:
+                    blank_count += 1
+        
+        # Ensure exactly 1 blank line
+        if blank_count != 1:
+            if isinstance(next_stmt, cst.SimpleStatementLine):
+                # Remove all blank leading lines and add exactly one
+                non_blank_leading = [line for line in next_stmt.leading_lines if not (isinstance(line, cst.EmptyLine) and line.comment is None)]
+                new_leading = [cst.EmptyLine()] + non_blank_leading
+                body_list[next_idx] = next_stmt.with_changes(leading_lines=new_leading)
+                changed = True
+    
+    if not changed:
+        return module
+    
+    return module.with_changes(body=body_list)
+
+
 def fix_function_blank_lines(module: cst.Module) -> cst.Module:
     """Remove blank lines after function/method signatures throughout the module.
     
@@ -83,4 +145,8 @@ def fix_function_blank_lines(module: cst.Module) -> cst.Module:
     
     transformer = BlankLinesFixer()
     modified_module = module.visit(transformer)
+    
+    # Also fix module-level docstring spacing
+    modified_module = _fix_module_docstring_spacing(modified_module)
+    
     return modified_module
