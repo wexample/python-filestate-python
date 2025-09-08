@@ -84,7 +84,6 @@ def _has_kw_only_arg(call: cst.Call) -> bool:
 
 def _is_attrs_decorator(decorator: cst.Decorator) -> bool:
     """Check if decorator is an attrs decorator (@attrs.define, @attr.s, etc.)."""
-
     # Get the base decorator (without call)
     base_decorator = decorator.decorator
     if isinstance(base_decorator, cst.Call):
