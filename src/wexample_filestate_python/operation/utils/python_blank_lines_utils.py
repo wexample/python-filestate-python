@@ -44,6 +44,17 @@ def fix_function_blank_lines(module: cst.Module) -> cst.Module:
     return modified_module
 
 
+def _contains_union_operator(node: cst.CSTNode) -> bool:
+    """Recursively check if a node contains the union operator (|)."""
+    if isinstance(node, cst.BinaryOperation):
+        if isinstance(node.operator, cst.BitOr):  # | operator
+            return True
+        return _contains_union_operator(node.left) or _contains_union_operator(
+            node.right
+        )
+    return False
+
+
 def _fix_module_docstring_spacing(module: cst.Module) -> cst.Module:
     """Fix spacing around module docstring: 0 lines before, 1 line after."""
     body_list = list(module.body)
@@ -181,22 +192,18 @@ def _is_function_definition(node: cst.CSTNode) -> bool:
     return isinstance(node, cst.FunctionDef)
 
 
-def _is_type_alias(node: cst.CSTNode) -> bool:
-    """Check if node is a type alias assignment (Black compatibility)."""
-    if isinstance(node, cst.SimpleStatementLine):
-        if len(node.body) == 1 and isinstance(node.body[0], cst.Assign):
-            assign = node.body[0]
-            if len(assign.targets) == 1:
-                target = assign.targets[0].target
-                # Type alias: variable name starts with uppercase or contains union (|)
-                if isinstance(target, cst.Name):
-                    name = target.value
-                    # Check if it's a type alias pattern (starts with uppercase)
-                    if name[0].isupper():
-                        return True
-                    # Check if assignment contains union operator (|) indicating type alias
-                    if isinstance(assign.value, cst.BinaryOperation):
-                        return _contains_union_operator(assign.value)
+def _is_import_statement(node: cst.CSTNode) -> bool:
+    """Check if node is an import statement."""
+    return isinstance(node, (cst.Import, cst.ImportFrom))
+
+
+def _is_lowercase_property(node: cst.CSTNode) -> bool:
+    """Check if node is a lowercase class property."""
+    if _is_class_property(node):
+        assign = node.body[0]
+        target = assign.targets[0].target
+        if isinstance(target, cst.Name):
+            return target.value.islower()
     return False
 
 
@@ -221,29 +228,22 @@ def _is_main_guard(node: cst.CSTNode) -> bool:
     return False
 
 
-def _contains_union_operator(node: cst.CSTNode) -> bool:
-    """Recursively check if a node contains the union operator (|)."""
-    if isinstance(node, cst.BinaryOperation):
-        if isinstance(node.operator, cst.BitOr):  # | operator
-            return True
-        return _contains_union_operator(node.left) or _contains_union_operator(
-            node.right
-        )
-    return False
-
-
-def _is_import_statement(node: cst.CSTNode) -> bool:
-    """Check if node is an import statement."""
-    return isinstance(node, (cst.Import, cst.ImportFrom))
-
-
-def _is_lowercase_property(node: cst.CSTNode) -> bool:
-    """Check if node is a lowercase class property."""
-    if _is_class_property(node):
-        assign = node.body[0]
-        target = assign.targets[0].target
-        if isinstance(target, cst.Name):
-            return target.value.islower()
+def _is_type_alias(node: cst.CSTNode) -> bool:
+    """Check if node is a type alias assignment (Black compatibility)."""
+    if isinstance(node, cst.SimpleStatementLine):
+        if len(node.body) == 1 and isinstance(node.body[0], cst.Assign):
+            assign = node.body[0]
+            if len(assign.targets) == 1:
+                target = assign.targets[0].target
+                # Type alias: variable name starts with uppercase or contains union (|)
+                if isinstance(target, cst.Name):
+                    name = target.value
+                    # Check if it's a type alias pattern (starts with uppercase)
+                    if name[0].isupper():
+                        return True
+                    # Check if assignment contains union operator (|) indicating type alias
+                    if isinstance(assign.value, cst.BinaryOperation):
+                        return _contains_union_operator(assign.value)
     return False
 
 
