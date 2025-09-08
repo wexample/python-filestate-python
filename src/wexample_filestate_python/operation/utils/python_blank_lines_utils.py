@@ -80,6 +80,118 @@ def _is_function_definition(node: cst.CSTNode) -> bool:
     return isinstance(node, cst.FunctionDef)
 
 
+def _is_class_property(node: cst.CSTNode) -> bool:
+    """Check if node is a class property (assignment statement)."""
+    if isinstance(node, cst.SimpleStatementLine):
+        if len(node.body) == 1 and isinstance(node.body[0], cst.Assign):
+            # Check if it's a simple assignment (not a method or function)
+            assign = node.body[0]
+            if len(assign.targets) == 1:
+                target = assign.targets[0].target
+                return isinstance(target, cst.Name)
+    return False
+
+
+def _is_uppercase_property(node: cst.CSTNode) -> bool:
+    """Check if node is an UPPERCASE class property."""
+    if _is_class_property(node):
+        assign = node.body[0]
+        target = assign.targets[0].target
+        if isinstance(target, cst.Name):
+            return target.value.isupper()
+    return False
+
+
+def _is_lowercase_property(node: cst.CSTNode) -> bool:
+    """Check if node is a lowercase class property."""
+    if _is_class_property(node):
+        assign = node.body[0]
+        target = assign.targets[0].target
+        if isinstance(target, cst.Name):
+            return target.value.islower()
+    return False
+
+
+def _normalize_class_properties_spacing(suite: cst.Suite) -> cst.Suite:
+    """Normalize spacing in class properties section.
+    
+    Rules:
+    - No blank lines between properties
+    - Exception: blank line when transitioning from UPPERCASE to lowercase properties
+    - Blank line before first method after properties section
+    """
+    body_list = list(suite.body)
+    if len(body_list) <= 1:
+        return suite
+    
+    changed = False
+    
+    # Find the properties section (before first method)
+    first_method_idx = -1
+    for i, node in enumerate(body_list):
+        if isinstance(node, cst.FunctionDef):
+            first_method_idx = i
+            break
+    
+    if first_method_idx == -1:
+        # No methods found, apply to entire body
+        first_method_idx = len(body_list)
+    
+    # Process properties section
+    prev_was_uppercase = False
+    for i in range(1, first_method_idx):
+        current_node = body_list[i]
+        prev_node = body_list[i - 1]
+        
+        if not hasattr(current_node, 'leading_lines'):
+            continue
+        
+        # Count blank lines
+        blank_count = sum(1 for line in current_node.leading_lines 
+                         if isinstance(line, cst.EmptyLine) and line.comment is None)
+        
+        # Determine if we should have a blank line
+        should_have_blank = False
+        
+        # Check for UPPERCASE to lowercase transition
+        if (_is_uppercase_property(prev_node) and 
+            (_is_lowercase_property(current_node) or isinstance(current_node, cst.FunctionDef))):
+            should_have_blank = True
+        
+        # Normalize blank lines
+        target_blanks = 1 if should_have_blank else 0
+        
+        if blank_count != target_blanks:
+            non_blank_leading = [line for line in current_node.leading_lines 
+                               if not (isinstance(line, cst.EmptyLine) and line.comment is None)]
+            new_leading = [cst.EmptyLine()] * target_blanks + non_blank_leading
+            body_list[i] = current_node.with_changes(leading_lines=new_leading)
+            changed = True
+    
+    # Ensure blank line before first method (if there are properties before it)
+    if first_method_idx < len(body_list) and first_method_idx > 0:
+        method_node = body_list[first_method_idx]
+        prev_node = body_list[first_method_idx - 1]
+        
+        # Only add blank line if previous node is a property
+        if _is_class_property(prev_node):
+            if hasattr(method_node, 'leading_lines'):
+                blank_count = sum(1 for line in method_node.leading_lines 
+                                if isinstance(line, cst.EmptyLine) and line.comment is None)
+                
+                if blank_count != 1:
+                    non_blank_leading = [line for line in method_node.leading_lines 
+                                       if not (isinstance(line, cst.EmptyLine) and line.comment is None)]
+                    new_leading = [cst.EmptyLine()] + non_blank_leading
+                    body_list[first_method_idx] = method_node.with_changes(leading_lines=new_leading)
+                    changed = True
+    
+    if not changed:
+        return suite
+    
+    return suite.with_changes(body=body_list)
+
+
 def _normalize_double_blank_lines_in_suite(suite: cst.Suite) -> cst.Suite:
     """Normalize double blank lines inside function/method/class bodies to single blank lines."""
     body_list = list(suite.body)
@@ -162,9 +274,12 @@ def _remove_leading_blank_lines_from_class_suite(suite: cst.Suite) -> cst.Suite:
                         body_list[i] = next_stmt.with_changes(leading_lines=new_leading)
                         changed = True
     
-    # Normalize double blank lines in the rest of the class body
+    # Normalize class properties spacing
     temp_suite = suite.with_changes(body=body_list) if changed else suite
-    normalized_suite = _normalize_double_blank_lines_in_suite(temp_suite)
+    properties_normalized = _normalize_class_properties_spacing(temp_suite)
+    
+    # Normalize double blank lines in the rest of the class body
+    normalized_suite = _normalize_double_blank_lines_in_suite(properties_normalized)
     
     return normalized_suite
 
