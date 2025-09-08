@@ -13,7 +13,6 @@ class PythonFormatOperation(AbstractPythonFileOperation):
 
     Triggered by config: { "python": ["format"] }
     """
-
     # Use ClassVar to avoid Pydantic treating it as a model field/private attr
     _line_length: ClassVar[int] = 88
 

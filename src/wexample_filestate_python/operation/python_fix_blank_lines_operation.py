@@ -23,7 +23,6 @@ class PythonFixBlankLinesOperation(AbstractPythonFileOperation):
 
     Triggered by config: { "python": ["fix_blank_lines"] }
     """
-
     @classmethod
     def get_option_name(cls) -> str:
         from wexample_filestate_python.config_option.python_config_option import (

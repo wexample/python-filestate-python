@@ -14,7 +14,6 @@ if TYPE_CHECKING:
 
 
 class AbstractPythonFileOperation(AbstractExistingFileOperation):
-
     @classmethod
     def get_option_name(cls) -> str:
         raise NotImplementedError
