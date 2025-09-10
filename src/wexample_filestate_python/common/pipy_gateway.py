@@ -6,8 +6,7 @@ from wexample_helpers_api.common.abstract_gateway import AbstractGateway
 
 class PipyGateway(AbstractGateway):
     base_url: str | None = public_field(
-        default="https://pypi.org/",
-        description="Base Pipy API URL"
+        default="https://pypi.org/", description="Base Pipy API URL"
     )
 
     def package_release_exists(self, package_name: str, version: str) -> bool:
