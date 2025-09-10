@@ -1,12 +1,13 @@
 from __future__ import annotations
 
-from pydantic import Field
+from wexample_helpers.classes.field import public_field
 from wexample_helpers_api.common.abstract_gateway import AbstractGateway
 
 
 class PipyGateway(AbstractGateway):
-    base_url: str | None = Field(
-        default="https://pypi.org/", description="Base Pipy API URL"
+    base_url: str | None = public_field(
+        default="https://pypi.org/",
+        description="Base Pipy API URL"
     )
 
     def package_release_exists(self, package_name: str, version: str) -> bool:
