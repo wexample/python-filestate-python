@@ -2,12 +2,6 @@ from __future__ import annotations
 
 import libcst as cst
 
-from .python_type_checking_utils import (
-    _is_future_import,
-    _is_regular_import,
-    find_type_checking_blocks,
-)
-
 # Common, recognized module metadata names
 METADATA_NAMES: tuple[str, ...] = (
     "__all__",
@@ -92,6 +86,7 @@ def target_index_for_module_metadata(module: cst.Module) -> int:
     So we insert after the last TYPE_CHECKING block if present, else after last regular
     import if present, else after last __future__ import, else after docstring, else 0.
     """
+    from python_type_checking_utils import _is_future_import, _is_regular_import, find_type_checking_blocks
     last_type_checking = -1
     for idx, _if in find_type_checking_blocks(module):
         last_type_checking = max(last_type_checking, idx)

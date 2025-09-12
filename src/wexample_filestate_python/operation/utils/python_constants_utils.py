@@ -3,7 +3,9 @@ from __future__ import annotations
 from collections.abc import Sequence
 
 import libcst as cst
-from wexample_filestate.helpers.flag import flag_exists
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from collections.abc import Sequence
 
 FLAG_NAME = "python-constant-sort"
 
@@ -266,6 +268,7 @@ def _is_upper_name(name: str) -> bool:
 
 def _prev_line_has_flag(body_list: list[cst.CSTNode], index: int) -> bool:
     """Return True if the previous sibling is an EmptyLine whose comment contains the flag."""
+    from wexample_filestate.helpers.flag import flag_exists
     if index - 1 < 0:
         return False
     prev = body_list[index - 1]
@@ -280,6 +283,7 @@ def _stmt_has_flag(stmt: cst.SimpleStatementLine, src: str) -> bool:
     We look into leading_lines comments, else fallback to searching raw src segment
     of the statement's leading trivia.
     """
+    from wexample_filestate.helpers.flag import flag_exists
     # Check libcst leading_lines comments
     for el in stmt.leading_lines:
         if el.comment is not None:

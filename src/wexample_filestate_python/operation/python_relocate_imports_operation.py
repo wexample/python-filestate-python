@@ -143,7 +143,11 @@ class PythonRelocateImportsOperation(AbstractPythonFileOperation):
                     if isinstance(alias, cst.ImportAlias) and isinstance(
                         alias.name, cst.Name
                     ):
-                        name = alias.asname.name.value if alias.asname else alias.name.value
+                        name = (
+                            alias.asname.name.value
+                            if alias.asname
+                            else alias.name.value
+                        )
                         self.local_imported.add(name)
                 return True
 

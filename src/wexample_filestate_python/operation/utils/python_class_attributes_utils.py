@@ -154,6 +154,20 @@ def _attr_name(node: cst.CSTNode) -> str | None:
     return None
 
 
+def _dataclass_field_has_default(node: cst.CSTNode) -> bool:
+    """Return True if the dataclass field has a default value or default_factory.
+
+    We treat any AnnAssign with a non-None value as having a default.
+    This includes calls like field(default=..., default_factory=...).
+    """
+    if not _is_dataclass_field(node):
+        return False
+    assert isinstance(node, cst.SimpleStatementLine)
+    small = node.body[0]
+    assert isinstance(small, cst.AnnAssign)
+    return small.value is not None
+
+
 def _is_attribute_statement(node: cst.CSTNode) -> bool:
     """Return True if node is a class-level attribute we should order.
 
@@ -198,27 +212,6 @@ def _is_comment_line(node: cst.CSTNode) -> bool:
     return isinstance(node, cst.EmptyLine) and node.comment is not None
 
 
-def _is_public(name: str) -> bool:
-    return not name.startswith("_")
-
-
-def _is_special_attribute(node: cst.CSTNode) -> bool:
-    name = _attr_name(node)
-    if name is None:
-        return False
-    if name in SPECIAL_ATTR_NAMES:
-        return True
-    if isinstance(node, cst.ClassDef) and name in SPECIAL_INNER_CLASS_NAMES:
-        return True
-    return False
-
-
-def _sort_key(name: str) -> tuple:
-    # Case-insensitive A-Z; ensure '_' sorts after letters
-    # We achieve this by key: (name without leading '_', is_private)
-    return (name.lstrip("_").lower(), name.startswith("_"))
-
-
 def _is_dataclass(classdef: cst.ClassDef) -> bool:
     """Detect if class has a @dataclass decorator (dataclass or dataclasses.dataclass)."""
     for dec in classdef.decorators:
@@ -245,15 +238,22 @@ def _is_dataclass_field(node: cst.CSTNode) -> bool:
     return False
 
 
-def _dataclass_field_has_default(node: cst.CSTNode) -> bool:
-    """Return True if the dataclass field has a default value or default_factory.
+def _is_public(name: str) -> bool:
+    return not name.startswith("_")
 
-    We treat any AnnAssign with a non-None value as having a default.
-    This includes calls like field(default=..., default_factory=...).
-    """
-    if not _is_dataclass_field(node):
+
+def _is_special_attribute(node: cst.CSTNode) -> bool:
+    name = _attr_name(node)
+    if name is None:
         return False
-    assert isinstance(node, cst.SimpleStatementLine)
-    small = node.body[0]
-    assert isinstance(small, cst.AnnAssign)
-    return small.value is not None
+    if name in SPECIAL_ATTR_NAMES:
+        return True
+    if isinstance(node, cst.ClassDef) and name in SPECIAL_INNER_CLASS_NAMES:
+        return True
+    return False
+
+
+def _sort_key(name: str) -> tuple:
+    # Case-insensitive A-Z; ensure '_' sorts after letters
+    # We achieve this by key: (name without leading '_', is_private)
+    return (name.lstrip("_").lower(), name.startswith("_"))
