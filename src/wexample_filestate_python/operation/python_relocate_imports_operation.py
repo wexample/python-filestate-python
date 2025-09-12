@@ -113,15 +113,43 @@ class PythonRelocateImportsOperation(AbstractPythonFileOperation):
         }
 
         # Names to include under TYPE_CHECKING:
-        # Use type_only_names (annotation-only, not used at runtime or as class_level)
-        # But also include any names that appear in annotations (params/returns/module-level)
-        # even if they are used at runtime inside functions (they will be localized),
-        # so annotations remain resolvable for type checkers.
-        type_only_for_block: set[str] = {
-            n
-            for n in type_annotation_names
-            if n not in class_level_names
+        # Use all names that appear in annotations (params/returns/module-level), excluding class-level.
+        # Then subtract names that are already locally imported inside some function where
+        # they are used (to avoid redundant TYPE_CHECKING imports when a function-scoped
+        # import suffices, e.g., `from multiprocessing import Queue` inside a method).
+        annotation_names_candidate: set[str] = {
+            n for n in type_annotation_names if n not in class_level_names
         }
+
+        # Collect names imported locally inside functions anywhere in the module
+        class _LocalImportNameCollector(cst.CSTVisitor):
+            def __init__(self) -> None:
+                self.stack: list[str] = []
+                self.local_imported: set[str] = set()
+
+            def visit_FunctionDef(self, node: cst.FunctionDef) -> bool:  # type: ignore[override]
+                self.stack.append(node.name.value)
+                return True
+
+            def leave_FunctionDef(self, node: cst.FunctionDef) -> None:  # type: ignore[override]
+                self.stack.pop()
+
+            def visit_ImportFrom(self, node: cst.ImportFrom) -> bool:  # type: ignore[override]
+                if not self.stack:
+                    return True
+                if node.names is None or isinstance(node.names, cst.ImportStar):
+                    return True
+                for alias in node.names:
+                    if isinstance(alias, cst.ImportAlias) and isinstance(
+                        alias.name, cst.Name
+                    ):
+                        name = alias.asname.name.value if alias.asname else alias.name.value
+                        self.local_imported.add(name)
+                return True
+
+        lic = _LocalImportNameCollector()
+        module.visit(lic)
+        type_only_for_block: set[str] = annotation_names_candidate - lic.local_imported
 
         # For names used inside cast() anywhere in the module:
         # - do NOT auto-add to TYPE_CHECKING (unless also in annotations via type_only_for_block)
