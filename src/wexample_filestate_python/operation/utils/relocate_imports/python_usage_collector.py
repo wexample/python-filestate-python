@@ -24,6 +24,7 @@ class PythonUsageCollector(cst.CSTVisitor):
         used_in_C_annot: set[str],
         cast_type_names_anywhere: set[str],
         cast_function_candidates: set[str] | None = None,
+        future_annotations_enabled: bool = True,
     ) -> None:
         super().__init__()
         self.imported_value_names = imported_value_names
@@ -36,6 +37,7 @@ class PythonUsageCollector(cst.CSTVisitor):
             if cast_function_candidates is None
             else cast_function_candidates
         )
+        self.future_annotations_enabled = future_annotations_enabled
 
         self.class_stack: list[str] = []
         self.func_stack: list[str] = []
@@ -73,7 +75,12 @@ class PythonUsageCollector(cst.CSTVisitor):
             # module-level annotated assignment -> C
             self._record_type_names(node.annotation.annotation, self.used_in_C_annot)
             return
-        self._record_type_names(node.annotation.annotation, self.used_in_B)
+        # class-level annotated assignment: if future annotations are enabled, treat as type-only (C)
+        # otherwise, require availability at class definition time (B)
+        if self.future_annotations_enabled:
+            self._record_type_names(node.annotation.annotation, self.used_in_C_annot)
+        else:
+            self._record_type_names(node.annotation.annotation, self.used_in_B)
 
     # Track annotation context to avoid misclassifying annotation names as runtime
     def visit_Annotation(self, node: cst.Annotation) -> bool:  # type: ignore[override]
@@ -324,6 +331,17 @@ class PythonUsageCollector(cst.CSTVisitor):
                 and expr.attr.value in self.imported_value_names
             ):
                 bucket.add(expr.attr.value)
+        elif isinstance(expr, cst.BinaryOperation):
+            # Handle PEP 604 union types: e.g., Path | None
+            # Traverse both sides of the binary operation
+            try:
+                self._walk_expr_for_names(expr.left, bucket)
+            except Exception:
+                pass
+            try:
+                self._walk_expr_for_names(expr.right, bucket)
+            except Exception:
+                pass
         elif isinstance(expr, cst.Subscript):
             self._walk_expr_for_names(expr.value, bucket)
             for e in expr.slice:

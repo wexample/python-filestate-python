@@ -113,7 +113,14 @@ class PythonRelocateImportsOperation(AbstractPythonFileOperation):
 
         # Names to include under TYPE_CHECKING:
         # Use type_only_names (annotation-only, not used at runtime or as class_level)
-        type_only_for_block: set[str] = set(type_only_names)
+        # But also include any names that appear in annotations (params/returns/module-level)
+        # even if they are used at runtime inside functions (they will be localized),
+        # so annotations remain resolvable for type checkers.
+        type_only_for_block: set[str] = {
+            n
+            for n in type_annotation_names
+            if n not in class_level_names
+        }
 
         # For names used inside cast() anywhere in the module:
         # - do NOT auto-add to TYPE_CHECKING (unless also in annotations via type_only_for_block)
@@ -122,7 +129,6 @@ class PythonRelocateImportsOperation(AbstractPythonFileOperation):
             set(runtime_local_final)
             | set(type_only_names)
             | (set(cast_type_names_anywhere) - set(class_level_names))
-            | (set(type_only_for_block) - set(class_level_names))
         )
 
         # Debug summary removed
