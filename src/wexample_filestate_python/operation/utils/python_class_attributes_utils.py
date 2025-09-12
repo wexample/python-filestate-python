@@ -71,7 +71,7 @@ def find_attribute_blocks_in_class(
     return blocks
 
 
-def reorder_attribute_block(nodes: list[cst.CSTNode]) -> list[cst.CSTNode]:
+def reorder_attribute_block(nodes: list[cst.CSTNode], *, dataclass_mode: bool = False) -> list[cst.CSTNode]:
     """Reorder one attribute block by categories, preserving per-node leading comments.
 
     Order:
@@ -83,8 +83,22 @@ def reorder_attribute_block(nodes: list[cst.CSTNode]) -> list[cst.CSTNode]:
     def cat(node: cst.CSTNode) -> tuple:
         name = _attr_name(node) or ""
         if _is_special_attribute(node):
-            # Category 0
-            return (0, "", False)
+            # Category 0: special always first
+            return (0, _sort_key(name), False)
+        if dataclass_mode:
+            # In dataclass mode, prioritize fields without defaults (required),
+            # then fields with defaults/default_factory; non-field attributes come after.
+            if _is_dataclass_field(node):
+                if _dataclass_field_has_default(node):
+                    # Category 2: defaulted fields
+                    return (2, _sort_key(name), False)
+                # Category 1: required fields
+                return (1, _sort_key(name), False)
+            # Non-field attributes: keep public before private after fields
+            if _is_public(name):
+                return (3, _sort_key(name), False)
+            return (4, _sort_key(name), False)
+        # Default (non-dataclass) ordering: public, then private
         if _is_public(name):
             # Category 1
             return (1, _sort_key(name), False)
@@ -113,8 +127,9 @@ def reorder_class_attributes(classdef: cst.ClassDef) -> cst.ClassDef:
 
     changed = False
     body_list = list(classdef.body.body)
+    dc_mode = _is_dataclass(classdef)
     for start, end, nodes in reversed(blocks):
-        new_nodes = reorder_attribute_block(nodes)
+        new_nodes = reorder_attribute_block(nodes, dataclass_mode=dc_mode)
         if new_nodes != nodes:
             body_list[start:end] = new_nodes
             changed = True
@@ -202,3 +217,43 @@ def _sort_key(name: str) -> tuple:
     # Case-insensitive A-Z; ensure '_' sorts after letters
     # We achieve this by key: (name without leading '_', is_private)
     return (name.lstrip("_").lower(), name.startswith("_"))
+
+
+def _is_dataclass(classdef: cst.ClassDef) -> bool:
+    """Detect if class has a @dataclass decorator (dataclass or dataclasses.dataclass)."""
+    for dec in classdef.decorators:
+        try:
+            expr = dec.decorator
+            if isinstance(expr, cst.Name) and expr.value == "dataclass":
+                return True
+            if isinstance(expr, cst.Attribute) and isinstance(expr.attr, cst.Name):
+                if expr.attr.value == "dataclass":
+                    return True
+        except Exception:
+            continue
+    return False
+
+
+def _is_dataclass_field(node: cst.CSTNode) -> bool:
+    """Dataclass fields are typically annotated assignments (AnnAssign) with non-UPPER names."""
+    if isinstance(node, cst.SimpleStatementLine) and len(node.body) == 1:
+        small = node.body[0]
+        if isinstance(small, cst.AnnAssign):
+            tgt = small.target
+            if isinstance(tgt, cst.Name) and not tgt.value.isupper():
+                return True
+    return False
+
+
+def _dataclass_field_has_default(node: cst.CSTNode) -> bool:
+    """Return True if the dataclass field has a default value or default_factory.
+
+    We treat any AnnAssign with a non-None value as having a default.
+    This includes calls like field(default=..., default_factory=...).
+    """
+    if not _is_dataclass_field(node):
+        return False
+    assert isinstance(node, cst.SimpleStatementLine)
+    small = node.body[0]
+    assert isinstance(small, cst.AnnAssign)
+    return small.value is not None
