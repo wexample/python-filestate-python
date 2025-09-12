@@ -118,8 +118,16 @@ class PythonImportRewriter(cst.CSTTransformer):
         if original_alias_count == len(kept_aliases) and not removed_any:
             return original_node
 
-        # Keep original alias tokens (including commas) to avoid formatting-only changes.
-        return updated_node.with_changes(names=tuple(kept_aliases))
+        # Rebuild aliases freshly to drop any stale trailing comma tokens.
+        rebuilt_aliases: list[cst.ImportAlias] = []
+        for alias in kept_aliases:
+            rebuilt_aliases.append(
+                cst.ImportAlias(
+                    name=alias.name,
+                    asname=alias.asname,
+                )
+            )
+        return updated_node.with_changes(names=tuple(rebuilt_aliases))
 
     def leave_ImportFrom(
         self, original_node: cst.ImportFrom, updated_node: cst.ImportFrom
@@ -175,8 +183,16 @@ class PythonImportRewriter(cst.CSTTransformer):
         if original_alias_count == len(kept_aliases) and not removed_any:
             return original_node
 
-        # Keep original alias tokens (including commas) to avoid formatting-only changes.
-        return updated_node.with_changes(names=tuple(kept_aliases))
+        # Rebuild aliases freshly to drop any stale trailing comma tokens.
+        rebuilt_aliases: list[cst.ImportAlias] = []
+        for alias in kept_aliases:
+            rebuilt_aliases.append(
+                cst.ImportAlias(
+                    name=alias.name,
+                    asname=alias.asname,
+                )
+            )
+        return updated_node.with_changes(names=tuple(rebuilt_aliases))
 
     def leave_Module(
         self, original_node: cst.Module, updated_node: cst.Module
