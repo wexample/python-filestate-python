@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import ClassVar, DefaultDict
+from typing import ClassVar, DefaultDict, TYPE_CHECKING
 
 import libcst as cst
 
@@ -25,6 +25,7 @@ class PythonUsageCollector(cst.CSTVisitor):
         cast_type_names_anywhere: set[str],
         cast_function_candidates: set[str] | None = None,
         future_annotations_enabled: bool = True,
+        idx: "PythonParserImportIndex" | None = None,
     ) -> None:
         super().__init__()
         self.imported_value_names = imported_value_names
@@ -38,6 +39,7 @@ class PythonUsageCollector(cst.CSTVisitor):
             else cast_function_candidates
         )
         self.future_annotations_enabled = future_annotations_enabled
+        self.idx = idx
 
         self.class_stack: list[str] = []
         self.func_stack: list[str] = []

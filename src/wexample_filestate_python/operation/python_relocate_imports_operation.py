@@ -81,6 +81,7 @@ class PythonRelocateImportsOperation(AbstractPythonFileOperation):
             used_in_B=class_level_names,
             used_in_C_annot=type_annotation_names,
             cast_type_names_anywhere=cast_type_names_anywhere,
+            idx=idx,
         )
         module.visit(uc)
 
