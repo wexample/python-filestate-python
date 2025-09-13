@@ -164,12 +164,18 @@ class PythonRelocateImportsOperation(AbstractPythonFileOperation):
             | (set(cast_type_names_anywhere) - set(class_level_names))
         )
 
+        # Do not add to TYPE_CHECKING if the name's module-level import is kept
+        kept_module_imports: set[str] = {
+            n for n in imported_value_names if n not in names_to_remove_from_module
+        }
+        used_in_C_only_final: set[str] = set(type_only_for_block) - kept_module_imports
+
         # Debug summary removed
         rewritten = module.visit(
             PythonImportRewriter(
                 used_in_B=class_level_names,
                 names_to_remove_from_module=names_to_remove_from_module,
-                used_in_C_only=type_only_for_block,
+                used_in_C_only=used_in_C_only_final,
                 idx=idx,
             )
         )
