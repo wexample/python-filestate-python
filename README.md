@@ -2,7 +2,7 @@
 
 Helpers for Python.
 
-Version: 0.0.41
+Version: 0.0.42
 
 ## Requirements
 
@@ -12,8 +12,8 @@ Version: 0.0.41
 
 - attrs>=23.1.0
 - cattrs>=23.1.0
-- wexample-filestate==0.0.51
-- wexample-helpers-api==0.0.32
+- wexample-filestate==0.0.52
+- wexample-helpers-api==0.0.33
 
 ## Installation
 
