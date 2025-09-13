@@ -4,7 +4,6 @@ from collections.abc import Sequence
 from typing import TYPE_CHECKING
 
 import libcst as cst
-from wexample_filestate.helpers.flag import flag_exists
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
