@@ -122,6 +122,7 @@ def _collect_iterable_block(lines: list[str], flag_idx: int) -> tuple[int, int]:
 def _find_flag_line_indices(src: str) -> list[int]:
     """Return line indices where the iterable sort flag appears."""
     from wexample_filestate.helpers.flag import flag_exists
+
     lines = src.splitlines()
     indices: list[int] = []
     for i, line in enumerate(lines):

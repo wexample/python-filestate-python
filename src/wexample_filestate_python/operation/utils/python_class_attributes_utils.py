@@ -71,7 +71,9 @@ def find_attribute_blocks_in_class(
     return blocks
 
 
-def reorder_attribute_block(nodes: list[cst.CSTNode], *, dataclass_mode: bool = False) -> list[cst.CSTNode]:
+def reorder_attribute_block(
+    nodes: list[cst.CSTNode], *, dataclass_mode: bool = False
+) -> list[cst.CSTNode]:
     """Reorder one attribute block by categories, preserving per-node leading comments.
 
     Order:

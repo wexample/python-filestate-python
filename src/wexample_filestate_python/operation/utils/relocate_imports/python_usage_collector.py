@@ -25,7 +25,7 @@ class PythonUsageCollector(cst.CSTVisitor):
         cast_type_names_anywhere: set[str],
         cast_function_candidates: set[str] | None = None,
         future_annotations_enabled: bool = True,
-        idx: "PythonParserImportIndex" | None = None,
+        idx: PythonParserImportIndex | None = None,
     ) -> None:
         super().__init__()
         self.imported_value_names = imported_value_names
@@ -83,6 +83,13 @@ class PythonUsageCollector(cst.CSTVisitor):
             self._record_type_names(node.annotation.annotation, self.used_in_C_annot)
         else:
             self._record_type_names(node.annotation.annotation, self.used_in_B)
+        # Additionally, if the annotated assignment has a default value at class level,
+        # any imported names referenced in that value are needed at class definition time.
+        try:
+            if node.value is not None:
+                self._walk_expr_for_names(node.value, self.used_in_B)
+        except Exception:
+            pass
 
     # Track annotation context to avoid misclassifying annotation names as runtime
     def visit_Annotation(self, node: cst.Annotation) -> bool:  # type: ignore[override]

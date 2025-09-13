@@ -1,10 +1,9 @@
 from __future__ import annotations
 
 from collections.abc import Sequence
-
-import libcst as cst
 from typing import TYPE_CHECKING
 
+import libcst as cst
 from wexample_filestate.helpers.flag import flag_exists
 
 if TYPE_CHECKING:
@@ -287,6 +286,7 @@ def _stmt_has_flag(stmt: cst.SimpleStatementLine, src: str) -> bool:
     of the statement's leading trivia.
     """
     from wexample_filestate.helpers.flag import flag_exists
+
     # Check libcst leading_lines comments
     for el in stmt.leading_lines:
         if el.comment is not None:
