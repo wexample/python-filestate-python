@@ -26,9 +26,29 @@ class PythonRemoveUnusedOperation(AbstractPythonFileOperation):
     def preview_source_change(cls, target: TargetFileOrDirectoryType) -> str | None:
         from wexample_helpers.helpers.shell import shell_run
 
-        return shell_run(
-            cmd=["autoflake", target.get_path()],
-        ).stdout.strip()
+        result = shell_run(
+            cmd=[
+                "autoflake",
+                "--stdout",
+                "--remove-all-unused-imports",
+                "--remove-unused-variables",
+                "--expand-star-imports",
+                "--remove-duplicate-keys",
+                target.get_path(),
+            ],
+        )
+
+        if result.returncode != 0:
+            # Double line return is important to keep message visible event last line is erased by parent process.
+            target.io.error(f"Autoflake error: {result.stderr}\n\n")
+            return None
+
+        modified_content = result.stdout
+
+        if not modified_content.strip():
+            return None
+
+        return modified_content
 
     def describe_after(self) -> str:
         return "Unused imports have been removed with autoflake."
