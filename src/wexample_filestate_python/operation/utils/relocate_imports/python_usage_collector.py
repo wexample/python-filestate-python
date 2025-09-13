@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, ClassVar, DefaultDict
+from typing import ClassVar, DefaultDict
 
 import libcst as cst
 
