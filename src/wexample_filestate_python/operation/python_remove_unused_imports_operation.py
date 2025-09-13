@@ -24,15 +24,12 @@ class PythonRemoveUnusedOperation(AbstractPythonFileOperation):
 
     @classmethod
     def preview_source_change(cls, target: TargetFileOrDirectoryType) -> str | None:
-        from autoflake import fix_code
+        from wexample_helpers.helpers.shell import shell_run
 
-        src = cls._read_current_str_or_fail(target)
-        return fix_code(
-            src,
-            remove_all_unused_imports=True,
-            expand_star_imports=True,
-            remove_duplicate_keys=True,
-            remove_unused_variables=True,
+        shell_run(
+            cmd=["autoflake"],
+            inherit_stdio=True,
+            cwd=target.get_path(),
         )
 
     def describe_after(self) -> str:
