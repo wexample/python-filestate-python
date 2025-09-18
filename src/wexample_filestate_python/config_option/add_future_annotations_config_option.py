@@ -12,10 +12,7 @@ if TYPE_CHECKING:
 @base_class
 class AddFutureAnnotationsConfigOption(AbstractConfigOption):
     def _apply_content_change(self, target: "TargetFileOrDirectoryType") -> str:
-        """Add `from __future__ import annotations` if not already present.
-        
-        Migrated logic from PythonAddFutureAnnotationsOperation.
-        """
+        """Add `from __future__ import annotations` if not already present."""
         src = target.get_local_file().read()
 
         # Fast path: already present
@@ -73,3 +70,12 @@ class AddFutureAnnotationsConfigOption(AbstractConfigOption):
                 lines.insert(j, "\n")
 
         return "".join(lines)
+
+    def describe_after(self) -> str:
+        return "`from __future__ import annotations` has been added in the correct position."
+
+    def describe_before(self) -> str:
+        return "The file have missing `from __future__ import annotations` at the module top."
+
+    def description(self) -> str:
+        return "Add `from __future__ import annotations` at the proper location (after shebang/encoding and module docstring)."
