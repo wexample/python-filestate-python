@@ -2,15 +2,16 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from wexample_config.config_option.abstract_config_option import AbstractConfigOption
 from wexample_helpers.decorator.base_class import base_class
+
+from .abstract_python_file_content_option import AbstractPythonFileContentOption
 
 if TYPE_CHECKING:
     from wexample_filestate.const.types_state_items import TargetFileOrDirectoryType
 
 
 @base_class
-class AddFutureAnnotationsConfigOption(AbstractConfigOption):
+class AddFutureAnnotationsConfigOption(AbstractPythonFileContentOption):
     def _apply_content_change(self, target: "TargetFileOrDirectoryType") -> str:
         """Add `from __future__ import annotations` if not already present."""
         src = target.get_local_file().read()
