@@ -70,28 +70,27 @@ class PythonOption(OptionMixin, AbstractNestedConfigOption):
 
     def get_allowed_options(self) -> list[type[AbstractConfigOption]]:
         # Import all the config options for each Python operation
-        from wexample_filestate_python.config_option.add_future_annotations_config_option import AddFutureAnnotationsConfigOption
-        from wexample_filestate_python.config_option.add_return_types_config_option import AddReturnTypesConfigOption
-        from wexample_filestate_python.config_option.fix_attrs_config_option import FixAttrsConfigOption
-        from wexample_filestate_python.config_option.fix_blank_lines_config_option import FixBlankLinesConfigOption
-        from wexample_filestate_python.config_option.format_config_option import FormatConfigOption
-        from wexample_filestate_python.config_option.fstringify_config_option import FstringifyConfigOption
-        from wexample_filestate_python.config_option.modernize_typing_config_option import ModernizeTypingConfigOption
-        from wexample_filestate_python.config_option.order_class_attributes_config_option import OrderClassAttributesConfigOption
-        from wexample_filestate_python.config_option.order_class_docstring_config_option import OrderClassDocstringConfigOption
-        from wexample_filestate_python.config_option.order_class_methods_config_option import OrderClassMethodsConfigOption
-        from wexample_filestate_python.config_option.order_constants_config_option import OrderConstantsConfigOption
-        from wexample_filestate_python.config_option.order_iterable_items_config_option import OrderIterableItemsConfigOption
-        from wexample_filestate_python.config_option.order_main_guard_config_option import OrderMainGuardConfigOption
-        from wexample_filestate_python.config_option.order_module_docstring_config_option import OrderModuleDocstringConfigOption
-        from wexample_filestate_python.config_option.order_module_functions_config_option import OrderModuleFunctionsConfigOption
-        from wexample_filestate_python.config_option.order_module_metadata_config_option import OrderModuleMetadataConfigOption
-        from wexample_filestate_python.config_option.order_spacing_config_option import OrderSpacingConfigOption
-        from wexample_filestate_python.config_option.order_type_checking_block_config_option import OrderTypeCheckingBlockConfigOption
-        from wexample_filestate_python.config_option.relocate_imports_config_option import RelocateImportsConfigOption
-        from wexample_filestate_python.config_option.remove_unused_config_option import RemoveUnusedConfigOption
-        from wexample_filestate_python.config_option.sort_imports_config_option import SortImportsConfigOption
-        from wexample_filestate_python.config_option.unquote_annotations_config_option import UnquoteAnnotationsConfigOption
+        from wexample_filestate_python.option.add_future_annotations_option import AddFutureAnnotationsConfigOption
+        from wexample_filestate_python.option.add_return_types_option import AddReturnTypesConfigOption
+        from wexample_filestate_python.option.fix_attrs_option import FixAttrsConfigOption
+        from wexample_filestate_python.option.fix_blank_lines_option import FixBlankLinesConfigOption
+        from wexample_filestate_python.option.format_option import FormatConfigOption
+        from wexample_filestate_python.option.fstringify_option import FstringifyConfigOption
+        from wexample_filestate_python.option.modernize_typing_option import ModernizeTypingConfigOption
+        from wexample_filestate_python.option.order_class_attributes_option import OrderClassAttributesConfigOption
+        from wexample_filestate_python.option.order_class_docstring_option import OrderClassDocstringConfigOption
+        from wexample_filestate_python.option.order_class_methods_option import OrderClassMethodsConfigOption
+        from wexample_filestate_python.option.order_constants_option import OrderConstantsConfigOption
+        from wexample_filestate_python.option.order_iterable_items_option import OrderIterableItemsConfigOption
+        from wexample_filestate_python.option.order_main_guard_option import OrderMainGuardConfigOption
+        from wexample_filestate_python.option.order_module_docstring_option import OrderModuleDocstringConfigOption
+        from wexample_filestate_python.option.order_module_functions_option import OrderModuleFunctionsConfigOption
+        from wexample_filestate_python.option.order_module_metadata_option import OrderModuleMetadataConfigOption
+        from wexample_filestate_python.option.order_type_checking_block_option import OrderTypeCheckingBlockConfigOption
+        from wexample_filestate_python.option.relocate_imports_option import RelocateImportsConfigOption
+        from wexample_filestate_python.option.remove_unused_option import RemoveUnusedConfigOption
+        from wexample_filestate_python.option.sort_imports_option import SortImportsConfigOption
+        from wexample_filestate_python.option.unquote_annotations_option import UnquoteAnnotationsConfigOption
 
         return [
             AddFutureAnnotationsConfigOption,
@@ -110,7 +109,6 @@ class PythonOption(OptionMixin, AbstractNestedConfigOption):
             OrderModuleDocstringConfigOption,
             OrderModuleFunctionsConfigOption,
             OrderModuleMetadataConfigOption,
-            OrderSpacingConfigOption,
             OrderTypeCheckingBlockConfigOption,
             RelocateImportsConfigOption,
             RemoveUnusedConfigOption,
