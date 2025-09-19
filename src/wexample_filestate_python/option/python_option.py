@@ -116,7 +116,7 @@ class PythonOption(OptionMixin, AbstractNestedConfigOption):
             UnquoteAnnotationsConfigOption,
         ]
 
-    def create_required_operation(self, target: "TargetFileOrDirectoryType") -> "AbstractOperation | None":
+    def create_required_operation(self, target: TargetFileOrDirectoryType) -> "AbstractOperation | None":
         """Create operation by iterating through all enabled sub-options."""
         for option_class in self.get_allowed_options():
             option = self.get_option_value(option_class)
@@ -128,7 +128,7 @@ class PythonOption(OptionMixin, AbstractNestedConfigOption):
         
         return None
 
-    def _read_current_content(self, target: "TargetFileOrDirectoryType") -> str | None:
+    def _read_current_content(self, target: TargetFileOrDirectoryType) -> str | None:
         """Read current file content, return None if file doesn't exist."""
         if not target.source or not target.source.get_path().exists():
             return None

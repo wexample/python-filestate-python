@@ -12,7 +12,7 @@ if TYPE_CHECKING:
 
 @base_class
 class OrderClassMethodsConfigOption(AbstractPythonFileContentOption):
-    def _apply_content_change(self, target: "TargetFileOrDirectoryType") -> str:
+    def _apply_content_change(self, target: TargetFileOrDirectoryType) -> str:
         """Order class methods according to rules 13–17.
 
         - Special dunder methods in logical groups

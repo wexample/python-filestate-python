@@ -12,7 +12,7 @@ if TYPE_CHECKING:
 
 @base_class
 class OrderModuleFunctionsConfigOption(AbstractPythonFileContentOption):
-    def _apply_content_change(self, target: "TargetFileOrDirectoryType") -> str:
+    def _apply_content_change(self, target: TargetFileOrDirectoryType) -> str:
         """Order module-level functions: public A–Z, then private (_*) A–Z, before classes.
 
         - Keeps @overload groups attached to their implementation.

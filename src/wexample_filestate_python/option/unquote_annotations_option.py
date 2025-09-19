@@ -12,7 +12,7 @@ if TYPE_CHECKING:
 
 @base_class
 class UnquoteAnnotationsConfigOption(AbstractPythonFileContentOption):
-    def _apply_content_change(self, target: "TargetFileOrDirectoryType") -> str:
+    def _apply_content_change(self, target: TargetFileOrDirectoryType) -> str:
         """Remove quotes around type annotations by turning stringized annotations back into expressions."""
         import json
 

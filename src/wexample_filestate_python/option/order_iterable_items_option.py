@@ -12,7 +12,7 @@ if TYPE_CHECKING:
 
 @base_class
 class OrderIterableItemsConfigOption(AbstractPythonFileContentOption):
-    def _apply_content_change(self, target: "TargetFileOrDirectoryType") -> str:
+    def _apply_content_change(self, target: TargetFileOrDirectoryType) -> str:
         """Sort items inside flagged iterable literals (lists, and simple dicts where applicable).
 
         Looks for the inline flag '# filestate: python-iterable-sort' and sorts the following

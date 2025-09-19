@@ -12,7 +12,7 @@ if TYPE_CHECKING:
 
 @base_class
 class FixAttrsConfigOption(AbstractPythonFileContentOption):
-    def _apply_content_change(self, target: "TargetFileOrDirectoryType") -> str:
+    def _apply_content_change(self, target: TargetFileOrDirectoryType) -> str:
         """Fix attrs usage in Python files according to standardized rules.
 
         Current rules:

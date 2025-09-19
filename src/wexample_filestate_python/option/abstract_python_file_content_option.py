@@ -14,7 +14,7 @@ class AbstractPythonFileContentOption(AbstractConfigOption):
     def get_raw_value_allowed_type() -> Any:
         return bool
 
-    def create_required_operation(self, target: "TargetFileOrDirectoryType") -> "AbstractOperation | None":
+    def create_required_operation(self, target: TargetFileOrDirectoryType) -> "AbstractOperation | None":
         from wexample_filestate.operation.file_write_operation import FileWriteOperation
         """Create FileWriteOperation if add_future_annotations is enabled and needed."""
         # Get current content
@@ -30,5 +30,5 @@ class AbstractPythonFileContentOption(AbstractConfigOption):
         return None
 
     @abstract_method
-    def _apply_content_change(self):
+    def _apply_content_change(self, target: TargetFileOrDirectoryType):
         pass

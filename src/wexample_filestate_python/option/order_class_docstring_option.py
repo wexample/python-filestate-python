@@ -12,7 +12,7 @@ if TYPE_CHECKING:
 
 @base_class
 class OrderClassDocstringConfigOption(AbstractPythonFileContentOption):
-    def _apply_content_change(self, target: "TargetFileOrDirectoryType") -> str:
+    def _apply_content_change(self, target: TargetFileOrDirectoryType) -> str:
         """Ensure each class keeps header/decorators and has its docstring at the top.
 
         For every class definition in the module, if a class-level docstring exists but

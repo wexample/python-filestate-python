@@ -12,7 +12,7 @@ if TYPE_CHECKING:
 
 @base_class
 class OrderModuleMetadataConfigOption(AbstractPythonFileContentOption):
-    def _apply_content_change(self, target: "TargetFileOrDirectoryType") -> str:
+    def _apply_content_change(self, target: TargetFileOrDirectoryType) -> str:
         """Group and sort module metadata assignments at module level.
 
         Collects recognized metadata variables like `__all__`, `__version__`, `__author__`, etc.,
