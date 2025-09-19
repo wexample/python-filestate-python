@@ -31,13 +31,5 @@ class OrderClassDocstringConfigOption(AbstractPythonFileContentOption):
         modified = ensure_all_classes_docstring_first(module)
         return modified.code
 
-    def describe_after(self) -> str:
-        return "All class docstrings (when present) are the first statements in their classes."
-
-    def describe_before(self) -> str:
-        return (
-            "Some classes have their docstring not positioned as the first statement."
-        )
-
-    def description(self) -> str:
+    def get_description(self) -> str:
         return "Ensure class docstrings are at the top of each class body, preserving headers and decorators."

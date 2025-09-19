@@ -21,13 +21,5 @@ class ModernizeTypingConfigOption(AbstractPythonFileContentOption):
         updated = _fix_plugins(src, settings=settings)
         return updated
 
-    def describe_after(self) -> str:
-        return "Typing syntax has been modernized to Python 3.12 style (PEP 585/604)."
-
-    def describe_before(self) -> str:
-        return (
-            "The file uses legacy typing syntax that can be modernized for Python 3.12."
-        )
-
-    def description(self) -> str:
+    def get_description(self) -> str:
         return "Modernize typing syntax (PEP 585/604) using pyupgrade for Python 3.12."

@@ -68,11 +68,5 @@ class OrderModuleDocstringConfigOption(AbstractPythonFileContentOption):
         modified_module = move_docstring_to_top(module)
         return modified_module.code
 
-    def describe_after(self) -> str:
-        return "Module docstring has been moved to the top of the file."
-
-    def describe_before(self) -> str:
-        return "Module docstring is not positioned at the top of the file."
-
-    def description(self) -> str:
+    def get_description(self) -> str:
         return "Move module docstring to the top of Python files. Ensures the module docstring appears as the first element before any imports or code."

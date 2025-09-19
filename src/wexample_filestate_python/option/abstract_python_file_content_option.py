@@ -29,7 +29,7 @@ class AbstractPythonFileContentOption(AbstractConfigOption):
                 option=self,
                 target=target,
                 content=new_content,
-                description="Python code change"
+                description=self.get_description()
             )
 
         return None

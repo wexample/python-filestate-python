@@ -26,11 +26,5 @@ class FstringifyConfigOption(WithStdoutWrappingMixin, AbstractPythonFileContentO
         result = self._execute_and_wrap_stdout(_execute_fstringify)
         return result.content
 
-    def describe_after(self) -> str:
-        return "String formatting has been converted to modern f-strings."
-
-    def describe_before(self) -> str:
-        return "The file uses legacy string formatting ('%'/format) that can be upgraded to f-strings."
-
-    def description(self) -> str:
+    def get_description(self) -> str:
         return "Convert old-style string formatting to f-strings using flynt."

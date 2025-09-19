@@ -41,11 +41,5 @@ class FixBlankLinesConfigOption(AbstractPythonFileContentOption):
         modified = fix_function_blank_lines(module)
         return modified.code
 
-    def describe_after(self) -> str:
-        return "Blank lines after function signatures and class definitions have been removed."
-
-    def describe_before(self) -> str:
-        return "Functions and classes have unnecessary blank lines after signatures."
-
-    def description(self) -> str:
+    def get_description(self) -> str:
         return "Remove blank lines immediately after function/method signatures, class definitions, and between signatures and docstrings."

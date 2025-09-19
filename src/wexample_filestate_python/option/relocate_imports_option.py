@@ -185,11 +185,5 @@ class RelocateImportsConfigOption(AbstractPythonFileContentOption):
 
         return final_module.code
 
-    def describe_after(self) -> str:
-        return "Imports have been relocated: runtime-in-method imports are localized, class property types stay at module level, and type-only imports are moved under TYPE_CHECKING."
-
-    def describe_before(self) -> str:
-        return "Imports are not organized by usage: runtime-in-method, class-level property types, and type-only annotations."
-
-    def description(self) -> str:
+    def get_description(self) -> str:
         return "Relocate imports by usage. Move runtime-only symbols used inside methods into those methods; keep property-type imports at module level; move type-only imports under TYPE_CHECKING."

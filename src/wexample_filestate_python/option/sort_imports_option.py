@@ -22,11 +22,5 @@ class SortImportsConfigOption(AbstractPythonFileContentOption):
         formatted = code(src, config=config)
         return formatted
 
-    def describe_after(self) -> str:
-        return "The Python imports have been sorted and grouped by isort."
-
-    def describe_before(self) -> str:
-        return "The Python file has unsorted or poorly grouped imports."
-
-    def description(self) -> str:
+    def get_description(self) -> str:
         return "Sort and group Python imports using isort."

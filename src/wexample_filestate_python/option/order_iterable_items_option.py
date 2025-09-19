@@ -27,11 +27,5 @@ class OrderIterableItemsConfigOption(AbstractPythonFileContentOption):
         modified = reorder_flagged_iterables(src)
         return modified
 
-    def describe_after(self) -> str:
-        return "Flagged iterable blocks have been sorted alphabetically while preserving formatting."
-
-    def describe_before(self) -> str:
-        return "Flagged iterable blocks are not ordered alphabetically."
-
-    def description(self) -> str:
+    def get_description(self) -> str:
         return "Sort items inside iterable literals following the '# filestate: python-iterable-sort' flag (primarily lists with one-item-per-line)."

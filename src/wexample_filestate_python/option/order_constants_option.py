@@ -30,11 +30,5 @@ class OrderConstantsConfigOption(AbstractPythonFileContentOption):
         modified = reorder_flagged_constants_everywhere(module, src)
         return modified.code
 
-    def describe_after(self) -> str:
-        return "Flagged constant blocks have been sorted alphabetically without altering other code."
-
-    def describe_before(self) -> str:
-        return "Flagged constant blocks are not ordered alphabetically."
-
-    def description(self) -> str:
+    def get_description(self) -> str:
         return "Sort contiguous UPPER_CASE constant blocks marked with '# filestate: python-constant-sort' alphabetically at module level."

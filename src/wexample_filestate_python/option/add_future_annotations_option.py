@@ -72,11 +72,5 @@ class AddFutureAnnotationsConfigOption(AbstractPythonFileContentOption):
 
         return "".join(lines)
 
-    def describe_after(self) -> str:
-        return "`from __future__ import annotations` has been added in the correct position."
-
-    def describe_before(self) -> str:
-        return "The file have missing `from __future__ import annotations` at the module top."
-
-    def description(self) -> str:
+    def get_description(self) -> str:
         return "Add `from __future__ import annotations` at the proper location (after shebang/encoding and module docstring)."

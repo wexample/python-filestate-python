@@ -46,11 +46,5 @@ class OrderTypeCheckingBlockConfigOption(AbstractPythonFileContentOption):
         modified = move_type_checking_blocks_after_imports(module)
         return modified.code
 
-    def describe_after(self) -> str:
-        return "TYPE_CHECKING blocks have been moved after regular imports with minimal spacing changes."
-
-    def describe_before(self) -> str:
-        return "TYPE_CHECKING blocks are not positioned after regular imports."
-
-    def description(self) -> str:
+    def get_description(self) -> str:
         return "Move if TYPE_CHECKING blocks after imports. Keeps code layout predictable while preserving behavior."

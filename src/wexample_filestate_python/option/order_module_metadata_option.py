@@ -57,11 +57,5 @@ class OrderModuleMetadataConfigOption(AbstractPythonFileContentOption):
         modified = group_and_sort_module_metadata(module)
         return modified.code
 
-    def describe_after(self) -> str:
-        return "Module metadata assignments are grouped together and sorted alphabetically after imports and TYPE_CHECKING."
-
-    def describe_before(self) -> str:
-        return "Module metadata assignments are scattered or unsorted at module level."
-
-    def description(self) -> str:
+    def get_description(self) -> str:
         return "Group and sort module metadata (e.g., __all__, __version__, __author__) at module level with minimal spacing changes."

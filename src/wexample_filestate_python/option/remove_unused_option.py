@@ -40,11 +40,5 @@ class RemoveUnusedConfigOption(AbstractPythonFileContentOption):
 
         return modified_content
 
-    def describe_after(self) -> str:
-        return "Unused imports have been removed with autoflake."
-
-    def describe_before(self) -> str:
-        return "The Python file contains unused imports."
-
-    def description(self) -> str:
+    def get_description(self) -> str:
         return "Remove unused imports from the Python file using autoflake."

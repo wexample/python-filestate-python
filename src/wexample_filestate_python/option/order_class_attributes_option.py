@@ -29,11 +29,5 @@ class OrderClassAttributesConfigOption(AbstractPythonFileContentOption):
         modified = ensure_order_class_attributes_in_module(module)
         return modified.code
 
-    def describe_after(self) -> str:
-        return "Class attributes are ordered: special first, then public A–Z, then private/protected A–Z."
-
-    def describe_before(self) -> str:
-        return "Class attributes are not ordered: special, public A–Z, private A–Z."
-
-    def description(self) -> str:
+    def get_description(self) -> str:
         return "Sort class attribute blocks with special names prioritized, preserving comments and spacing."

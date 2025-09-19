@@ -30,11 +30,5 @@ class FormatConfigOption(AbstractPythonFileContentOption):
         except Exception as e:
             raise e
 
-    def describe_after(self) -> str:
-        return "The Python file has been formatted with Black."
-
-    def describe_before(self) -> str:
-        return "The Python file is not formatted according to Black's rules."
-
-    def description(self) -> str:
+    def get_description(self) -> str:
         return "Format the Python file content using Black."

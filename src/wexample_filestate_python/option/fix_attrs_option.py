@@ -30,13 +30,7 @@ class FixAttrsConfigOption(AbstractPythonFileContentOption):
         modified = fix_attrs_kw_only(module)
         return modified.code
 
-    def describe_after(self) -> str:
-        return "Attrs decorators have been updated to use kw_only=True."
-
-    def describe_before(self) -> str:
-        return "Attrs decorators are missing kw_only=True parameter."
-
-    def description(self) -> str:
+    def get_description(self) -> str:
         return (
             "Ensure attrs decorators (@attrs.define, @attr.s) always use kw_only=True."
         )
