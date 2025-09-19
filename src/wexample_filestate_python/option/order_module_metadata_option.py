@@ -12,6 +12,9 @@ if TYPE_CHECKING:
 
 @base_class
 class OrderModuleMetadataOption(AbstractPythonFileContentOption):
+
+    def get_description(self) -> str:
+        return "Group and sort module metadata (e.g., __all__, __version__, __author__) at module level with minimal spacing changes."
     def _apply_content_change(self, target: TargetFileOrDirectoryType) -> str:
         """Group and sort module metadata assignments at module level.
 
@@ -56,6 +59,3 @@ class OrderModuleMetadataOption(AbstractPythonFileContentOption):
 
         modified = group_and_sort_module_metadata(module)
         return modified.code
-
-    def get_description(self) -> str:
-        return "Group and sort module metadata (e.g., __all__, __version__, __author__) at module level with minimal spacing changes."

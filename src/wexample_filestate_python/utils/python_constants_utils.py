@@ -272,6 +272,7 @@ def _is_upper_name(name: str) -> bool:
 def _prev_line_has_flag(body_list: list[cst.CSTNode], index: int) -> bool:
     """Return True if the previous sibling is an EmptyLine whose comment contains the flag."""
     from wexample_filestate.helpers.flag import flag_exists
+
     if index - 1 < 0:
         return False
     prev = body_list[index - 1]

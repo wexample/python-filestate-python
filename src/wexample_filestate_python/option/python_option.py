@@ -3,7 +3,9 @@ from __future__ import annotations
 from typing import Any, ClassVar, Union, TYPE_CHECKING
 
 from wexample_config.config_option.abstract_config_option import AbstractConfigOption
-from wexample_config.config_option.abstract_nested_config_option import AbstractNestedConfigOption
+from wexample_config.config_option.abstract_nested_config_option import (
+    AbstractNestedConfigOption,
+)
 from wexample_filestate.option.mixin.option_mixin import OptionMixin
 from wexample_helpers.decorator.base_class import base_class
 
@@ -55,7 +57,9 @@ class PythonOption(OptionMixin, AbstractNestedConfigOption):
 
     @staticmethod
     def get_raw_value_allowed_type() -> Any:
-        from wexample_filestate_python.config_value.python_config_value import PythonConfigValue
+        from wexample_filestate_python.config_value.python_config_value import (
+            PythonConfigValue,
+        )
 
         return Union[list[str], dict, PythonConfigValue]
 
@@ -71,27 +75,63 @@ class PythonOption(OptionMixin, AbstractNestedConfigOption):
 
     def get_allowed_options(self) -> list[type[AbstractConfigOption]]:
         # Import all the config options for each Python operation
-        from wexample_filestate_python.option.add_future_annotations_option import AddFutureAnnotationsOption
-        from wexample_filestate_python.option.add_return_types_option import AddReturnTypesOption
+        from wexample_filestate_python.option.add_future_annotations_option import (
+            AddFutureAnnotationsOption,
+        )
+        from wexample_filestate_python.option.add_return_types_option import (
+            AddReturnTypesOption,
+        )
         from wexample_filestate_python.option.fix_attrs_option import FixAttrsOption
-        from wexample_filestate_python.option.fix_blank_lines_option import FixBlankLinesOption
+        from wexample_filestate_python.option.fix_blank_lines_option import (
+            FixBlankLinesOption,
+        )
         from wexample_filestate_python.option.format_option import FormatOption
         from wexample_filestate_python.option.fstringify_option import FstringifyOption
-        from wexample_filestate_python.option.modernize_typing_option import ModernizeTypingOption
-        from wexample_filestate_python.option.order_class_attributes_option import OrderClassAttributesOption
-        from wexample_filestate_python.option.order_class_docstring_option import OrderClassDocstringOption
-        from wexample_filestate_python.option.order_class_methods_option import OrderClassMethodsOption
-        from wexample_filestate_python.option.order_constants_option import OrderConstantsOption
-        from wexample_filestate_python.option.order_iterable_items_option import OrderIterableItemsOption
-        from wexample_filestate_python.option.order_main_guard_option import OrderMainGuardOption
-        from wexample_filestate_python.option.order_module_docstring_option import OrderModuleDocstringOption
-        from wexample_filestate_python.option.order_module_functions_option import OrderModuleFunctionsOption
-        from wexample_filestate_python.option.order_module_metadata_option import OrderModuleMetadataOption
-        from wexample_filestate_python.option.order_type_checking_block_option import OrderTypeCheckingBlockOption
-        from wexample_filestate_python.option.relocate_imports_option import RelocateImportsOption
-        from wexample_filestate_python.option.remove_unused_option import RemoveUnusedOption
-        from wexample_filestate_python.option.sort_imports_option import SortImportsOption
-        from wexample_filestate_python.option.unquote_annotations_option import UnquoteAnnotationsOption
+        from wexample_filestate_python.option.modernize_typing_option import (
+            ModernizeTypingOption,
+        )
+        from wexample_filestate_python.option.order_class_attributes_option import (
+            OrderClassAttributesOption,
+        )
+        from wexample_filestate_python.option.order_class_docstring_option import (
+            OrderClassDocstringOption,
+        )
+        from wexample_filestate_python.option.order_class_methods_option import (
+            OrderClassMethodsOption,
+        )
+        from wexample_filestate_python.option.order_constants_option import (
+            OrderConstantsOption,
+        )
+        from wexample_filestate_python.option.order_iterable_items_option import (
+            OrderIterableItemsOption,
+        )
+        from wexample_filestate_python.option.order_main_guard_option import (
+            OrderMainGuardOption,
+        )
+        from wexample_filestate_python.option.order_module_docstring_option import (
+            OrderModuleDocstringOption,
+        )
+        from wexample_filestate_python.option.order_module_functions_option import (
+            OrderModuleFunctionsOption,
+        )
+        from wexample_filestate_python.option.order_module_metadata_option import (
+            OrderModuleMetadataOption,
+        )
+        from wexample_filestate_python.option.order_type_checking_block_option import (
+            OrderTypeCheckingBlockOption,
+        )
+        from wexample_filestate_python.option.relocate_imports_option import (
+            RelocateImportsOption,
+        )
+        from wexample_filestate_python.option.remove_unused_option import (
+            RemoveUnusedOption,
+        )
+        from wexample_filestate_python.option.sort_imports_option import (
+            SortImportsOption,
+        )
+        from wexample_filestate_python.option.unquote_annotations_option import (
+            UnquoteAnnotationsOption,
+        )
 
         return [
             AddFutureAnnotationsOption,
@@ -117,7 +157,9 @@ class PythonOption(OptionMixin, AbstractNestedConfigOption):
             UnquoteAnnotationsOption,
         ]
 
-    def create_required_operation(self, target: TargetFileOrDirectoryType) -> "AbstractOperation | None":
+    def create_required_operation(
+        self, target: TargetFileOrDirectoryType
+    ) -> "AbstractOperation | None":
         """Create operation by iterating through all enabled sub-options."""
         for option_class in self.get_allowed_options():
             option = self.get_option(option_class)

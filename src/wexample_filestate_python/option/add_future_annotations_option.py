@@ -47,10 +47,10 @@ class AddFutureAnnotationsOption(AbstractPythonFileContentOption):
         else:
             body = getattr(tree, "body", [])
             if (
-                    body
-                    and isinstance(body[0], ast.Expr)
-                    and isinstance(getattr(body[0], "value", None), ast.Constant)
-                    and isinstance(body[0].value.value, str)
+                body
+                and isinstance(body[0], ast.Expr)
+                and isinstance(getattr(body[0], "value", None), ast.Constant)
+                and isinstance(body[0].value.value, str)
             ):
                 # Module docstring present; insert after its end_lineno
                 doc_end = getattr(body[0], "end_lineno", body[0].lineno)  # 1-based

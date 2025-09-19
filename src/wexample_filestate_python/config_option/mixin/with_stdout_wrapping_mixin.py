@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 class WithStdoutWrappingMixin:
     @classmethod
     def _execute_and_wrap_stdout(cls, callback):
