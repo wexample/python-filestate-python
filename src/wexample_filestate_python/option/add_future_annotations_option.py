@@ -11,7 +11,10 @@ if TYPE_CHECKING:
 
 
 @base_class
-class AddFutureAnnotationsConfigOption(AbstractPythonFileContentOption):
+class AddFutureAnnotationsOption(AbstractPythonFileContentOption):
+    def applicable_on_empty_content_file(self) -> bool:
+        return False
+
     def _apply_content_change(self, target: TargetFileOrDirectoryType) -> str:
         """Add `from __future__ import annotations` if not already present."""
         src = target.get_local_file().read()

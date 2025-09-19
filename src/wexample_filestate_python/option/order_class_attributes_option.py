@@ -11,7 +11,7 @@ if TYPE_CHECKING:
 
 
 @base_class
-class OrderClassAttributesConfigOption(AbstractPythonFileContentOption):
+class OrderClassAttributesOption(AbstractPythonFileContentOption):
     def _apply_content_change(self, target: TargetFileOrDirectoryType) -> str:
         """Sort class attributes: special first, then public A–Z, then private/protected A–Z.
 

@@ -11,7 +11,7 @@ if TYPE_CHECKING:
 
 
 @base_class
-class FormatConfigOption(AbstractPythonFileContentOption):
+class FormatOption(AbstractPythonFileContentOption):
     # Use ClassVar to avoid Pydantic treating it as a model field/private attr
     _line_length: ClassVar[int] = 88
 

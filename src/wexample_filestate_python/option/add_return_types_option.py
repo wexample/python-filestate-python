@@ -10,7 +10,7 @@ if TYPE_CHECKING:
 
 
 @base_class
-class AddReturnTypesConfigOption(AbstractPythonFileContentOption):
+class AddReturnTypesOption(AbstractPythonFileContentOption):
     def _apply_content_change(self, target: TargetFileOrDirectoryType) -> str:
         """Add return type annotations for functions lacking them when trivially inferable.
 

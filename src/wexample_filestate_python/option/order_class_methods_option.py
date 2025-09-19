@@ -11,7 +11,7 @@ if TYPE_CHECKING:
 
 
 @base_class
-class OrderClassMethodsConfigOption(AbstractPythonFileContentOption):
+class OrderClassMethodsOption(AbstractPythonFileContentOption):
     def _apply_content_change(self, target: TargetFileOrDirectoryType) -> str:
         """Order class methods according to rules 13–17.
 

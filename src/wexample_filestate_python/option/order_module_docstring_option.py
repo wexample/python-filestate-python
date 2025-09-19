@@ -11,7 +11,7 @@ if TYPE_CHECKING:
 
 
 @base_class
-class OrderModuleDocstringConfigOption(AbstractPythonFileContentOption):
+class OrderModuleDocstringOption(AbstractPythonFileContentOption):
     def _apply_content_change(self, target: TargetFileOrDirectoryType) -> str:
         """Ensure module docstring is positioned at the very top of Python files.
 

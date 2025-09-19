@@ -11,7 +11,7 @@ if TYPE_CHECKING:
 
 
 @base_class
-class OrderConstantsConfigOption(AbstractPythonFileContentOption):
+class OrderConstantsOption(AbstractPythonFileContentOption):
     def _apply_content_change(self, target: TargetFileOrDirectoryType) -> str:
         """Sort flagged constant blocks (UPPER_CASE) alphabetically A–Z at module level.
 

@@ -11,7 +11,7 @@ if TYPE_CHECKING:
 
 
 @base_class
-class RelocateImportsConfigOption(AbstractPythonFileContentOption):
+class RelocateImportsOption(AbstractPythonFileContentOption):
     def _apply_content_change(self, target: TargetFileOrDirectoryType) -> str:
         """Relocate imports according to usage categories:
 

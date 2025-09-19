@@ -3,13 +3,15 @@ from __future__ import annotations
 from typing import Any, TYPE_CHECKING
 
 from wexample_config.config_option.abstract_config_option import AbstractConfigOption
+from wexample_filestate.option.mixin.option_mixin import OptionMixin
 from wexample_helpers.classes.abstract_method import abstract_method
+from wexample_helpers.decorator.base_class import base_class
 
 if TYPE_CHECKING:
     from wexample_filestate.const.types_state_items import TargetFileOrDirectoryType
 
-
-class AbstractPythonFileContentOption(AbstractConfigOption):
+@base_class
+class AbstractPythonFileContentOption(OptionMixin, AbstractConfigOption):
     @staticmethod
     def get_raw_value_allowed_type() -> Any:
         return bool

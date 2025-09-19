@@ -11,7 +11,7 @@ if TYPE_CHECKING:
 
 
 @base_class
-class FixBlankLinesConfigOption(AbstractPythonFileContentOption):
+class FixBlankLinesOption(AbstractPythonFileContentOption):
     def _apply_content_change(self, target: TargetFileOrDirectoryType) -> str:
         """Fix blank lines in Python files according to standardized rules.
 

@@ -11,7 +11,7 @@ if TYPE_CHECKING:
 
 
 @base_class
-class OrderMainGuardConfigOption(AbstractPythonFileContentOption):
+class OrderMainGuardOption(AbstractPythonFileContentOption):
     def _apply_content_change(self, target: TargetFileOrDirectoryType) -> str:
         """Ensure the `if __name__ == "__main__":` block is at the very end of the file.
 

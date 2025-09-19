@@ -11,7 +11,7 @@ if TYPE_CHECKING:
 
 
 @base_class
-class SortImportsConfigOption(AbstractPythonFileContentOption):
+class SortImportsOption(AbstractPythonFileContentOption):
     def _apply_content_change(self, target: TargetFileOrDirectoryType) -> str:
         """Sort Python imports using isort."""
         from isort import code

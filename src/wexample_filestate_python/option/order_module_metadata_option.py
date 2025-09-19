@@ -11,7 +11,7 @@ if TYPE_CHECKING:
 
 
 @base_class
-class OrderModuleMetadataConfigOption(AbstractPythonFileContentOption):
+class OrderModuleMetadataOption(AbstractPythonFileContentOption):
     def _apply_content_change(self, target: TargetFileOrDirectoryType) -> str:
         """Group and sort module metadata assignments at module level.
 

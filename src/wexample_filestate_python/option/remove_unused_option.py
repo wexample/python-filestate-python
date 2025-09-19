@@ -11,7 +11,7 @@ if TYPE_CHECKING:
 
 
 @base_class
-class RemoveUnusedConfigOption(AbstractPythonFileContentOption):
+class RemoveUnusedOption(AbstractPythonFileContentOption):
     def _apply_content_change(self, target: TargetFileOrDirectoryType) -> str:
         """Remove unused Python imports using autoflake."""
         from wexample_helpers.helpers.shell import shell_run
