@@ -25,7 +25,12 @@ class AbstractPythonFileContentOption(AbstractConfigOption):
 
         # If content changed, create FileWriteOperation
         if new_content != current_content:
-            return FileWriteOperation(option=self, target=target, content=new_content)
+            return FileWriteOperation(
+                option=self,
+                target=target,
+                content=new_content,
+                description="Python code change"
+            )
 
         return None
 
