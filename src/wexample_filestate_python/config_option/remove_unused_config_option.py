@@ -2,28 +2,18 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from .abstract_python_file_operation import AbstractPythonFileOperation
+from wexample_helpers.decorator.base_class import base_class
+
+from .abstract_python_file_content_option import AbstractPythonFileContentOption
 
 if TYPE_CHECKING:
     from wexample_filestate.const.types_state_items import TargetFileOrDirectoryType
 
 
-class PythonRemoveUnusedOperation(AbstractPythonFileOperation):
-    """Remove unused Python imports using autoflake.
-
-    Triggered by config: { "python": ["remove_unused_imports"] }
-    """
-
-    @classmethod
-    def get_option_name(cls) -> str:
-        from wexample_filestate_python.config_option.python_config_option import (
-            PythonConfigOption,
-        )
-
-        return PythonConfigOption.OPTION_NAME_REMOVE_UNUSED
-
-    @classmethod
-    def preview_source_change(cls, target: TargetFileOrDirectoryType) -> str | None:
+@base_class
+class RemoveUnusedConfigOption(AbstractPythonFileContentOption):
+    def _apply_content_change(self, target: "TargetFileOrDirectoryType") -> str:
+        """Remove unused Python imports using autoflake."""
         from wexample_helpers.helpers.shell import shell_run
 
         result = shell_run(
@@ -41,12 +31,12 @@ class PythonRemoveUnusedOperation(AbstractPythonFileOperation):
         if result.returncode != 0:
             # Double line return is important to keep message visible event last line is erased by parent process.
             target.io.error(f"Autoflake error: {result.stderr}\n\n")
-            return None
+            return target.get_local_file().read()  # Return original content on error
 
         modified_content = result.stdout
 
         if not modified_content.strip():
-            return None
+            return target.get_local_file().read()  # Return original content if empty
 
         return modified_content
 

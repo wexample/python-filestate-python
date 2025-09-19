@@ -2,34 +2,23 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from .abstract_python_file_operation import AbstractPythonFileOperation
+from wexample_helpers.decorator.base_class import base_class
+
+from .abstract_python_file_content_option import AbstractPythonFileContentOption
 
 if TYPE_CHECKING:
     from wexample_filestate.const.types_state_items import TargetFileOrDirectoryType
 
 
-class PythonModernizeTypingOperation(AbstractPythonFileOperation):
-    """Modernize typing syntax (PEP 585/604) to Python 3.12 style.
-
-    Triggered by: {"python": ["modernize_typing"]}
-    """
-
-    @classmethod
-    def get_option_name(cls) -> str:
-        from wexample_filestate_python.config_option.python_config_option import (
-            PythonConfigOption,
-        )
-
-        return PythonConfigOption.OPTION_NAME_MODERNIZE_TYPING
-
-    @classmethod
-    def preview_source_change(cls, target: TargetFileOrDirectoryType) -> str | None:
+@base_class
+class ModernizeTypingConfigOption(AbstractPythonFileContentOption):
+    def _apply_content_change(self, target: "TargetFileOrDirectoryType") -> str:
+        """Modernize typing syntax (PEP 585/604) to Python 3.12 style."""
         from pyupgrade._main import Settings, _fix_plugins
 
-        src = cls._read_current_str_or_fail(target)
+        src = target.get_local_file().read()
         settings = Settings(min_version=(3, 12))
         updated = _fix_plugins(src, settings=settings)
-        # _fix_plugins returns a string; return as-is
         return updated
 
     def describe_after(self) -> str:

@@ -2,33 +2,23 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from .abstract_python_file_operation import AbstractPythonFileOperation
+from wexample_helpers.decorator.base_class import base_class
+
+from .abstract_python_file_content_option import AbstractPythonFileContentOption
 
 if TYPE_CHECKING:
     from wexample_filestate.const.types_state_items import TargetFileOrDirectoryType
 
 
-class PythonUnquoteAnnotationsOperation(AbstractPythonFileOperation):
-    """Remove quotes around type annotations by turning stringized annotations back into expressions.
-
-    Triggered by config: { "python": ["unquote_annotations"] }
-    """
-
-    @classmethod
-    def get_option_name(cls) -> str:
-        from wexample_filestate_python.config_option.python_config_option import (
-            PythonConfigOption,
-        )
-
-        return PythonConfigOption.OPTION_NAME_UNQUOTE_ANNOTATIONS
-
-    @classmethod
-    def preview_source_change(cls, target: TargetFileOrDirectoryType) -> str | None:
+@base_class
+class UnquoteAnnotationsConfigOption(AbstractPythonFileContentOption):
+    def _apply_content_change(self, target: "TargetFileOrDirectoryType") -> str:
+        """Remove quotes around type annotations by turning stringized annotations back into expressions."""
         import json
 
         import libcst as cst
 
-        src = cls._read_current_str_or_fail(target)
+        src = target.get_local_file().read()
 
         class _Unquoter(cst.CSTTransformer):
             @staticmethod

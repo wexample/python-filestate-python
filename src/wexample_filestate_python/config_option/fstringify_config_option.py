@@ -24,9 +24,6 @@ class FstringifyConfigOption(WithStdoutWrappingMixin, AbstractPythonFileContentO
             return fstringify_code(src, state=state)
 
         result = self._execute_and_wrap_stdout(_execute_fstringify)
-
-        if result is None:
-            return src
         return result.content
 
     def describe_after(self) -> str:
