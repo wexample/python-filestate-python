@@ -12,7 +12,6 @@ if TYPE_CHECKING:
 
 @base_class
 class OrderClassAttributesOption(AbstractPythonFileContentOption):
-
     def get_description(self) -> str:
         return "Sort class attribute blocks with special names prioritized, preserving comments and spacing."
     def _apply_content_change(self, target: TargetFileOrDirectoryType) -> str:

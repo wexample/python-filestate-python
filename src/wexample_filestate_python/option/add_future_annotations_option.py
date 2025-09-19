@@ -15,6 +15,9 @@ class AddFutureAnnotationsOption(AbstractPythonFileContentOption):
     def applicable_on_empty_content_file(self) -> bool:
         return False
 
+    def get_description(self) -> str:
+        return "Add `from __future__ import annotations` at the proper location (after shebang/encoding and module docstring)."
+
     def _apply_content_change(self, target: TargetFileOrDirectoryType) -> str:
         """Add `from __future__ import annotations` if not already present."""
         src = target.get_local_file().read()
@@ -74,6 +77,3 @@ class AddFutureAnnotationsOption(AbstractPythonFileContentOption):
                 lines.insert(j, "\n")
 
         return "".join(lines)
-
-    def get_description(self) -> str:
-        return "Add `from __future__ import annotations` at the proper location (after shebang/encoding and module docstring)."

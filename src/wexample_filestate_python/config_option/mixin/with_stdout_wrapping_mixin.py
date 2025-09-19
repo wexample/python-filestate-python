@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+
 class WithStdoutWrappingMixin:
     @classmethod
     def _execute_and_wrap_stdout(cls, callback):
@@ -35,11 +36,11 @@ class WithStdoutWrappingMixin:
 
             if stdout_content.strip():
                 sys.stdout.write(stdout_content.rstrip())
-                sys.stdout.write('\n')
-                sys.stdout.write('\n')
+                sys.stdout.write("\n")
+                sys.stdout.write("\n")
             if stderr_content.strip():
                 sys.stderr.write(stderr_content.rstrip())
-                sys.stderr.write('\n')
-                sys.stderr.write('\n')
+                sys.stderr.write("\n")
+                sys.stderr.write("\n")
 
         return result

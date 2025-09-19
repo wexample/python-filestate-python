@@ -159,7 +159,7 @@ class PythonOption(OptionMixin, AbstractNestedConfigOption):
 
     def create_required_operation(
         self, target: TargetFileOrDirectoryType
-    ) -> "AbstractOperation | None":
+    ) -> AbstractOperation | None:
         """Create operation by iterating through all enabled sub-options."""
         for option_class in self.get_allowed_options():
             option = self.get_option(option_class)

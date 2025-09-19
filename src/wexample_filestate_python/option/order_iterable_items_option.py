@@ -12,7 +12,6 @@ if TYPE_CHECKING:
 
 @base_class
 class OrderIterableItemsOption(AbstractPythonFileContentOption):
-
     def get_description(self) -> str:
         return "Sort items inside iterable literals following the '# filestate: python-iterable-sort' flag (primarily lists with one-item-per-line)."
     def _apply_content_change(self, target: TargetFileOrDirectoryType) -> str:

@@ -11,9 +11,6 @@ from wexample_helpers.decorator.base_class import base_class
 
 @base_class
 class PythonConfigValue(ConfigValue):
-    raw: Any = public_field(
-        default=None, description="Disabled raw value for this config."
-    )
     add_future_annotations: bool | None = public_field(
         default=None,
         description="Add `from __future__ import annotations`",
@@ -85,6 +82,9 @@ class PythonConfigValue(ConfigValue):
     order_type_checking_block: bool | None = public_field(
         default=None,
         description="Move TYPE_CHECKING blocks to after regular imports",
+    )
+    raw: Any = public_field(
+        default=None, description="Disabled raw value for this config."
     )
     relocate_imports: bool | None = public_field(
         default=None,
