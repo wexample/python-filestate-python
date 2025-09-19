@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING
 
 from wexample_helpers.decorator.base_class import base_class
 from .abstract_python_file_content_option import AbstractPythonFileContentOption
-from .mixin.with_stdout_wrapping_mixin import WithStdoutWrappingMixin
+from wexample_filestate_python.config_option.mixin.with_stdout_wrapping_mixin import WithStdoutWrappingMixin
 
 if TYPE_CHECKING:
     from wexample_filestate.const.types_state_items import TargetFileOrDirectoryType

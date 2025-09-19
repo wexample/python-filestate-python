@@ -1,3 +1,4 @@
+from __future__ import annotations
 from typing import Any, ClassVar, Union, TYPE_CHECKING
 
 from wexample_config.config_option.abstract_config_option import AbstractConfigOption
@@ -119,8 +120,8 @@ class PythonOption(OptionMixin, AbstractNestedConfigOption):
     def create_required_operation(self, target: TargetFileOrDirectoryType) -> "AbstractOperation | None":
         """Create operation by iterating through all enabled sub-options."""
         for option_class in self.get_allowed_options():
-            option = self.get_option_value(option_class)
-            if option and hasattr(option, 'create_required_operation'):
+            option = self.get_option(option_class)
+            if option:
                 operation = option.create_required_operation(target)
                 if operation:
                     # Return the first operation found
