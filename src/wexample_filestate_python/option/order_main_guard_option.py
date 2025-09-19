@@ -19,7 +19,7 @@ class OrderMainGuardConfigOption(AbstractPythonFileContentOption):
         module (before trailing blank lines), preserving content and spacing as much as possible.
         """
         import libcst as cst
-        from wexample_filestate_python.operation.utils.python_main_guard_utils import (
+        from wexample_filestate_python.utils.python_main_guard_utils import (
             find_main_guard_blocks,
             is_main_guard_at_end,
             move_main_guard_to_end,

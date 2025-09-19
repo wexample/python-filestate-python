@@ -20,7 +20,7 @@ class OrderConstantsConfigOption(AbstractPythonFileContentOption):
         Non-flagged constants and other contexts are ignored.
         """
         import libcst as cst
-        from wexample_filestate_python.operation.utils.python_constants_utils import (
+        from wexample_filestate_python.utils.python_constants_utils import (
             reorder_flagged_constants_everywhere,
         )
 

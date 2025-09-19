@@ -19,7 +19,7 @@ class OrderIterableItemsConfigOption(AbstractPythonFileContentOption):
         contiguous block of iterable items alphabetically (case-insensitive), preserving
         indentation and punctuation. Intended primarily for list literals written one-item-per-line.
         """
-        from wexample_filestate_python.operation.utils.python_iterable_utils import (
+        from wexample_filestate_python.utils.python_iterable_utils import (
             reorder_flagged_iterables,
         )
 

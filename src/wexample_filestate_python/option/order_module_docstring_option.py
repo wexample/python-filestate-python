@@ -19,7 +19,7 @@ class OrderModuleDocstringConfigOption(AbstractPythonFileContentOption):
         before any imports or other code elements.
         """
         import libcst as cst
-        from wexample_filestate_python.operation.utils.python_docstring_utils import (
+        from wexample_filestate_python.utils.python_docstring_utils import (
             find_module_docstring,
             is_module_docstring_at_top,
             move_docstring_to_top,
@@ -47,7 +47,7 @@ class OrderModuleDocstringConfigOption(AbstractPythonFileContentOption):
                         quote.startswith("'") and not quote.startswith('"')
                     ):
                         # Need to normalize quotes
-                        from wexample_filestate_python.operation.utils.python_docstring_utils import (
+                        from wexample_filestate_python.utils.python_docstring_utils import (
                             normalize_docstring_quotes,
                         )
 

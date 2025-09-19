@@ -31,7 +31,7 @@ class FixBlankLinesConfigOption(AbstractPythonFileContentOption):
         - Compatible with Black: allows blank line before type aliases and main guard
         """
         import libcst as cst
-        from wexample_filestate_python.operation.utils.python_blank_lines_utils import (
+        from wexample_filestate_python.utils.python_blank_lines_utils import (
             fix_function_blank_lines,
         )
 

@@ -32,19 +32,19 @@ class RelocateImportsConfigOption(AbstractPythonFileContentOption):
 
         import libcst as cst
 
-        from wexample_filestate_python.operation.utils.relocate_imports.python_import_rewriter import (
+        from wexample_filestate_python.utils.relocate_imports.python_import_rewriter import (
             PythonImportRewriter,
         )
-        from wexample_filestate_python.operation.utils.relocate_imports.python_localize_runtime_imports import (
+        from wexample_filestate_python.utils.relocate_imports.python_localize_runtime_imports import (
             PythonLocalizeRuntimeImports,
         )
-        from wexample_filestate_python.operation.utils.relocate_imports.python_parser_import_index import (
+        from wexample_filestate_python.utils.relocate_imports.python_parser_import_index import (
             PythonParserImportIndex,
         )
-        from wexample_filestate_python.operation.utils.relocate_imports.python_runtime_symbol_collector import (
+        from wexample_filestate_python.utils.relocate_imports.python_runtime_symbol_collector import (
             PythonRuntimeSymbolCollector,
         )
-        from wexample_filestate_python.operation.utils.relocate_imports.python_usage_collector import (
+        from wexample_filestate_python.utils.relocate_imports.python_usage_collector import (
             PythonUsageCollector,
         )
 

@@ -20,7 +20,7 @@ class FixAttrsConfigOption(AbstractPythonFileContentOption):
         - Ensure @attr.s always uses kw_only=True
         """
         import libcst as cst
-        from wexample_filestate_python.operation.utils.python_attrs_utils import (
+        from wexample_filestate_python.utils.python_attrs_utils import (
             fix_attrs_kw_only,
         )
 

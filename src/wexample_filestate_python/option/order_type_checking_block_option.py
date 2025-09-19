@@ -20,7 +20,7 @@ class OrderTypeCheckingBlockConfigOption(AbstractPythonFileContentOption):
         if no regular imports exist). Keeps spacing minimal and preserves content.
         """
         import libcst as cst
-        from wexample_filestate_python.operation.utils.python_type_checking_utils import (
+        from wexample_filestate_python.utils.python_type_checking_utils import (
             find_type_checking_blocks,
             move_type_checking_blocks_after_imports,
             target_index_for_type_checking,
