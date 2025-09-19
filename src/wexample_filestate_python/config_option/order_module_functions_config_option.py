@@ -2,38 +2,29 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from .abstract_python_file_operation import AbstractPythonFileOperation
+from wexample_helpers.decorator.base_class import base_class
+
+from .abstract_python_file_content_option import AbstractPythonFileContentOption
 
 if TYPE_CHECKING:
     from wexample_filestate.const.types_state_items import TargetFileOrDirectoryType
 
 
-class PythonOrderModuleFunctionsOperation(AbstractPythonFileOperation):
-    """Order module-level functions: public A–Z, then private (_*) A–Z, before classes.
+@base_class
+class OrderModuleFunctionsConfigOption(AbstractPythonFileContentOption):
+    def _apply_content_change(self, target: "TargetFileOrDirectoryType") -> str:
+        """Order module-level functions: public A–Z, then private (_*) A–Z, before classes.
 
-    - Keeps @overload groups attached to their implementation.
-    - Preserves spacing/comments by keeping each group's first function's leading_lines.
-
-    Triggered by config: { "python": ["order_module_functions"] }
-    """
-
-    @classmethod
-    def get_option_name(cls) -> str:
-        from wexample_filestate_python.config_option.python_config_option import (
-            PythonConfigOption,
-        )
-
-        return PythonConfigOption.OPTION_NAME_ORDER_MODULE_FUNCTIONS
-
-    @classmethod
-    def preview_source_change(cls, target: TargetFileOrDirectoryType) -> str | None:
+        - Keeps @overload groups attached to their implementation.
+        - Preserves spacing/comments by keeping each group's first function's leading_lines.
+        """
         import libcst as cst
         from wexample_filestate_python.operation.utils.python_functions_utils import (
             module_functions_sorted_before_classes,
             reorder_module_functions,
         )
 
-        src = cls._read_current_str_or_fail(target)
+        src = target.get_local_file().read()
         module = cst.parse_module(src)
 
         # Quick no-op detection: if there are no functions, or functions already sorted
@@ -44,8 +35,6 @@ class PythonOrderModuleFunctionsOperation(AbstractPythonFileOperation):
             pass
 
         modified = reorder_module_functions(module)
-        if modified.code == module.code:
-            return None
         return modified.code
 
     def describe_after(self) -> str:

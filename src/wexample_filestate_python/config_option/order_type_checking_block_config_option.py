@@ -2,32 +2,23 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from .abstract_python_file_operation import AbstractPythonFileOperation
+from wexample_helpers.decorator.base_class import base_class
+
+from .abstract_python_file_content_option import AbstractPythonFileContentOption
 
 if TYPE_CHECKING:
     from wexample_filestate.const.types_state_items import TargetFileOrDirectoryType
 
 
-class PythonOrderTypeCheckingBlockOperation(AbstractPythonFileOperation):
-    """Move `if TYPE_CHECKING:` blocks after regular imports.
+@base_class
+class OrderTypeCheckingBlockConfigOption(AbstractPythonFileContentOption):
+    def _apply_content_change(self, target: "TargetFileOrDirectoryType") -> str:
+        """Move `if TYPE_CHECKING:` blocks after regular imports.
 
-    Ensures that all top-level `if TYPE_CHECKING:` blocks are placed immediately
-    after the last regular import section (or after `from __future__ import ...`
-    if no regular imports exist). Keeps spacing minimal and preserves content.
-
-    Triggered by config: { "python": ["order_type_checking_block"] }
-    """
-
-    @classmethod
-    def get_option_name(cls) -> str:
-        from wexample_filestate_python.config_option.python_config_option import (
-            PythonConfigOption,
-        )
-
-        return PythonConfigOption.OPTION_NAME_ORDER_TYPE_CHECKING_BLOCK
-
-    @classmethod
-    def preview_source_change(cls, target: TargetFileOrDirectoryType) -> str | None:
+        Ensures that all top-level `if TYPE_CHECKING:` blocks are placed immediately
+        after the last regular import section (or after `from __future__ import ...`
+        if no regular imports exist). Keeps spacing minimal and preserves content.
+        """
         import libcst as cst
         from wexample_filestate_python.operation.utils.python_type_checking_utils import (
             find_type_checking_blocks,
@@ -35,12 +26,12 @@ class PythonOrderTypeCheckingBlockOperation(AbstractPythonFileOperation):
             target_index_for_type_checking,
         )
 
-        src = cls._read_current_str_or_fail(target)
+        src = target.get_local_file().read()
         module = cst.parse_module(src)
 
         blocks = find_type_checking_blocks(module)
         if not blocks:
-            return None
+            return src
 
         # Compute current positions; if already correctly positioned, no change
         current_indices = [i for i, _ in blocks]
@@ -50,7 +41,7 @@ class PythonOrderTypeCheckingBlockOperation(AbstractPythonFileOperation):
             range(current_indices[0], current_indices[0] + len(current_indices))
         )
         if contiguous and current_indices[0] == desired_index:
-            return None
+            return src
 
         modified = move_type_checking_blocks_after_imports(module)
         return modified.code

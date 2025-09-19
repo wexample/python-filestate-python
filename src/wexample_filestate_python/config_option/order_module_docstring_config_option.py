@@ -2,31 +2,22 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from .abstract_python_file_operation import AbstractPythonFileOperation
+from wexample_helpers.decorator.base_class import base_class
+
+from .abstract_python_file_content_option import AbstractPythonFileContentOption
 
 if TYPE_CHECKING:
     from wexample_filestate.const.types_state_items import TargetFileOrDirectoryType
 
 
-class PythonOrderModuleDocstringOperation(AbstractPythonFileOperation):
-    """Ensure module docstring is positioned at the very top of Python files.
+@base_class
+class OrderModuleDocstringConfigOption(AbstractPythonFileContentOption):
+    def _apply_content_change(self, target: "TargetFileOrDirectoryType") -> str:
+        """Ensure module docstring is positioned at the very top of Python files.
 
-    Moves the module docstring (if present) to be the first element in the file,
-    before any imports or other code elements.
-
-    Triggered by config: { "python": ["order_module_docstring"] }
-    """
-
-    @classmethod
-    def get_option_name(cls) -> str:
-        from wexample_filestate_python.config_option.python_config_option import (
-            PythonConfigOption,
-        )
-
-        return PythonConfigOption.OPTION_NAME_ORDER_MODULE_DOCSTRING
-
-    @classmethod
-    def preview_source_change(cls, target: TargetFileOrDirectoryType) -> str | None:
+        Moves the module docstring (if present) to be the first element in the file,
+        before any imports or other code elements.
+        """
         import libcst as cst
         from wexample_filestate_python.operation.utils.python_docstring_utils import (
             find_module_docstring,
@@ -34,7 +25,7 @@ class PythonOrderModuleDocstringOperation(AbstractPythonFileOperation):
             move_docstring_to_top,
         )
 
-        src = cls._read_current_str_or_fail(target)
+        src = target.get_local_file().read()
         module = cst.parse_module(src)
 
         # Check if there's a docstring and if it needs to be moved
@@ -42,7 +33,7 @@ class PythonOrderModuleDocstringOperation(AbstractPythonFileOperation):
 
         if docstring_node is None:
             # No docstring found, nothing to do
-            return None
+            return src
 
         if is_module_docstring_at_top(module):
             # Check if quotes need normalization
@@ -71,7 +62,7 @@ class PythonOrderModuleDocstringOperation(AbstractPythonFileOperation):
                         modified_module = module.with_changes(body=new_body)
                         return modified_module.code
             # Already at top and quotes are fine
-            return None
+            return src
 
         # Move docstring to top (this also normalizes quotes)
         modified_module = move_docstring_to_top(module)

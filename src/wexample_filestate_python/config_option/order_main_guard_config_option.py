@@ -2,31 +2,22 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from .abstract_python_file_operation import AbstractPythonFileOperation
+from wexample_helpers.decorator.base_class import base_class
+
+from .abstract_python_file_content_option import AbstractPythonFileContentOption
 
 if TYPE_CHECKING:
     from wexample_filestate.const.types_state_items import TargetFileOrDirectoryType
 
 
-class PythonOrderMainGuardOperation(AbstractPythonFileOperation):
-    """Ensure the `if __name__ == "__main__":` block is at the very end of the file.
+@base_class
+class OrderMainGuardConfigOption(AbstractPythonFileContentOption):
+    def _apply_content_change(self, target: "TargetFileOrDirectoryType") -> str:
+        """Ensure the `if __name__ == "__main__":` block is at the very end of the file.
 
-    Moves any top-level main-guard blocks to be the last non-empty statement in the
-    module (before trailing blank lines), preserving content and spacing as much as possible.
-
-    Triggered by config: { "python": ["order_main_guard"] }
-    """
-
-    @classmethod
-    def get_option_name(cls) -> str:
-        from wexample_filestate_python.config_option.python_config_option import (
-            PythonConfigOption,
-        )
-
-        return PythonConfigOption.OPTION_NAME_ORDER_MAIN_GUARD
-
-    @classmethod
-    def preview_source_change(cls, target: TargetFileOrDirectoryType) -> str | None:
+        Moves any top-level main-guard blocks to be the last non-empty statement in the
+        module (before trailing blank lines), preserving content and spacing as much as possible.
+        """
         import libcst as cst
         from wexample_filestate_python.operation.utils.python_main_guard_utils import (
             find_main_guard_blocks,
@@ -34,16 +25,16 @@ class PythonOrderMainGuardOperation(AbstractPythonFileOperation):
             move_main_guard_to_end,
         )
 
-        src = cls._read_current_str_or_fail(target)
+        src = target.get_local_file().read()
         module = cst.parse_module(src)
 
         # No main guard present => nothing to do
         if not find_main_guard_blocks(module):
-            return None
+            return src
 
         # Already at end => avoid whitespace-only diffs
         if is_main_guard_at_end(module):
-            return None
+            return src
 
         modified = move_main_guard_to_end(module)
         return modified.code
