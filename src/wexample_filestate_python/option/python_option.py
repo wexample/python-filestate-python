@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 from typing import Any, ClassVar, Union, TYPE_CHECKING
 
 from wexample_config.config_option.abstract_config_option import AbstractConfigOption
@@ -7,7 +8,6 @@ from wexample_filestate.option.mixin.option_mixin import OptionMixin
 from wexample_helpers.decorator.base_class import base_class
 
 if TYPE_CHECKING:
-    from wexample_filestate.operation.abstract_operation import AbstractOperation
     from wexample_filestate.const.types_state_items import TargetFileOrDirectoryType
 
 
@@ -56,7 +56,7 @@ class PythonOption(OptionMixin, AbstractNestedConfigOption):
     @staticmethod
     def get_raw_value_allowed_type() -> Any:
         from wexample_filestate_python.config_value.python_config_value import PythonConfigValue
-        
+
         return Union[list[str], dict, PythonConfigValue]
 
     def set_value(self, raw_value: Any) -> None:
@@ -66,7 +66,7 @@ class PythonOption(OptionMixin, AbstractNestedConfigOption):
             for option_name in raw_value:
                 dict_value[option_name] = True
             raw_value = dict_value
-        
+
         super().set_value(raw_value=raw_value)
 
     def get_allowed_options(self) -> list[type[AbstractConfigOption]]:
@@ -126,16 +126,5 @@ class PythonOption(OptionMixin, AbstractNestedConfigOption):
                 if operation:
                     # Return the first operation found
                     return operation
-        
+
         return None
-
-    def _read_current_content(self, target: TargetFileOrDirectoryType) -> str | None:
-        """Read current file content, return None if file doesn't exist."""
-        if not target.source or not target.source.get_path().exists():
-            return None
-        return target.get_local_file().read()
-
-    def _create_file_write_operation(self, **kwargs):
-        from wexample_filestate.operation.file_write_operation import FileWriteOperation
-        
-        return FileWriteOperation(**kwargs)
