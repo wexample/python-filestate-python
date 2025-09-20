@@ -6,6 +6,7 @@ from wexample_config.config_option.abstract_config_option import AbstractConfigO
 from wexample_config.config_option.abstract_nested_config_option import (
     AbstractNestedConfigOption,
 )
+from wexample_filestate.operation.abstract_operation import AbstractOperation
 from wexample_filestate.option.mixin.option_mixin import OptionMixin
 from wexample_helpers.decorator.base_class import base_class
 
@@ -160,13 +161,6 @@ class PythonOption(OptionMixin, AbstractNestedConfigOption):
     def create_required_operation(
         self, target: TargetFileOrDirectoryType
     ) -> AbstractOperation | None:
-        """Create operation by iterating through all enabled sub-options."""
-        for option_class in self.get_allowed_options():
-            option = self.get_option(option_class)
-            if option:
-                operation = target.try_create_operation_from_option(option=option)
-                if operation:
-                    # Return the first operation found
-                    return operation
-
-        return None
+        return self._create_child_required_operation(
+            target=target
+        )
