@@ -70,25 +70,6 @@ def package_get_info(package_dir: Path) -> tuple[str, set[str]] | None:
     return name, set(deps)
 
 
-def package_list_sorted(root_dir: str | Path) -> list[str]:
-    """
-    Get a list of package names sorted by dependency order.
-    """
-    from wexample_filestate.helpers.dependencies import dependencies_sort
-
-    dependencies = package_get_dependencies(root_dir)
-    if not dependencies:
-        return []
-
-    # Convert dependencies dict to list for sorting
-    packages = list(dependencies.keys())
-
-    def get_deps(pkg: str) -> set[str]:
-        return dependencies[pkg]
-
-    return dependencies_sort(packages, get_deps)
-
-
 def package_normalize_name(val: str) -> str:
     import re as _re
 
