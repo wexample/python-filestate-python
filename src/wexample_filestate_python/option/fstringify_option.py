@@ -14,6 +14,9 @@ if TYPE_CHECKING:
 
 @base_class
 class FstringifyOption(WithStdoutWrappingMixin, AbstractPythonFileContentOption):
+
+    def get_description(self) -> str:
+        return "Convert old-style string formatting to f-strings using flynt."
     def _apply_content_change(self, target: TargetFileOrDirectoryType) -> str:
         """Convert string formatting to f-strings using flynt."""
         from flynt.api import fstringify_code
@@ -27,6 +30,3 @@ class FstringifyOption(WithStdoutWrappingMixin, AbstractPythonFileContentOption)
 
         result = self._execute_and_wrap_stdout(_execute_fstringify)
         return result.content
-
-    def get_description(self) -> str:
-        return "Convert old-style string formatting to f-strings using flynt."

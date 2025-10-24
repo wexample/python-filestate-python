@@ -15,6 +15,9 @@ class FormatOption(AbstractPythonFileContentOption):
     # Use ClassVar to avoid Pydantic treating it as a model field/private attr
     _line_length: ClassVar[int] = 88
 
+    def get_description(self) -> str:
+        return "Format the Python file content using Black."
+
     def _apply_content_change(self, target: TargetFileOrDirectoryType) -> str:
         """Format Python files using Black."""
         import black
@@ -29,6 +32,3 @@ class FormatOption(AbstractPythonFileContentOption):
             return src
         except Exception as e:
             raise e
-
-    def get_description(self) -> str:
-        return "Format the Python file content using Black."

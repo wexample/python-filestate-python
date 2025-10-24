@@ -12,6 +12,11 @@ if TYPE_CHECKING:
 
 @base_class
 class FixAttrsOption(AbstractPythonFileContentOption):
+
+    def get_description(self) -> str:
+        return (
+            "Ensure attrs decorators (@attrs.define, @attr.s) always use kw_only=True."
+        )
     def _apply_content_change(self, target: TargetFileOrDirectoryType) -> str:
         """Fix attrs usage in Python files according to standardized rules.
 
@@ -29,8 +34,3 @@ class FixAttrsOption(AbstractPythonFileContentOption):
 
         modified = fix_attrs_kw_only(module)
         return modified.code
-
-    def get_description(self) -> str:
-        return (
-            "Ensure attrs decorators (@attrs.define, @attr.s) always use kw_only=True."
-        )

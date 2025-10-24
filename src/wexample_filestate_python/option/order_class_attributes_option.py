@@ -14,6 +14,7 @@ if TYPE_CHECKING:
 class OrderClassAttributesOption(AbstractPythonFileContentOption):
     def get_description(self) -> str:
         return "Sort class attribute blocks with special names prioritized, preserving comments and spacing."
+
     def _apply_content_change(self, target: TargetFileOrDirectoryType) -> str:
         """Sort class attributes: special first, then public A–Z, then private/protected A–Z.
 

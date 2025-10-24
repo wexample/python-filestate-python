@@ -14,8 +14,8 @@ class AddReturnTypesOption(AbstractPythonFileContentOption):
     def _apply_content_change(self, target: TargetFileOrDirectoryType) -> str:
         """Add return type annotations for functions lacking them when trivially inferable.
 
-	    Phase 1: annotate -> None, -> bool, -> str, -> int, -> float when all return
-	    statements in a function agree on one of these literal types."""
+        Phase 1: annotate -> None, -> bool, -> str, -> int, -> float when all return
+        statements in a function agree on one of these literal types."""
         import libcst as cst
 
         src = target.get_local_file().read()
@@ -110,7 +110,7 @@ class AddReturnTypesOption(AbstractPythonFileContentOption):
                 return None
 
             def _record_assignment(
-                    self, target: cst.BaseExpression, value: cst.BaseExpression
+                self, target: cst.BaseExpression, value: cst.BaseExpression
             ) -> None:
                 if not isinstance(target, cst.Name):
                     return
@@ -156,7 +156,7 @@ class AddReturnTypesOption(AbstractPythonFileContentOption):
                 self.known_types = known_types
 
             def _infer_return_expr_type(
-                    self, expr: cst.BaseExpression, var_types: dict[str, str]
+                self, expr: cst.BaseExpression, var_types: dict[str, str]
             ) -> str | None:
                 # Literal simple types
                 lit = _infer_literal_type(expr)
@@ -167,13 +167,13 @@ class AddReturnTypesOption(AbstractPythonFileContentOption):
                 if isinstance(expr, cst.Call):
                     func = expr.func
                     if (
-                            isinstance(func, cst.Name)
-                            and func.value in self.known_types
-                            and func.value[:1].isupper()
+                        isinstance(func, cst.Name)
+                        and func.value in self.known_types
+                        and func.value[:1].isupper()
                     ):
                         return func.value
                     if isinstance(func, cst.Attribute) and isinstance(
-                            func.attr, cst.Name
+                        func.attr, cst.Name
                     ):
                         attr_name = func.attr.value
                         if attr_name in self.known_types and attr_name[:1].isupper():
@@ -222,9 +222,9 @@ class AddReturnTypesOption(AbstractPythonFileContentOption):
                 return None
 
             def leave_FunctionDef(
-                    self,
-                    original_node: cst.FunctionDef,
-                    updated_node: cst.FunctionDef,
+                self,
+                original_node: cst.FunctionDef,
+                updated_node: cst.FunctionDef,
             ) -> cst.FunctionDef:
                 if updated_node.returns is None:
                     rtype = self._infer_for_function(original_node)
@@ -235,9 +235,9 @@ class AddReturnTypesOption(AbstractPythonFileContentOption):
                 return updated_node
 
             def leave_AsyncFunctionDef(
-                    self,
-                    original_node: cst.AsyncFunctionDef,
-                    updated_node: cst.AsyncFunctionDef,
+                self,
+                original_node: cst.AsyncFunctionDef,
+                updated_node: cst.AsyncFunctionDef,
             ) -> cst.AsyncFunctionDef:
                 if updated_node.returns is None:
                     rtype = self._infer_for_function(original_node)

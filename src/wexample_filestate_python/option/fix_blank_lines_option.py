@@ -12,6 +12,9 @@ if TYPE_CHECKING:
 
 @base_class
 class FixBlankLinesOption(AbstractPythonFileContentOption):
+
+    def get_description(self) -> str:
+        return "Remove blank lines immediately after function/method signatures, class definitions, and between signatures and docstrings."
     def _apply_content_change(self, target: TargetFileOrDirectoryType) -> str:
         """Fix blank lines in Python files according to standardized rules.
 
@@ -40,6 +43,3 @@ class FixBlankLinesOption(AbstractPythonFileContentOption):
 
         modified = fix_function_blank_lines(module)
         return modified.code
-
-    def get_description(self) -> str:
-        return "Remove blank lines immediately after function/method signatures, class definitions, and between signatures and docstrings."

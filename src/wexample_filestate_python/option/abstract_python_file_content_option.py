@@ -37,5 +37,5 @@ class AbstractPythonFileContentOption(OptionMixin, AbstractConfigOption):
         return None
 
     @abstract_method
-    def _apply_content_change(self, target: TargetFileOrDirectoryType):
+    def _apply_content_change(self, target: TargetFileOrDirectoryType) -> None:
         pass

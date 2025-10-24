@@ -12,6 +12,9 @@ if TYPE_CHECKING:
 
 @base_class
 class OrderConstantsOption(AbstractPythonFileContentOption):
+
+    def get_description(self) -> str:
+        return "Sort contiguous UPPER_CASE constant blocks marked with '# filestate: python-constant-sort' alphabetically at module level."
     def _apply_content_change(self, target: TargetFileOrDirectoryType) -> str:
         """Sort flagged constant blocks (UPPER_CASE) alphabetically A–Z at module level.
 
@@ -29,6 +32,3 @@ class OrderConstantsOption(AbstractPythonFileContentOption):
 
         modified = reorder_flagged_constants_everywhere(module, src)
         return modified.code
-
-    def get_description(self) -> str:
-        return "Sort contiguous UPPER_CASE constant blocks marked with '# filestate: python-constant-sort' alphabetically at module level."

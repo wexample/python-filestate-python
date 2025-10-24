@@ -161,6 +161,4 @@ class PythonOption(OptionMixin, AbstractNestedConfigOption):
     def create_required_operation(
         self, target: TargetFileOrDirectoryType
     ) -> AbstractOperation | None:
-        return self._create_child_required_operation(
-            target=target
-        )
+        return self._create_child_required_operation(target=target)

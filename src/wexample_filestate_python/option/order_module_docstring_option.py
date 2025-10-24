@@ -12,6 +12,9 @@ if TYPE_CHECKING:
 
 @base_class
 class OrderModuleDocstringOption(AbstractPythonFileContentOption):
+
+    def get_description(self) -> str:
+        return "Move module docstring to the top of Python files. Ensures the module docstring appears as the first element before any imports or code."
     def _apply_content_change(self, target: TargetFileOrDirectoryType) -> str:
         """Ensure module docstring is positioned at the very top of Python files.
 
@@ -67,6 +70,3 @@ class OrderModuleDocstringOption(AbstractPythonFileContentOption):
         # Move docstring to top (this also normalizes quotes)
         modified_module = move_docstring_to_top(module)
         return modified_module.code
-
-    def get_description(self) -> str:
-        return "Move module docstring to the top of Python files. Ensures the module docstring appears as the first element before any imports or code."
