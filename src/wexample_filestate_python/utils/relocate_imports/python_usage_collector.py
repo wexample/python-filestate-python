@@ -193,6 +193,14 @@ class PythonUsageCollector(cst.CSTVisitor):
             node.value.visit(self)
         return False  # Don't visit children (especially node.attr)
 
+    # Prevent visiting keyword argument names in function calls
+    def visit_Arg(self, node: cst.Arg) -> bool:  # type: ignore[override]
+        # Only visit the value, not the keyword name
+        # e.g., in foo(verbosity=123), visit 123 but not 'verbosity'
+        if node.value:
+            node.value.visit(self)
+        return False  # Don't visit children (especially node.keyword)
+
     # Treat bare Name usage inside function bodies as runtime usage (A)
     def visit_Name(self, node: cst.Name) -> None:  # type: ignore[override]
         if not self.func_stack:
