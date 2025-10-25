@@ -12,7 +12,6 @@ if TYPE_CHECKING:
 
 @base_class
 class OrderClassDocstringOption(AbstractPythonFileContentOption):
-
     def get_description(self) -> str:
         return "Ensure class docstrings are at the top of each class body, preserving headers and decorators."
     def _apply_content_change(self, target: TargetFileOrDirectoryType) -> str:

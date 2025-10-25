@@ -12,7 +12,6 @@ if TYPE_CHECKING:
 
 @base_class
 class UnquoteAnnotationsOption(AbstractPythonFileContentOption):
-
     def get_description(self) -> str:
         return "Unquote type annotations (arguments, returns, variables) using LibCST."
     def _apply_content_change(self, target: TargetFileOrDirectoryType) -> str:

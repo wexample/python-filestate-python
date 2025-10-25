@@ -12,7 +12,6 @@ if TYPE_CHECKING:
 
 @base_class
 class SortImportsOption(AbstractPythonFileContentOption):
-
     def get_description(self) -> str:
         return "Sort and group Python imports using isort."
     def _apply_content_change(self, target: TargetFileOrDirectoryType) -> str:

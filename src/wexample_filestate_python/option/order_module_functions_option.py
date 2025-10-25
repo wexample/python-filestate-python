@@ -12,7 +12,6 @@ if TYPE_CHECKING:
 
 @base_class
 class OrderModuleFunctionsOption(AbstractPythonFileContentOption):
-
     def get_description(self) -> str:
         return "Order module-level functions: public A–Z, then private (_*), keeping @overload groups, and move them before classes."
     def _apply_content_change(self, target: TargetFileOrDirectoryType) -> str:

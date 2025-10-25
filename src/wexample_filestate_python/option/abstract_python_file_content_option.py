@@ -10,14 +10,18 @@ from wexample_helpers.decorator.base_class import base_class
 if TYPE_CHECKING:
     from wexample_filestate.const.types_state_items import TargetFileOrDirectoryType
 
+
 @base_class
 class AbstractPythonFileContentOption(OptionMixin, AbstractConfigOption):
     @staticmethod
     def get_raw_value_allowed_type() -> Any:
         return bool
 
-    def create_required_operation(self, target: TargetFileOrDirectoryType) -> "AbstractOperation | None":
+    def create_required_operation(
+        self, target: TargetFileOrDirectoryType
+    ) -> "AbstractOperation | None":
         from wexample_filestate.operation.file_write_operation import FileWriteOperation
+
         """Create FileWriteOperation if add_future_annotations is enabled and needed."""
         # Get current content
         current_content = target.get_local_file().read()
@@ -31,7 +35,7 @@ class AbstractPythonFileContentOption(OptionMixin, AbstractConfigOption):
                 option=self,
                 target=target,
                 content=new_content,
-                description=self.get_description()
+                description=self.get_description(),
             )
 
         return None

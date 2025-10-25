@@ -11,6 +11,9 @@ if TYPE_CHECKING:
 
 @base_class
 class AddReturnTypesOption(AbstractPythonFileContentOption):
+
+    def get_description(self) -> str:
+        return "Add simple return type annotations (None/bool/str/int/float) when trivially inferable."
     def _apply_content_change(self, target: TargetFileOrDirectoryType) -> str:
         """Add return type annotations for functions lacking them when trivially inferable.
 
@@ -259,6 +262,3 @@ class AddReturnTypesOption(AbstractPythonFileContentOption):
 
         new_module = module.visit(AddReturnTypesTransformer(ktc.known))
         return new_module.code
-
-    def get_description(self) -> str:
-        return "Add simple return type annotations (None/bool/str/int/float) when trivially inferable."

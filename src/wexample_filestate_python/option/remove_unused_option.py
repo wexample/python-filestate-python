@@ -12,7 +12,6 @@ if TYPE_CHECKING:
 
 @base_class
 class RemoveUnusedOption(AbstractPythonFileContentOption):
-
     def get_description(self) -> str:
         return "Remove unused imports from the Python file using autoflake."
     def _apply_content_change(self, target: TargetFileOrDirectoryType) -> str:

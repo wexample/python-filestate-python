@@ -12,7 +12,6 @@ if TYPE_CHECKING:
 
 @base_class
 class FixAttrsOption(AbstractPythonFileContentOption):
-
     def get_description(self) -> str:
         return (
             "Ensure attrs decorators (@attrs.define, @attr.s) always use kw_only=True."

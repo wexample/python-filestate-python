@@ -166,6 +166,7 @@ def sort_constants_block(
     and clear leading_lines of subsequent nodes to avoid extra blank lines.
     """
     from wexample_filestate.helpers.flag import flag_exists
+
     # Preserve the entire leading_lines per node; additionally, capture the flag
     # comment lines from whichever node currently holds them so we can keep the flag
     # on the first node after sorting.

@@ -14,6 +14,7 @@ if TYPE_CHECKING:
 class OrderTypeCheckingBlockOption(AbstractPythonFileContentOption):
     def get_description(self) -> str:
         return "Move if TYPE_CHECKING blocks after imports. Keeps code layout predictable while preserving behavior."
+
     def _apply_content_change(self, target: TargetFileOrDirectoryType) -> str:
         """Move `if TYPE_CHECKING:` blocks after regular imports.
 

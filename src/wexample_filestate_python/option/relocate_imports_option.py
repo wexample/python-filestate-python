@@ -12,7 +12,6 @@ if TYPE_CHECKING:
 
 @base_class
 class RelocateImportsOption(AbstractPythonFileContentOption):
-
     def get_description(self) -> str:
         return "Relocate imports by usage. Move runtime-only symbols used inside methods into those methods; keep property-type imports at module level; move type-only imports under TYPE_CHECKING."
     def _apply_content_change(self, target: TargetFileOrDirectoryType) -> str:

@@ -64,15 +64,10 @@ class PythonOption(OptionMixin, AbstractNestedConfigOption):
 
         return Union[list[str], dict, PythonConfigValue]
 
-    def set_value(self, raw_value: Any) -> None:
-        # Convert list form to dict form for consistency
-        if isinstance(raw_value, list):
-            dict_value = {}
-            for option_name in raw_value:
-                dict_value[option_name] = True
-            raw_value = dict_value
-
-        super().set_value(raw_value=raw_value)
+    def create_required_operation(
+        self, target: TargetFileOrDirectoryType
+    ) -> AbstractOperation | None:
+        return self._create_child_required_operation(target=target)
 
     def get_allowed_options(self) -> list[type[AbstractConfigOption]]:
         # Import all the config options for each Python operation
@@ -158,7 +153,12 @@ class PythonOption(OptionMixin, AbstractNestedConfigOption):
             UnquoteAnnotationsOption,
         ]
 
-    def create_required_operation(
-        self, target: TargetFileOrDirectoryType
-    ) -> AbstractOperation | None:
-        return self._create_child_required_operation(target=target)
+    def set_value(self, raw_value: Any) -> None:
+        # Convert list form to dict form for consistency
+        if isinstance(raw_value, list):
+            dict_value = {}
+            for option_name in raw_value:
+                dict_value[option_name] = True
+            raw_value = dict_value
+
+        super().set_value(raw_value=raw_value)
