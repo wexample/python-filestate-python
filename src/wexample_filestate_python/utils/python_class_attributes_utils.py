@@ -86,26 +86,28 @@ def reorder_attribute_block(
         name = _attr_name(node) or ""
         if _is_special_attribute(node):
             # Category 0: special always first
-            return (0, _sort_key(name), False)
+            return (0, _sort_key(name))
         if dataclass_mode:
             # In dataclass mode, prioritize fields without defaults (required),
             # then fields with defaults/default_factory; non-field attributes come after.
+            # IMPORTANT: Required fields must stay before defaulted fields (Python constraint)
+            # so we DON'T sort alphabetically within required vs defaulted groups.
             if _is_dataclass_field(node):
                 if _dataclass_field_has_default(node):
-                    # Category 2: defaulted fields
-                    return (2, _sort_key(name), False)
-                # Category 1: required fields
-                return (1, _sort_key(name), False)
+                    # Category 2: defaulted fields (preserve original order within this group)
+                    return (2, nodes.index(node))
+                # Category 1: required fields (preserve original order within this group)
+                return (1, nodes.index(node))
             # Non-field attributes: keep public before private after fields
             if _is_public(name):
-                return (3, _sort_key(name), False)
-            return (4, _sort_key(name), False)
+                return (3, _sort_key(name))
+            return (4, _sort_key(name))
         # Default (non-dataclass) ordering: public, then private
         if _is_public(name):
             # Category 1
-            return (1, _sort_key(name), False)
+            return (1, _sort_key(name))
         # Category 2 (private/protected)
-        return (2, _sort_key(name), False)
+        return (2, _sort_key(name))
 
     original = list(nodes)
     sorted_nodes = sorted(nodes, key=cat)
