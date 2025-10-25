@@ -26,12 +26,13 @@ class FixBlankLinesOption(AbstractPythonFileContentOption):
         - Normalize double blank lines inside function/class bodies to maximum 1 blank line
         - Class properties: no blank lines between properties except UPPERCASE to lowercase transition
         - Class properties: blank line before first method after properties section
+        - Dataclass properties: blank line between required and optional properties
         - Module level: 0 blank lines before module docstring
         - Module level: 1 blank line after module docstring (if present)
         - Module level: 0 blank lines before first statement (if no docstring)
-        - Prevent double blank lines except: after imports, before classes/functions
         - Compatible with Black: allows blank line after class docstring
-        - Compatible with Black: allows blank line before type aliases and main guard
+        
+        Note: Module-level spacing (between classes/functions/imports) is handled by Black.
         """
         import libcst as cst
 

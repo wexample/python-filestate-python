@@ -40,8 +40,8 @@ def fix_function_blank_lines(module: cst.Module) -> cst.Module:
     # Also fix module-level docstring spacing
     modified_module = _fix_module_docstring_spacing(modified_module)
 
-    # Normalize double blank lines
-    modified_module = _normalize_double_blank_lines(modified_module)
+    # Note: Module-level blank line normalization (between classes/functions/imports)
+    # is handled by Black, so we don't duplicate that logic here.
 
     return modified_module
 
@@ -403,87 +403,6 @@ def _normalize_class_properties_spacing(
         return suite
 
     return suite.with_changes(body=body_list)
-
-
-def _normalize_double_blank_lines(module: cst.Module) -> cst.Module:
-    """Prevent double blank lines except after imports and before classes/functions at module level."""
-    body_list = list(module.body)
-    if len(body_list) <= 1:
-        return module
-
-    changed = False
-
-    for i in range(1, len(body_list)):
-        current_node = body_list[i]
-        prev_node = body_list[i - 1]
-
-        if not hasattr(current_node, "leading_lines"):
-            continue
-
-        # Count blank lines in leading_lines
-        blank_count = sum(
-            1
-            for line in current_node.leading_lines
-            if isinstance(line, cst.EmptyLine) and line.comment is None
-        )
-
-        # Determine allowed blank lines based on context
-        allowed_blanks = 1  # Default: max 1 blank line
-
-        # Exception 1: After imports, allow 2 blank lines
-        if _is_import_statement(prev_node):
-            # Check if this is the last import in a sequence
-            is_last_import = True
-            for j in range(i, len(body_list)):
-                if _is_import_statement(body_list[j]):
-                    is_last_import = False
-                    break
-                elif not isinstance(body_list[j], cst.EmptyLine):
-                    break
-
-            if is_last_import:
-                allowed_blanks = 2
-
-        # Exception 2: After classes at module level, allow 2 blank lines (Black compatibility)
-        if _is_class_definition(prev_node):
-            allowed_blanks = 2
-
-        # Exception 3: After functions at module level, allow 2 blank lines (Black compatibility)
-        if _is_function_definition(prev_node):
-            allowed_blanks = 2
-
-        # Exception 4: Before classes at module level, allow 2 blank lines
-        if _is_class_definition(current_node):
-            allowed_blanks = 2
-
-        # Exception 5: Before functions at module level, allow 2 blank lines
-        if _is_function_definition(current_node):
-            allowed_blanks = 2
-
-        # Exception 6: Before type aliases (Black compatibility)
-        if _is_type_alias(current_node):
-            allowed_blanks = 2
-
-        # Exception 7: Before if __name__ == "__main__" (Black compatibility)
-        if _is_main_guard(current_node):
-            allowed_blanks = 2
-
-        # Normalize if we have more blank lines than allowed
-        if blank_count > allowed_blanks:
-            # Keep non-blank leading lines and add exactly the allowed number of blanks
-            non_blank_leading = [
-                line
-                for line in current_node.leading_lines
-                if not (isinstance(line, cst.EmptyLine) and line.comment is None)
-            ]
-            new_leading = [cst.EmptyLine()] * allowed_blanks + non_blank_leading
-            body_list[i] = current_node.with_changes(leading_lines=new_leading)
-            changed = True
-
-    if not changed:
-        return module
-
-    return module.with_changes(body=body_list)
 
 
 def _normalize_double_blank_lines_in_suite(suite: cst.Suite) -> cst.Suite:
