@@ -204,30 +204,18 @@ def sort_constants_block(
     # flag comment lines to the new first node (removing them from others).
     sorted_nodes: list[cst.SimpleStatementLine] = []
     # Pre-clean each node's leading_lines by removing any flag lines to avoid duplicates
+    # and removing blank lines (we'll only keep them for the first node if they existed)
     cleaned_leadings = []
     for ll in original_leadings:
         cleaned = [
             el
             for el in ll
             if not (el.comment is not None and flag_exists(FLAG_NAME, el.comment.value))
+            and el.comment is not None  # Remove blank lines (EmptyLine with no comment)
         ]
         cleaned_leadings.append(cleaned)
 
     for idx, (_, node) in enumerate(sorted_pairs):
-        orig_idx = (
-            pairs.index(
-                (
-                    (
-                        node.body[0].targets[0].target.value
-                        if isinstance(node.body[0], cst.Assign)
-                        else node.body[0].target.value
-                    ),
-                    node,
-                )
-            )
-            if False
-            else None
-        )  # placeholder not used
         # Determine the original index of this node in 'nodes' list
         original_index = next((i for i, (_, n) in enumerate(pairs) if n is node), None)
         leading = (
@@ -235,8 +223,11 @@ def sort_constants_block(
             if original_index is not None
             else node.leading_lines
         )
+        
+        # For the first node, add flag lines
         if idx == 0 and collected_flag_lines:
             leading = collected_flag_lines + list(leading)
+        
         sorted_nodes.append(node.with_changes(leading_lines=leading))
     return sorted_nodes
 
