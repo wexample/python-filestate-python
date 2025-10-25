@@ -167,6 +167,20 @@ def _fix_module_docstring_spacing(module: cst.Module) -> cst.Module:
     return module.with_changes(body=body_list)
 
 
+def _has_default_value(node: cst.CSTNode) -> bool:
+    """Check if a property assignment has a default value."""
+    if isinstance(node, cst.SimpleStatementLine):
+        if len(node.body) == 1:
+            stmt = node.body[0]
+            # Check for annotated assignment with default (e.g., x: int = 5)
+            if isinstance(stmt, cst.AnnAssign):
+                return stmt.value is not None
+            # Check for regular assignment (e.g., x = 5)
+            elif isinstance(stmt, cst.Assign):
+                return True
+    return False
+
+
 def _is_blank_line(node: cst.CSTNode) -> bool:
     """Return True if node is an EmptyLine without a comment (blank line)."""
     return isinstance(node, cst.EmptyLine) and node.comment is None
@@ -186,6 +200,19 @@ def _is_class_property(node: cst.CSTNode) -> bool:
             if len(assign.targets) == 1:
                 target = assign.targets[0].target
                 return isinstance(target, cst.Name)
+    return False
+
+
+def _is_dataclass(class_node: cst.ClassDef) -> bool:
+    """Check if a class has @dataclass decorator."""
+    for decorator in class_node.decorators:
+        if isinstance(decorator.decorator, cst.Name):
+            if decorator.decorator.value == "dataclass":
+                return True
+        elif isinstance(decorator.decorator, cst.Call):
+            if isinstance(decorator.decorator.func, cst.Name):
+                if decorator.decorator.func.value == "dataclass":
+                    return True
     return False
 
 
@@ -256,33 +283,6 @@ def _is_uppercase_property(node: cst.CSTNode) -> bool:
         target = assign.targets[0].target
         if isinstance(target, cst.Name):
             return target.value.isupper()
-    return False
-
-
-def _is_dataclass(class_node: cst.ClassDef) -> bool:
-    """Check if a class has @dataclass decorator."""
-    for decorator in class_node.decorators:
-        if isinstance(decorator.decorator, cst.Name):
-            if decorator.decorator.value == "dataclass":
-                return True
-        elif isinstance(decorator.decorator, cst.Call):
-            if isinstance(decorator.decorator.func, cst.Name):
-                if decorator.decorator.func.value == "dataclass":
-                    return True
-    return False
-
-
-def _has_default_value(node: cst.CSTNode) -> bool:
-    """Check if a property assignment has a default value."""
-    if isinstance(node, cst.SimpleStatementLine):
-        if len(node.body) == 1:
-            stmt = node.body[0]
-            # Check for annotated assignment with default (e.g., x: int = 5)
-            if isinstance(stmt, cst.AnnAssign):
-                return stmt.value is not None
-            # Check for regular assignment (e.g., x = 5)
-            elif isinstance(stmt, cst.Assign):
-                return True
     return False
 
 
