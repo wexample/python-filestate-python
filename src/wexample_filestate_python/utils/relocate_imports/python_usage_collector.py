@@ -184,6 +184,15 @@ class PythonUsageCollector(cst.CSTVisitor):
             self._record_type_names(node.returns.annotation, self.used_in_C_annot)
         return True
 
+    # Track when we're inside an Attribute to avoid treating attribute names as bare names
+    def visit_Attribute(self, node: cst.Attribute) -> bool:  # type: ignore[override]
+        # Visit the value (left side) but not the attr (right side)
+        # This prevents visit_Name from being called on the attribute name itself
+        # e.g., in self.verbosity, we visit 'self' but not 'verbosity'
+        if isinstance(node.value, cst.BaseExpression):
+            node.value.visit(self)
+        return False  # Don't visit children (especially node.attr)
+
     # Treat bare Name usage inside function bodies as runtime usage (A)
     def visit_Name(self, node: cst.Name) -> None:  # type: ignore[override]
         if not self.func_stack:
@@ -331,15 +340,11 @@ class PythonUsageCollector(cst.CSTVisitor):
             if expr.value in self.imported_value_names:
                 bucket.add(expr.value)
         elif isinstance(expr, cst.Attribute):
-            # Walk attribute chain: prefer recording the base name (e.g., TerminalColor in TerminalColor.WHITE)
-            # Recurse into value first
+            # Walk attribute chain: only record the base name (e.g., TerminalColor in TerminalColor.WHITE)
+            # Recurse into value (left side) only
             self._walk_expr_for_names(expr.value, bucket)
-            # Also consider direct attr name if projects import attributes directly (rare)
-            if (
-                isinstance(expr.attr, cst.Name)
-                and expr.attr.value in self.imported_value_names
-            ):
-                bucket.add(expr.attr.value)
+            # DO NOT consider the attr name itself (right side) as an imported name to avoid
+            # confusion with instance/class attributes like self.verbosity vs imported verbosity
         elif isinstance(expr, cst.BinaryOperation):
             # Handle PEP 604 union types: e.g., Path | None
             # Traverse both sides of the binary operation
