@@ -72,7 +72,9 @@ class PythonLocalizeRuntimeImports(cst.CSTTransformer):
             return updated_node
 
         # Collect existing imports
-        def _collect_current_pairs(fn: cst.AsyncFunctionDef) -> set[tuple[str | None, str]]:
+        def _collect_current_pairs(
+            fn: cst.AsyncFunctionDef,
+        ) -> set[tuple[str | None, str]]:
             found: set[tuple[str | None, str]] = set()
 
             class _Find(cst.CSTVisitor):
@@ -94,13 +96,15 @@ class PythonLocalizeRuntimeImports(cst.CSTTransformer):
         existing = _collect_current_pairs(updated_node)
         if pairs.issubset(existing):
             return original_node
-        
+
         # Collect modules already imported in this function
         existing_modules = {mod for mod, _ in existing if mod is not None}
-        
+
         # Filter out pairs from modules that are already imported
-        pairs_to_add = {(mod, name) for mod, name in pairs if mod not in existing_modules}
-        
+        pairs_to_add = {
+            (mod, name) for mod, name in pairs if mod not in existing_modules
+        }
+
         # If no new pairs to add after filtering, return original
         if not pairs_to_add:
             return original_node
@@ -142,7 +146,7 @@ class PythonLocalizeRuntimeImports(cst.CSTTransformer):
             )
         ):
             insert_at = 1
-        
+
         # Build only the imports we need to add (filtered)
         to_inject_filtered = self._build_import_statements_from_pairs(pairs_to_add)
         new_body = body[:insert_at] + to_inject_filtered + body[insert_at:]
@@ -196,14 +200,16 @@ class PythonLocalizeRuntimeImports(cst.CSTTransformer):
         existing = _collect_current_pairs(updated_node)
         if pairs.issubset(existing):
             return original_node
-        
+
         # Collect modules already imported in this function
         existing_modules = {mod for mod, _ in existing if mod is not None}
-        
+
         # Filter out pairs from modules that are already imported
         # (avoid duplicate imports from same module with different symbols)
-        pairs_to_add = {(mod, name) for mod, name in pairs if mod not in existing_modules}
-        
+        pairs_to_add = {
+            (mod, name) for mod, name in pairs if mod not in existing_modules
+        }
+
         # If no new pairs to add after filtering, return original
         if not pairs_to_add:
             return original_node
@@ -246,7 +252,7 @@ class PythonLocalizeRuntimeImports(cst.CSTTransformer):
             )
         ):
             insert_at = 1
-        
+
         # Build only the imports we need to add (filtered)
         to_inject_filtered = self._build_import_statements_from_pairs(pairs_to_add)
         new_body = body[:insert_at] + to_inject_filtered + body[insert_at:]
@@ -263,11 +269,11 @@ class PythonLocalizeRuntimeImports(cst.CSTTransformer):
     ) -> list[cst.BaseStatement]:
         """Build import statements from a set of (module, name) pairs."""
         from collections import defaultdict
-        
+
         by_module: DefaultDict[str | None, list[str]] = defaultdict(list)
         for mod, name in pairs:
             by_module[mod].append(name)
-        
+
         stmts: list[cst.BaseStatement] = []
         for mod, idents in by_module.items():
             if not idents:

@@ -13,6 +13,7 @@ if TYPE_CHECKING:
 class AddReturnTypesOption(AbstractPythonFileContentOption):
     def get_description(self) -> str:
         return "Add simple return type annotations (None/bool/str/int/float) when trivially inferable."
+
     def _apply_content_change(self, target: TargetFileOrDirectoryType) -> str:
         """Add return type annotations for functions lacking them when trivially inferable.
 

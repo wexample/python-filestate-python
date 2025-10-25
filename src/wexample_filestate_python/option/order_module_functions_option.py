@@ -22,6 +22,7 @@ class OrderModuleFunctionsOption(AbstractPythonFileContentOption):
         - Preserves spacing/comments by keeping each group's first function's leading_lines.
         """
         import libcst as cst
+
         from wexample_filestate_python.utils.python_functions_utils import (
             module_functions_sorted_before_classes,
             reorder_module_functions,

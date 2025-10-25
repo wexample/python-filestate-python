@@ -3,10 +3,12 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from wexample_helpers.decorator.base_class import base_class
-from .abstract_python_file_content_option import AbstractPythonFileContentOption
+
 from wexample_filestate_python.config_option.mixin.with_stdout_wrapping_mixin import (
     WithStdoutWrappingMixin,
 )
+
+from .abstract_python_file_content_option import AbstractPythonFileContentOption
 
 if TYPE_CHECKING:
     from wexample_filestate.const.types_state_items import TargetFileOrDirectoryType

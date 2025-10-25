@@ -40,11 +40,11 @@ class PythonParserImportIndex(cst.CSTVisitor):
 
     def visit_ImportFrom(self, node: cst.ImportFrom) -> None:  # type: ignore[override]
         module_name = self._flatten_module_name(node.module)
-        
+
         # Skip __future__ imports - they must always stay at module top
         if module_name == "__future__":
             return
-            
+
         self.importfrom_nodes.append(node)
         if node.names is None or isinstance(node.names, cst.ImportStar):
             return

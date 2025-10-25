@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from wexample_config.config_option.abstract_config_option import AbstractConfigOption
 from wexample_filestate.option.mixin.option_mixin import OptionMixin

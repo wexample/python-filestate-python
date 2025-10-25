@@ -27,7 +27,9 @@ def fix_function_blank_lines(module: cst.Module) -> cst.Module:
             self, original_node: cst.ClassDef, updated_node: cst.ClassDef
         ) -> cst.ClassDef:
             # Fix blank lines in the class body
-            new_body = _remove_leading_blank_lines_from_class_suite(updated_node.body, class_node=updated_node)
+            new_body = _remove_leading_blank_lines_from_class_suite(
+                updated_node.body, class_node=updated_node
+            )
             if new_body is not updated_node.body:
                 return updated_node.with_changes(body=new_body)
             return updated_node
@@ -284,7 +286,9 @@ def _has_default_value(node: cst.CSTNode) -> bool:
     return False
 
 
-def _normalize_class_properties_spacing(suite: cst.Suite, is_dataclass: bool = False) -> cst.Suite:
+def _normalize_class_properties_spacing(
+    suite: cst.Suite, is_dataclass: bool = False
+) -> cst.Suite:
     """Normalize spacing in class properties section.
 
     Rules:
@@ -513,7 +517,9 @@ def _normalize_double_blank_lines_in_suite(suite: cst.Suite) -> cst.Suite:
     return suite.with_changes(body=body_list)
 
 
-def _remove_leading_blank_lines_from_class_suite(suite: cst.Suite, class_node: cst.ClassDef | None = None) -> cst.Suite:
+def _remove_leading_blank_lines_from_class_suite(
+    suite: cst.Suite, class_node: cst.ClassDef | None = None
+) -> cst.Suite:
     """Remove any leading blank lines from a class body suite.
 
     This ensures no blank lines appear immediately after the class signature.
@@ -559,7 +565,9 @@ def _remove_leading_blank_lines_from_class_suite(suite: cst.Suite, class_node: c
     # Allow Black's formatting for class docstrings - no blank line modifications
     # Normalize class properties spacing
     temp_suite = suite.with_changes(body=body_list) if changed else suite
-    properties_normalized = _normalize_class_properties_spacing(temp_suite, is_dataclass=is_dataclass)
+    properties_normalized = _normalize_class_properties_spacing(
+        temp_suite, is_dataclass=is_dataclass
+    )
 
     # Normalize double blank lines in the rest of the class body
     normalized_suite = _normalize_double_blank_lines_in_suite(properties_normalized)
