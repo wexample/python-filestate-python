@@ -97,13 +97,9 @@ class PythonLocalizeRuntimeImports(cst.CSTTransformer):
         if pairs.issubset(existing):
             return original_node
 
-        # Collect modules already imported in this function
-        existing_modules = {mod for mod, _ in existing if mod is not None}
-
-        # Filter out pairs from modules that are already imported
-        pairs_to_add = {
-            (mod, name) for mod, name in pairs if mod not in existing_modules
-        }
+        # Filter out pairs that already exist (exact module + name match)
+        # This avoids duplicate imports of the same symbol
+        pairs_to_add = pairs - existing
 
         # If no new pairs to add after filtering, return original
         if not pairs_to_add:
@@ -201,14 +197,9 @@ class PythonLocalizeRuntimeImports(cst.CSTTransformer):
         if pairs.issubset(existing):
             return original_node
 
-        # Collect modules already imported in this function
-        existing_modules = {mod for mod, _ in existing if mod is not None}
-
-        # Filter out pairs from modules that are already imported
-        # (avoid duplicate imports from same module with different symbols)
-        pairs_to_add = {
-            (mod, name) for mod, name in pairs if mod not in existing_modules
-        }
+        # Filter out pairs that already exist (exact module + name match)
+        # This avoids duplicate imports of the same symbol
+        pairs_to_add = pairs - existing
 
         # If no new pairs to add after filtering, return original
         if not pairs_to_add:
