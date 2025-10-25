@@ -358,3 +358,9 @@ class PythonUsageCollector(cst.CSTVisitor):
                     e.slice, cst.Index
                 ):
                     self._walk_expr_for_names(e.slice.value, bucket)
+        elif isinstance(expr, cst.Call):
+            # Walk into function calls to detect names in arguments
+            # e.g., private_field(default=VerbosityLevel.DEFAULT)
+            self._walk_expr_for_names(expr.func, bucket)
+            for arg in expr.args:
+                self._walk_expr_for_names(arg.value, bucket)
