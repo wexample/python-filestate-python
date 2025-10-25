@@ -39,10 +39,15 @@ class PythonParserImportIndex(cst.CSTVisitor):
         self.other_import_nodes.append(node)
 
     def visit_ImportFrom(self, node: cst.ImportFrom) -> None:  # type: ignore[override]
+        module_name = self._flatten_module_name(node.module)
+        
+        # Skip __future__ imports - they must always stay at module top
+        if module_name == "__future__":
+            return
+            
         self.importfrom_nodes.append(node)
         if node.names is None or isinstance(node.names, cst.ImportStar):
             return
-        module_name = self._flatten_module_name(node.module)
         for alias in node.names:
             if isinstance(alias, cst.ImportAlias):
                 asname = alias.asname.name.value if alias.asname else None
