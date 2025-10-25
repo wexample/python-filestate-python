@@ -71,6 +71,40 @@ class PythonLocalizeRuntimeImports(cst.CSTTransformer):
         if not to_inject:
             return updated_node
 
+        # Collect existing imports
+        def _collect_current_pairs(fn: cst.AsyncFunctionDef) -> set[tuple[str | None, str]]:
+            found: set[tuple[str | None, str]] = set()
+
+            class _Find(cst.CSTVisitor):
+                def leave_ImportFrom(self, node: cst.ImportFrom) -> None:  # type: ignore[override]
+                    if node.names is None or isinstance(node.names, cst.ImportStar):
+                        return
+                    mod = PythonLocalizeRuntimeImports._flatten_module_expr_to_str(
+                        node.module
+                    )
+                    for alias in node.names:
+                        if isinstance(alias, cst.ImportAlias) and isinstance(
+                            alias.name, cst.Name
+                        ):
+                            found.add((mod, alias.name.value))
+
+            fn.visit(_Find())
+            return found
+
+        existing = _collect_current_pairs(updated_node)
+        if pairs.issubset(existing):
+            return original_node
+        
+        # Collect modules already imported in this function
+        existing_modules = {mod for mod, _ in existing if mod is not None}
+        
+        # Filter out pairs from modules that are already imported
+        pairs_to_add = {(mod, name) for mod, name in pairs if mod not in existing_modules}
+        
+        # If no new pairs to add after filtering, return original
+        if not pairs_to_add:
+            return original_node
+
         class _PruneInner(cst.CSTTransformer):
             def leave_ImportFrom(self, original_node: cst.ImportFrom, updated_node: cst.ImportFrom):  # type: ignore[override]
                 if updated_node.names is None or isinstance(
@@ -89,7 +123,7 @@ class PythonLocalizeRuntimeImports(cst.CSTTransformer):
                     )
                     if not name:
                         continue
-                    if (mod, name) in pairs:
+                    if (mod, name) in pairs_to_add:
                         continue
                     kept_aliases.append(alias)
                 if not kept_aliases:
@@ -108,7 +142,10 @@ class PythonLocalizeRuntimeImports(cst.CSTTransformer):
             )
         ):
             insert_at = 1
-        new_body = body[:insert_at] + to_inject + body[insert_at:]
+        
+        # Build only the imports we need to add (filtered)
+        to_inject_filtered = self._build_import_statements_from_pairs(pairs_to_add)
+        new_body = body[:insert_at] + to_inject_filtered + body[insert_at:]
         return pruned_node.with_changes(
             body=pruned_node.body.with_changes(body=new_body)
         )
@@ -159,6 +196,17 @@ class PythonLocalizeRuntimeImports(cst.CSTTransformer):
         existing = _collect_current_pairs(updated_node)
         if pairs.issubset(existing):
             return original_node
+        
+        # Collect modules already imported in this function
+        existing_modules = {mod for mod, _ in existing if mod is not None}
+        
+        # Filter out pairs from modules that are already imported
+        # (avoid duplicate imports from same module with different symbols)
+        pairs_to_add = {(mod, name) for mod, name in pairs if mod not in existing_modules}
+        
+        # If no new pairs to add after filtering, return original
+        if not pairs_to_add:
+            return original_node
 
         # First prune matching imports anywhere within the function body
         class _PruneInner(cst.CSTTransformer):
@@ -179,7 +227,7 @@ class PythonLocalizeRuntimeImports(cst.CSTTransformer):
                     )
                     if not name:
                         continue
-                    if (mod, name) in pairs:
+                    if (mod, name) in pairs_to_add:
                         continue
                     kept_aliases.append(alias)
                 if not kept_aliases:
@@ -198,7 +246,10 @@ class PythonLocalizeRuntimeImports(cst.CSTTransformer):
             )
         ):
             insert_at = 1
-        new_body = body[:insert_at] + to_inject + body[insert_at:]
+        
+        # Build only the imports we need to add (filtered)
+        to_inject_filtered = self._build_import_statements_from_pairs(pairs_to_add)
+        new_body = body[:insert_at] + to_inject_filtered + body[insert_at:]
         return pruned_node.with_changes(
             body=pruned_node.body.with_changes(body=new_body)
         )
@@ -206,6 +257,33 @@ class PythonLocalizeRuntimeImports(cst.CSTTransformer):
     def visit_ClassDef(self, node: cst.ClassDef) -> bool:  # type: ignore[override]
         self.class_stack.append(node.name.value)
         return True
+
+    def _build_import_statements_from_pairs(
+        self, pairs: set[tuple[str | None, str]]
+    ) -> list[cst.BaseStatement]:
+        """Build import statements from a set of (module, name) pairs."""
+        from collections import defaultdict
+        
+        by_module: DefaultDict[str | None, list[str]] = defaultdict(list)
+        for mod, name in pairs:
+            by_module[mod].append(name)
+        
+        stmts: list[cst.BaseStatement] = []
+        for mod, idents in by_module.items():
+            if not idents:
+                continue
+            import_names = [cst.ImportAlias(name=cst.Name(n)) for n in sorted(idents)]
+            stmts.append(
+                cst.SimpleStatementLine(
+                    (
+                        cst.ImportFrom(
+                            module=self._build_module_expr(mod),
+                            names=tuple(import_names),
+                        ),
+                    )
+                )
+            )
+        return stmts
 
     def _build_local_imports(
         self, func_qname: str
