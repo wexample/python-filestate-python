@@ -14,6 +14,7 @@ if TYPE_CHECKING:
 class UnquoteAnnotationsOption(AbstractPythonFileContentOption):
     def get_description(self) -> str:
         return "Unquote type annotations (arguments, returns, variables) using LibCST."
+
     def _apply_content_change(self, target: TargetFileOrDirectoryType) -> str:
         """Remove quotes around type annotations by turning stringized annotations back into expressions."""
         import json

@@ -19,7 +19,7 @@ class AbstractPythonFileContentOption(OptionMixin, AbstractConfigOption):
 
     def create_required_operation(
         self, target: TargetFileOrDirectoryType
-    ) -> "AbstractOperation | None":
+    ) -> AbstractOperation | None:
         from wexample_filestate.operation.file_write_operation import FileWriteOperation
 
         """Create FileWriteOperation if add_future_annotations is enabled and needed."""

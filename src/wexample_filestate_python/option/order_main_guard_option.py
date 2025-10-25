@@ -14,6 +14,7 @@ if TYPE_CHECKING:
 class OrderMainGuardOption(AbstractPythonFileContentOption):
     def get_description(self) -> str:
         return "Ensure the if __name__ == '__main__': block is the last non-empty statement in the module."
+
     def _apply_content_change(self, target: TargetFileOrDirectoryType) -> str:
         """Ensure the `if __name__ == "__main__":` block is at the very end of the file.
 

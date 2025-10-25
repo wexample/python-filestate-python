@@ -16,6 +16,7 @@ class FixAttrsOption(AbstractPythonFileContentOption):
         return (
             "Ensure attrs decorators (@attrs.define, @attr.s) always use kw_only=True."
         )
+
     def _apply_content_change(self, target: TargetFileOrDirectoryType) -> str:
         """Fix attrs usage in Python files according to standardized rules.
 

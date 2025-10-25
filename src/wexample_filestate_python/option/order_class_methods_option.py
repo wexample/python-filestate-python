@@ -14,6 +14,7 @@ if TYPE_CHECKING:
 class OrderClassMethodsOption(AbstractPythonFileContentOption):
     def get_description(self) -> str:
         return "Order class methods and properties according to standardized rules (13–17)."
+
     def _apply_content_change(self, target: TargetFileOrDirectoryType) -> str:
         """Order class methods according to rules 13–17.
 

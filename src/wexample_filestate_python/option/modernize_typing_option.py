@@ -14,6 +14,7 @@ if TYPE_CHECKING:
 class ModernizeTypingOption(AbstractPythonFileContentOption):
     def get_description(self) -> str:
         return "Modernize typing syntax (PEP 585/604) using pyupgrade for Python 3.12."
+
     def _apply_content_change(self, target: TargetFileOrDirectoryType) -> str:
         """Modernize typing syntax (PEP 585/604) to Python 3.12 style."""
         from pyupgrade._main import Settings, _fix_plugins
