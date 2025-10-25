@@ -39,10 +39,9 @@ def fix_function_blank_lines(module: cst.Module) -> cst.Module:
 
     # Also fix module-level docstring spacing
     modified_module = _fix_module_docstring_spacing(modified_module)
-
+    
     # Note: Module-level blank line normalization (between classes/functions/imports)
     # is handled by Black, so we don't duplicate that logic here.
-
     return modified_module
 
 

@@ -31,7 +31,7 @@ class FixBlankLinesOption(AbstractPythonFileContentOption):
         - Module level: 1 blank line after module docstring (if present)
         - Module level: 0 blank lines before first statement (if no docstring)
         - Compatible with Black: allows blank line after class docstring
-        
+
         Note: Module-level spacing (between classes/functions/imports) is handled by Black.
         """
         import libcst as cst
