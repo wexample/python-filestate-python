@@ -444,19 +444,27 @@ def _normalize_double_blank_lines(module: cst.Module) -> cst.Module:
             if is_last_import:
                 allowed_blanks = 2
 
-        # Exception 2: Before classes at module level, allow 2 blank lines
+        # Exception 2: After classes at module level, allow 2 blank lines (Black compatibility)
+        if _is_class_definition(prev_node):
+            allowed_blanks = 2
+
+        # Exception 3: After functions at module level, allow 2 blank lines (Black compatibility)
+        if _is_function_definition(prev_node):
+            allowed_blanks = 2
+
+        # Exception 4: Before classes at module level, allow 2 blank lines
         if _is_class_definition(current_node):
             allowed_blanks = 2
 
-        # Exception 3: Before functions at module level, allow 2 blank lines
+        # Exception 5: Before functions at module level, allow 2 blank lines
         if _is_function_definition(current_node):
             allowed_blanks = 2
 
-        # Exception 4: Before type aliases (Black compatibility)
+        # Exception 6: Before type aliases (Black compatibility)
         if _is_type_alias(current_node):
             allowed_blanks = 2
 
-        # Exception 5: Before if __name__ == "__main__" (Black compatibility)
+        # Exception 7: Before if __name__ == "__main__" (Black compatibility)
         if _is_main_guard(current_node):
             allowed_blanks = 2
 
