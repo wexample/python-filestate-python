@@ -80,6 +80,12 @@ def reorder_attribute_block(
       1) Special (__slots__, __match_args__, inner class Config)
       2) Public A–Z
       3) Private/protected A–Z
+    
+    In dataclass mode:
+      1) Special
+      2) Required fields (no default) - public first, then private
+      3) Optional fields (with default) - public first, then private
+      4) Non-field attributes
     """
 
     def cat(node: cst.CSTNode) -> tuple:
@@ -90,14 +96,15 @@ def reorder_attribute_block(
         if dataclass_mode:
             # In dataclass mode, prioritize fields without defaults (required),
             # then fields with defaults/default_factory; non-field attributes come after.
-            # IMPORTANT: Required fields must stay before defaulted fields (Python constraint)
-            # so we DON'T sort alphabetically within required vs defaulted groups.
             if _is_dataclass_field(node):
-                if _dataclass_field_has_default(node):
-                    # Category 2: defaulted fields (preserve original order within this group)
-                    return (2, nodes.index(node))
-                # Category 1: required fields (preserve original order within this group)
-                return (1, nodes.index(node))
+                has_default = _dataclass_field_has_default(node)
+                is_public = _is_public(name)
+                if not has_default:
+                    # Category 1: required fields (public before private)
+                    return (1, 0 if is_public else 1, _sort_key(name))
+                else:
+                    # Category 2: defaulted fields (public before private)
+                    return (2, 0 if is_public else 1, _sort_key(name))
             # Non-field attributes: keep public before private after fields
             if _is_public(name):
                 return (3, _sort_key(name))
@@ -162,13 +169,23 @@ def _dataclass_field_has_default(node: cst.CSTNode) -> bool:
     """Return True if the dataclass field has a default value or default_factory.
 
     We treat any AnnAssign with a non-None value as having a default.
-    This includes calls like field(default=..., default_factory=...).
+    This includes:
+    - Direct assignment: `field: int = 5`
+    - field() calls: `field: int = field(default=5)`
+    - field() with default_factory: `field: list = field(default_factory=list)`
+    
+    Fields without `= ...` are considered required (no default).
     """
     if not _is_dataclass_field(node):
         return False
-    assert isinstance(node, cst.SimpleStatementLine)
+    if not isinstance(node, cst.SimpleStatementLine):
+        return False
+    if len(node.body) != 1:
+        return False
     small = node.body[0]
-    assert isinstance(small, cst.AnnAssign)
+    if not isinstance(small, cst.AnnAssign):
+        return False
+    # If there's a value assigned (anything after =), it has a default
     return small.value is not None
 
 
