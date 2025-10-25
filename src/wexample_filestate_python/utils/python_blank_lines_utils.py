@@ -27,7 +27,7 @@ def fix_function_blank_lines(module: cst.Module) -> cst.Module:
             self, original_node: cst.ClassDef, updated_node: cst.ClassDef
         ) -> cst.ClassDef:
             # Fix blank lines in the class body
-            new_body = _remove_leading_blank_lines_from_class_suite(updated_node.body)
+            new_body = _remove_leading_blank_lines_from_class_suite(updated_node.body, class_node=updated_node)
             if new_body is not updated_node.body:
                 return updated_node.with_changes(body=new_body)
             return updated_node
@@ -257,12 +257,40 @@ def _is_uppercase_property(node: cst.CSTNode) -> bool:
     return False
 
 
-def _normalize_class_properties_spacing(suite: cst.Suite) -> cst.Suite:
+def _is_dataclass(class_node: cst.ClassDef) -> bool:
+    """Check if a class has @dataclass decorator."""
+    for decorator in class_node.decorators:
+        if isinstance(decorator.decorator, cst.Name):
+            if decorator.decorator.value == "dataclass":
+                return True
+        elif isinstance(decorator.decorator, cst.Call):
+            if isinstance(decorator.decorator.func, cst.Name):
+                if decorator.decorator.func.value == "dataclass":
+                    return True
+    return False
+
+
+def _has_default_value(node: cst.CSTNode) -> bool:
+    """Check if a property assignment has a default value."""
+    if isinstance(node, cst.SimpleStatementLine):
+        if len(node.body) == 1:
+            stmt = node.body[0]
+            # Check for annotated assignment with default (e.g., x: int = 5)
+            if isinstance(stmt, cst.AnnAssign):
+                return stmt.value is not None
+            # Check for regular assignment (e.g., x = 5)
+            elif isinstance(stmt, cst.Assign):
+                return True
+    return False
+
+
+def _normalize_class_properties_spacing(suite: cst.Suite, is_dataclass: bool = False) -> cst.Suite:
     """Normalize spacing in class properties section.
 
     Rules:
     - No blank lines between properties
     - Exception: blank line when transitioning from UPPERCASE to lowercase properties
+    - Exception (dataclass): blank line between required properties (no default) and optional properties (with default)
     - Blank line before first method after properties section
     """
     body_list = list(suite.body)
@@ -317,6 +345,14 @@ def _normalize_class_properties_spacing(suite: cst.Suite) -> cst.Suite:
             or isinstance(current_node, cst.FunctionDef)
         ):
             should_have_blank = True
+
+        # Check for dataclass: transition from no-default to with-default
+        if is_dataclass:
+            prev_has_default = _has_default_value(prev_node)
+            current_has_default = _has_default_value(current_node)
+            # Add blank line when transitioning from required to optional properties
+            if not prev_has_default and current_has_default:
+                should_have_blank = True
 
         # Normalize blank lines
         target_blanks = 1 if should_have_blank else 0
@@ -477,7 +513,7 @@ def _normalize_double_blank_lines_in_suite(suite: cst.Suite) -> cst.Suite:
     return suite.with_changes(body=body_list)
 
 
-def _remove_leading_blank_lines_from_class_suite(suite: cst.Suite) -> cst.Suite:
+def _remove_leading_blank_lines_from_class_suite(suite: cst.Suite, class_node: cst.ClassDef | None = None) -> cst.Suite:
     """Remove any leading blank lines from a class body suite.
 
     This ensures no blank lines appear immediately after the class signature.
@@ -489,6 +525,7 @@ def _remove_leading_blank_lines_from_class_suite(suite: cst.Suite) -> cst.Suite:
         return suite
 
     changed = False
+    is_dataclass = _is_dataclass(class_node) if class_node else False
 
     # Check first element for leading_lines with blank lines
     if body_list and isinstance(
@@ -522,7 +559,7 @@ def _remove_leading_blank_lines_from_class_suite(suite: cst.Suite) -> cst.Suite:
     # Allow Black's formatting for class docstrings - no blank line modifications
     # Normalize class properties spacing
     temp_suite = suite.with_changes(body=body_list) if changed else suite
-    properties_normalized = _normalize_class_properties_spacing(temp_suite)
+    properties_normalized = _normalize_class_properties_spacing(temp_suite, is_dataclass=is_dataclass)
 
     # Normalize double blank lines in the rest of the class body
     normalized_suite = _normalize_double_blank_lines_in_suite(properties_normalized)
