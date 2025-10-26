@@ -4,6 +4,8 @@ from typing import ClassVar, DefaultDict
 
 import libcst as cst
 
+from wexample_filestate_python.utils.relocate_imports import PythonParserImportIndex
+
 
 class PythonUsageCollector(cst.CSTVisitor):
     """Collect usage of imported names across three categories:
@@ -384,3 +386,20 @@ class PythonUsageCollector(cst.CSTVisitor):
             self._walk_expr_for_names(expr.func, bucket)
             for arg in expr.args:
                 self._walk_expr_for_names(arg.value, bucket)
+        elif isinstance(expr, cst.List):
+            # Walk into list literals to detect names in elements
+            # e.g., validators=[RegexValidator(...)]
+            for element in expr.elements:
+                if isinstance(element, cst.Element):
+                    self._walk_expr_for_names(element.value, bucket)
+        elif isinstance(expr, cst.Tuple):
+            # Walk into tuple literals to detect names in elements
+            for element in expr.elements:
+                if isinstance(element, cst.Element):
+                    self._walk_expr_for_names(element.value, bucket)
+        elif isinstance(expr, cst.Dict):
+            # Walk into dict literals to detect names in keys and values
+            for element in expr.elements:
+                if isinstance(element, cst.DictElement):
+                    self._walk_expr_for_names(element.key, bucket)
+                    self._walk_expr_for_names(element.value, bucket)
