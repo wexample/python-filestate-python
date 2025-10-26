@@ -234,7 +234,12 @@ class PythonUsageCollector(cst.CSTVisitor):
             except Exception:
                 resolved_mod = None
             # Skip if module is unknown or belongs to typing/collections.abc
+            # Also skip bare imports (import os.path) which cannot be localized
             if resolved_mod in (None, "typing", "collections", "collections.abc"):
+                # For bare imports (resolved_mod is None), mark as module-level usage
+                # since we cannot relocate them (can't do "from os import path" locally)
+                if resolved_mod is None and val in self.imported_value_names:
+                    self.used_in_B.add(val)
                 return
             self.functions_needing_local[self.func_stack[-1]].add(val)
 
