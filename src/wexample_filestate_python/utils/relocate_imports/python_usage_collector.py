@@ -189,9 +189,16 @@ class PythonUsageCollector(cst.CSTVisitor):
                 pass
         return True
 
-    # Track decorator context to avoid treating decorator names as runtime usage
+    # Track decorator context and record decorator names as module-level usage (B)
+    # Decorators are evaluated at function/class definition time, not at runtime
     def visit_Decorator(self, node: cst.Decorator) -> bool:  # type: ignore[override]
         self._in_decorator_stack.append(True)
+        # Walk the decorator expression to find imported names
+        # e.g., @command, @option(...), @middleware(middleware=PackageSuiteMiddleware)
+        try:
+            self._walk_expr_for_names(node.decorator, self.used_in_B)
+        except Exception:
+            pass
         return True
 
     def visit_FunctionDef(self, node: cst.FunctionDef) -> bool:  # type: ignore[override]
