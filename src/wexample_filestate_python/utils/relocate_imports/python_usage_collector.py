@@ -96,6 +96,14 @@ class PythonUsageCollector(cst.CSTVisitor):
         self._in_annotation_stack.append(True)
         return True
 
+    # Prevent visiting keyword argument names in function calls
+    def visit_Arg(self, node: cst.Arg) -> bool:  # type: ignore[override]
+        # Only visit the value, not the keyword name
+        # e.g., in foo(verbosity=123), visit 123 but not 'verbosity'
+        if node.value:
+            node.value.visit(self)
+        return False  # Don't visit children (especially node.keyword)
+
     # Also treat class-level simple assignments where RHS references imported names as B.
     # Example: SERVICE_CLASS = GithubRemote
     def visit_Assign(self, node: cst.Assign) -> None:  # type: ignore[override]
@@ -114,6 +122,15 @@ class PythonUsageCollector(cst.CSTVisitor):
         if node.returns is not None:
             self._record_type_names(node.returns.annotation, self.used_in_C_annot)
         return True
+
+    # Track when we're inside an Attribute to avoid treating attribute names as bare names
+    def visit_Attribute(self, node: cst.Attribute) -> bool:  # type: ignore[override]
+        # Visit the value (left side) but not the attr (right side)
+        # This prevents visit_Name from being called on the attribute name itself
+        # e.g., in self.verbosity, we visit 'self' but not 'verbosity'
+        if isinstance(node.value, cst.BaseExpression):
+            node.value.visit(self)
+        return False  # Don't visit children (especially node.attr)
 
     # ----- A: runtime usages inside functions -----
     def visit_Call(self, node: cst.Call) -> None:  # type: ignore[override]
@@ -183,23 +200,6 @@ class PythonUsageCollector(cst.CSTVisitor):
         if node.returns is not None:
             self._record_type_names(node.returns.annotation, self.used_in_C_annot)
         return True
-
-    # Track when we're inside an Attribute to avoid treating attribute names as bare names
-    def visit_Attribute(self, node: cst.Attribute) -> bool:  # type: ignore[override]
-        # Visit the value (left side) but not the attr (right side)
-        # This prevents visit_Name from being called on the attribute name itself
-        # e.g., in self.verbosity, we visit 'self' but not 'verbosity'
-        if isinstance(node.value, cst.BaseExpression):
-            node.value.visit(self)
-        return False  # Don't visit children (especially node.attr)
-
-    # Prevent visiting keyword argument names in function calls
-    def visit_Arg(self, node: cst.Arg) -> bool:  # type: ignore[override]
-        # Only visit the value, not the keyword name
-        # e.g., in foo(verbosity=123), visit 123 but not 'verbosity'
-        if node.value:
-            node.value.visit(self)
-        return False  # Don't visit children (especially node.keyword)
 
     # Treat bare Name usage inside function bodies as runtime usage (A)
     def visit_Name(self, node: cst.Name) -> None:  # type: ignore[override]
