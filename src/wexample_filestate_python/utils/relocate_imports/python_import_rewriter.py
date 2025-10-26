@@ -89,7 +89,20 @@ class PythonImportRewriter(cst.CSTTransformer):
         for alias in updated_node.names:
             if not isinstance(alias, cst.ImportAlias):
                 continue
-            name = alias.name.value if isinstance(alias.name, cst.Name) else None
+            
+            # Extract the base module name (e.g., "os" from "import os.path")
+            if isinstance(alias.name, cst.Name):
+                name = alias.name.value
+            elif isinstance(alias.name, cst.Attribute):
+                # For "import os.path", extract the base name "os"
+                full_name = self._flatten_module_expr_to_str(alias.name)
+                if full_name and "." in full_name:
+                    name = full_name.split(".")[0]
+                else:
+                    name = full_name
+            else:
+                continue
+            
             if not name:
                 continue
             alias_ident = alias.asname.name.value if alias.asname else name
