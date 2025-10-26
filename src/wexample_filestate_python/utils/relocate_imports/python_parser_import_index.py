@@ -37,6 +37,27 @@ class PythonParserImportIndex(cst.CSTVisitor):
 
     def visit_Import(self, node: cst.Import) -> None:  # type: ignore[override]
         self.other_import_nodes.append(node)
+        # Index import statements: import os.path -> name_to_from["os"] = (None, None)
+        # The module name is stored as the imported name for bare imports
+        for name in node.names:
+            if isinstance(name, cst.ImportAlias):
+                # Get the module name (e.g., "os" from "import os.path")
+                if isinstance(name.name, cst.Name):
+                    module_name = name.name.value
+                elif isinstance(name.name, cst.Attribute):
+                    # For "import os.path", extract the base name "os"
+                    module_name = self._flatten_module_name(name.name)
+                    if module_name and "." in module_name:
+                        # Store the base module name (first part before dot)
+                        module_name = module_name.split(".")[0]
+                else:
+                    continue
+                
+                # Store the alias if present, otherwise the module name
+                alias_name = name.asname.name.value if name.asname else module_name
+                if alias_name:
+                    # For bare imports, we store None as the module since it's not a from-import
+                    self.name_to_from[alias_name] = (None, None)
 
     def visit_ImportFrom(self, node: cst.ImportFrom) -> None:  # type: ignore[override]
         module_name = self._flatten_module_name(node.module)
