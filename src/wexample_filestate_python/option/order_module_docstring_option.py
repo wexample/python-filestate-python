@@ -22,7 +22,6 @@ class OrderModuleDocstringOption(AbstractPythonFileContentOption):
         before any imports or other code elements.
         """
         import libcst as cst
-
         from wexample_filestate_python.utils.python_docstring_utils import (
             find_module_docstring,
             is_module_docstring_at_top,

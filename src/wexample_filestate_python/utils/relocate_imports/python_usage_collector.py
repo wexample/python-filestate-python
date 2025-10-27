@@ -3,7 +3,6 @@ from __future__ import annotations
 from typing import ClassVar, DefaultDict
 
 import libcst as cst
-
 from wexample_filestate_python.utils.relocate_imports import PythonParserImportIndex
 
 
