@@ -35,6 +35,7 @@ homepage = "https://github.com/wexample/python-filestate-python"
 [project.optional-dependencies]
 dev = [
     "pytest",
+    "pytest-cov",
 ]
 
 [tool.pdm]
@@ -52,3 +53,6 @@ keep = [
   "black",
   "isort"
 ]
+[tool.setuptools.packages.find]
+include = ["*"]
+exclude = ["wexample_filestate_python.testing*"]
