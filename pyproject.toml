@@ -4,7 +4,7 @@ build-backend = "pdm.backend"
 
 [project]
 name = "wexample-filestate-python"
-version = "0.0.44"
+version = "0.0.45"
 description = "Helpers for Python."
 authors = [
     { name = "weeger", email = "contact@wexample.com" },
@@ -18,8 +18,8 @@ classifiers = [
 dependencies = [
     "attrs>=23.1.0",
     "cattrs>=23.1.0",
-    "wexample-filestate==0.0.54",
-    "wexample-helpers-api==0.0.35",
+    "wexample-filestate==0.0.55",
+    "wexample-helpers-api==0.0.36",
 ]
 
 [project.readme]
