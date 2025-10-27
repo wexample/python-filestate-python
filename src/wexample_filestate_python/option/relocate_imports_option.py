@@ -34,6 +34,7 @@ class RelocateImportsOption(AbstractPythonFileContentOption):
         from typing import DefaultDict
 
         import libcst as cst
+
         from wexample_filestate_python.utils.relocate_imports.python_import_rewriter import (
             PythonImportRewriter,
         )
