@@ -52,7 +52,7 @@ class PythonParserImportIndex(cst.CSTVisitor):
                         module_name = module_name.split(".")[0]
                 else:
                     continue
-                
+
                 # Store the alias if present, otherwise the module name
                 alias_name = name.asname.name.value if name.asname else module_name
                 if alias_name:
