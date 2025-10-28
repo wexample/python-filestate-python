@@ -22,7 +22,6 @@ class OrderClassAttributesOption(AbstractPythonFileContentOption):
         contiguous attribute blocks and preserves comments attached to each attribute.
         """
         import libcst as cst
-
         from wexample_filestate_python.utils.python_class_attributes_utils import (
             ensure_order_class_attributes_in_module,
         )

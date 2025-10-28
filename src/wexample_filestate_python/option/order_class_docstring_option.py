@@ -24,7 +24,6 @@ class OrderClassDocstringOption(AbstractPythonFileContentOption):
         whitespace-only diffs when already correct.
         """
         import libcst as cst
-
         from wexample_filestate_python.utils.python_class_docstring_utils import (
             ensure_all_classes_docstring_first,
         )

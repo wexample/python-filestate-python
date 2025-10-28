@@ -35,7 +35,6 @@ class FixBlankLinesOption(AbstractPythonFileContentOption):
         Note: Module-level spacing (between classes/functions/imports) is handled by Black.
         """
         import libcst as cst
-
         from wexample_filestate_python.utils.python_blank_lines_utils import (
             fix_function_blank_lines,
         )
