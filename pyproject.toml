@@ -18,6 +18,7 @@ classifiers = [
 dependencies = [
     "attrs>=23.1.0",
     "cattrs>=23.1.0",
+    "tomli",
     "wexample-filestate==0.0.55",
     "wexample-helpers-api==0.0.36",
 ]
