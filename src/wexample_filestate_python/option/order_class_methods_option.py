@@ -25,6 +25,7 @@ class OrderClassMethodsOption(AbstractPythonFileContentOption):
         - Instance methods: public A–Z, then private/protected A–Z
         """
         import libcst as cst
+
         from wexample_filestate_python.utils.python_class_methods_utils import (
             ensure_order_class_methods_in_module,
         )
