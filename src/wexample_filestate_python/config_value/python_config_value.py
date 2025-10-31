@@ -102,7 +102,7 @@ class PythonConfigValue(ConfigValue):
         description="Unquote annotations (remove string annotations)",
     )
 
-    def to_option_raw_value(self) -> ConfigDict:
+    def to_option_raw_value(self) -> Any:
         from wexample_filestate_python.config_option.add_future_annotations_config_option import (
             AddFutureAnnotationsConfigOption,
         )
