@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from wexample_helpers.decorator.base_class import base_class
-
+from wexample_helpers.helpers.system import system_get_venv_bin_path
 from .abstract_python_file_content_option import AbstractPythonFileContentOption
 
 if TYPE_CHECKING:
@@ -21,7 +21,7 @@ class RemoveUnusedOption(AbstractPythonFileContentOption):
 
         result = shell_run(
             cmd=[
-                "autoflake",
+                f"{system_get_venv_bin_path()}/autoflake",
                 "--stdout",
                 "--remove-all-unused-imports",
                 "--remove-unused-variables",
