@@ -114,11 +114,25 @@ def reorder_attribute_block(
     if sorted_nodes == original:
         return original
 
-    # Preserve each node's own leading_lines; we don't need to move comments across nodes
-    # because comments directly above an attribute are attached to that attribute's leading_lines.
+    # Normalize leading_lines: only the first node keeps its leading_lines,
+    # others should have minimal leading_lines (preserve comments but remove blank lines).
     out: list[cst.CSTNode] = []
-    for node in sorted_nodes:
-        out.append(node)
+    for idx, node in enumerate(sorted_nodes):
+        if idx == 0:
+            # First node: keep its leading_lines as-is
+            out.append(node)
+        else:
+            # Subsequent nodes: strip blank leading_lines, keep only comment lines
+            if isinstance(node, cst.SimpleStatementLine):
+                # Filter leading_lines to keep only comment lines
+                comment_lines = [
+                    line for line in node.leading_lines if line.comment is not None
+                ]
+                out.append(node.with_changes(leading_lines=comment_lines))
+            else:
+                # For ClassDef or other nodes, just append as-is
+                # (blank separators are handled by EmptyLine nodes between body items)
+                out.append(node)
     return out
 
 
