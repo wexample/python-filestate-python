@@ -11,11 +11,10 @@ requires-python = ">=3.10"
 classifiers = ["Programming Language :: Python :: 3", "License :: OSI Approved :: MIT License", "Operating System :: OS Independent"]
 dependencies = [
     "attrs>=23.1.0",
-    "black",
+    "autoflake",
     "cattrs>=23.1.0",
     "libcst",
     "packaging",
-    "autoflake",
     "tomli",
     "wexample-filestate==0.0.56",
     "wexample-helpers-api==0.0.37",
