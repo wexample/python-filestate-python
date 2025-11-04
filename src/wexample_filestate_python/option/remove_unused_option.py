@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from wexample_helpers.decorator.base_class import base_class
+
 from .abstract_python_file_content_option import AbstractPythonFileContentOption
 
 if TYPE_CHECKING:
@@ -16,8 +17,8 @@ class RemoveUnusedOption(AbstractPythonFileContentOption):
 
     def _apply_content_change(self, target: TargetFileOrDirectoryType) -> str:
         """Remove unused Python imports using autoflake."""
-        from wexample_helpers.helpers.system import system_get_venv_bin_path
         from wexample_helpers.helpers.shell import shell_run
+        from wexample_helpers.helpers.system import system_get_venv_bin_path
 
         result = shell_run(
             cmd=[
