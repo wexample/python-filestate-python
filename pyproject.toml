@@ -17,7 +17,7 @@ dependencies = [
     "packaging",
     "tomli",
     "wexample-filestate==0.0.61",
-    "wexample-helpers-api==0.0.71",
+    "wexample-api==0.0.71",
 ]
 
 [project.readme]
