@@ -73,61 +73,61 @@ class PythonOption(OptionMixin, AbstractNestedConfigOption):
 
     def get_allowed_options(self) -> list[type[AbstractConfigOption]]:
         # Import all the config options for each Python operation
-        from wexample_filestate_python.option.add_future_annotations_option import (
+        from wexample_filestate_python.option.python.add_future_annotations_option import (
             AddFutureAnnotationsOption,
         )
-        from wexample_filestate_python.option.add_return_types_option import (
+        from wexample_filestate_python.option.python.add_return_types_option import (
             AddReturnTypesOption,
         )
-        from wexample_filestate_python.option.fix_attrs_option import FixAttrsOption
-        from wexample_filestate_python.option.fix_blank_lines_option import (
+        from wexample_filestate_python.option.python.fix_attrs_option import FixAttrsOption
+        from wexample_filestate_python.option.python.fix_blank_lines_option import (
             FixBlankLinesOption,
         )
-        from wexample_filestate_python.option.format_option import FormatOption
-        from wexample_filestate_python.option.fstringify_option import FstringifyOption
-        from wexample_filestate_python.option.modernize_typing_option import (
+        from wexample_filestate_python.option.python.format_option import FormatOption
+        from wexample_filestate_python.option.python.fstringify_option import FstringifyOption
+        from wexample_filestate_python.option.python.modernize_typing_option import (
             ModernizeTypingOption,
         )
-        from wexample_filestate_python.option.order_class_attributes_option import (
+        from wexample_filestate_python.option.python.order_class_attributes_option import (
             OrderClassAttributesOption,
         )
-        from wexample_filestate_python.option.order_class_docstring_option import (
+        from wexample_filestate_python.option.python.order_class_docstring_option import (
             OrderClassDocstringOption,
         )
-        from wexample_filestate_python.option.order_class_methods_option import (
+        from wexample_filestate_python.option.python.order_class_methods_option import (
             OrderClassMethodsOption,
         )
-        from wexample_filestate_python.option.order_constants_option import (
+        from wexample_filestate_python.option.python.order_constants_option import (
             OrderConstantsOption,
         )
-        from wexample_filestate_python.option.order_iterable_items_option import (
+        from wexample_filestate_python.option.python.order_iterable_items_option import (
             OrderIterableItemsOption,
         )
-        from wexample_filestate_python.option.order_main_guard_option import (
+        from wexample_filestate_python.option.python.order_main_guard_option import (
             OrderMainGuardOption,
         )
-        from wexample_filestate_python.option.order_module_docstring_option import (
+        from wexample_filestate_python.option.python.order_module_docstring_option import (
             OrderModuleDocstringOption,
         )
-        from wexample_filestate_python.option.order_module_functions_option import (
+        from wexample_filestate_python.option.python.order_module_functions_option import (
             OrderModuleFunctionsOption,
         )
-        from wexample_filestate_python.option.order_module_metadata_option import (
+        from wexample_filestate_python.option.python.order_module_metadata_option import (
             OrderModuleMetadataOption,
         )
-        from wexample_filestate_python.option.order_type_checking_block_option import (
+        from wexample_filestate_python.option.python.order_type_checking_block_option import (
             OrderTypeCheckingBlockOption,
         )
-        from wexample_filestate_python.option.relocate_imports_option import (
+        from wexample_filestate_python.option.python.relocate_imports_option import (
             RelocateImportsOption,
         )
-        from wexample_filestate_python.option.remove_unused_option import (
+        from wexample_filestate_python.option.python.remove_unused_option import (
             RemoveUnusedOption,
         )
-        from wexample_filestate_python.option.sort_imports_option import (
+        from wexample_filestate_python.option.python.sort_imports_option import (
             SortImportsOption,
         )
-        from wexample_filestate_python.option.unquote_annotations_option import (
+        from wexample_filestate_python.option.python.unquote_annotations_option import (
             UnquoteAnnotationsOption,
         )
 
