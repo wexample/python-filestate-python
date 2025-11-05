@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import ast
+from pathlib import Path
 from typing import TYPE_CHECKING
 
 from wexample_filestate.enum.scopes import Scope
@@ -7,8 +9,6 @@ from wexample_filestate.operation.abstract_operation import AbstractOperation
 from wexample_filestate.option.mixin.option_mixin import OptionMixin
 from wexample_config.config_option.abstract_config_option import AbstractConfigOption
 from wexample_helpers.decorator.base_class import base_class
-
-from .abstract_python_file_content_option import AbstractPythonFileContentOption
 
 if TYPE_CHECKING:
     from wexample_filestate.const.types_state_items import TargetFileOrDirectoryType
@@ -22,5 +22,48 @@ class ClassNameMatchesFileNameOption(OptionMixin, AbstractConfigOption):
     def create_required_operation(
             self, target: TargetFileOrDirectoryType, scopes: set[Scope]
     ) -> AbstractOperation | None:
-        print('TODO compare file name and class name')
-        print(target.get_path().name)
+        del scopes  # unused
+
+        if self._class_name_matches_file_name(target=target):
+            print("Ok")
+
+        return None
+
+    def _class_name_matches_file_name(
+        self, target: TargetFileOrDirectoryType
+    ) -> bool:
+        path = target.get_path()
+        if path.suffix != ".py":
+            return False
+
+        expected_name = self._expected_class_name_from_path(path)
+        if expected_name is None:
+            return False
+
+        source = target.get_local_file().read()
+        try:
+            module = ast.parse(source)
+        except SyntaxError:
+            return False
+
+        for node in module.body:
+            if isinstance(node, ast.ClassDef) and node.name == expected_name:
+                return True
+        return False
+
+    @staticmethod
+    def _expected_class_name_from_path(path: Path) -> str | None:
+        stem = path.stem
+        if not stem or stem == "__init__":
+            return None
+
+        cleaned = stem.replace("-", "_")
+        parts = [part for part in cleaned.split("_") if part]
+        if not parts:
+            return None
+
+        def normalize(part: str) -> str:
+            head, tail = part[:1], part[1:]
+            return head.upper() + tail.lower()
+
+        return "".join(normalize(part) for part in parts)
