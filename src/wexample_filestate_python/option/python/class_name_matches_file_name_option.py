@@ -24,19 +24,19 @@ class ClassNameMatchesFileNameOption(OptionMixin, AbstractConfigOption):
     ) -> AbstractOperation | None:
         del scopes  # unused
 
-        if self._class_name_matches_file_name(target=target):
-            print("Ok")
+        if not self._class_name_matches_file_name(target=target):
+            # TODO
+            print(f" CORRECT {target.get_path()}")
 
         return None
 
     def _class_name_matches_file_name(
         self, target: TargetFileOrDirectoryType
     ) -> bool:
-        path = target.get_path()
-        if path.suffix != ".py":
-            return False
+        expected_name = self._expected_class_name_from_path(
+            path=target.get_path()
+        )
 
-        expected_name = self._expected_class_name_from_path(path)
         if expected_name is None:
             return False
 
