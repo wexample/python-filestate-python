@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import os
+from pathlib import Path
 from typing import TYPE_CHECKING
 
 from wexample_helpers.decorator.base_class import base_class
@@ -28,7 +30,7 @@ class RemoveUnusedOption(AbstractPythonFileContentOption):
                 "--remove-unused-variables",
                 "--expand-star-imports",
                 "--remove-duplicate-keys",
-                target.get_path(),
+                str(target.get_path()),
             ],
         )
 
