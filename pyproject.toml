@@ -16,6 +16,8 @@ dependencies = [
     "libcst",
     "packaging",
     "tomli",
+    "black",
+    "isort",
     "wexample-api==0.0.78",
     "wexample-filestate==0.0.69",
 ]
