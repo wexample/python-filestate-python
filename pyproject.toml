@@ -66,6 +66,9 @@ exclude_lines = ["pragma: no cover", "def __repr__", "raise AssertionError", "ra
 [tool.filestate]
 # These dev packages are removed from dependencies if not specified here.
 keep = [
+  "autoflake",
   "black",
+  "libcst",
+  "tomli",
   "isort"
 ]
