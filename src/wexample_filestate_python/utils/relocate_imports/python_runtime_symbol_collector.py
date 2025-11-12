@@ -25,9 +25,31 @@ class PythonRuntimeSymbolCollector(cst.CSTVisitor):
         self.in_annotation_stack.append(True)
         return True
 
+    def visit_Attribute(self, node: cst.Attribute) -> bool:  # type: ignore[override]
+        """Visit Attribute nodes to detect runtime usage of imported names.
+        
+        For example, in TerminalColor.RED, we need to mark TerminalColor as runtime-used.
+        """
+        if self.in_annotation_stack:
+            return True
+        # Walk the value (left side) to find the base name
+        self._walk_for_runtime_names(node.value)
+        return False  # Don't visit children since we handled it manually
+
     def visit_Name(self, node: cst.Name) -> None:  # type: ignore[override]
         if self.in_annotation_stack:
             return
         val = node.value
         if val in self.imported_value_names:
             self.runtime_used_anywhere.add(val)
+
+    def _walk_for_runtime_names(self, expr: cst.BaseExpression) -> None:
+        """Recursively walk an expression to find imported names used at runtime."""
+        if isinstance(expr, cst.Name):
+            if expr.value in self.imported_value_names:
+                self.runtime_used_anywhere.add(expr.value)
+        elif isinstance(expr, cst.Attribute):
+            # Recurse into the value (left side) only
+            self._walk_for_runtime_names(expr.value)
+        elif isinstance(expr, cst.Subscript):
+            self._walk_for_runtime_names(expr.value)

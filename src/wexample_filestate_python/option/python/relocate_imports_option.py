@@ -152,11 +152,12 @@ class RelocateImportsOption(AbstractPythonFileContentOption):
 
         # For names used inside cast() anywhere in the module:
         # - do NOT auto-add to TYPE_CHECKING (unless also in annotations via type_only_for_block)
-        # - remove module-level import unless also class_level
+        # - remove module-level import unless also class_level or runtime_used_anywhere
+        # Exclude names used at runtime at module level (e.g., TerminalColor.RED in dict values)
         names_to_remove_from_module = (
-            set(runtime_local_final)
+            (set(runtime_local_final) - runtime_used_anywhere)
             | set(type_only_names)
-            | (set(cast_type_names_anywhere) - set(class_level_names))
+            | (set(cast_type_names_anywhere) - set(class_level_names) - runtime_used_anywhere)
         )
 
         # Do not add to TYPE_CHECKING if the name's module-level import is kept
