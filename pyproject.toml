@@ -21,7 +21,7 @@ dependencies = [
     "pyupgrade",
     "tomli",
     "wexample-api==0.0.78",
-    "wexample-filestate==0.0.69",
+    "wexample-filestate==0.0.70",
 ]
 
 [project.readme]
