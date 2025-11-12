@@ -1,6 +1,6 @@
 # wexample-filestate-python
 
-Version: 0.0.48
+Version: 0.0.54
 
 Helpers for Python.
 

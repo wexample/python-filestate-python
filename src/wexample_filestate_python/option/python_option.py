@@ -1,12 +1,11 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, ClassVar, Union
+from typing import TYPE_CHECKING, Any, Union
 
 from wexample_config.config_option.abstract_config_option import AbstractConfigOption
 from wexample_config.config_option.abstract_nested_config_option import (
     AbstractNestedConfigOption,
 )
-
 from wexample_filestate.enum.scopes import Scope
 from wexample_filestate.operation.abstract_operation import AbstractOperation
 from wexample_filestate.option.mixin.option_mixin import OptionMixin
@@ -39,12 +38,19 @@ class PythonOption(OptionMixin, AbstractNestedConfigOption):
         from wexample_filestate_python.option.python.add_return_types_option import (
             AddReturnTypesOption,
         )
-        from wexample_filestate_python.option.python.fix_attrs_option import FixAttrsOption
+        from wexample_filestate_python.option.python.class_name_matches_file_name_option import (
+            ClassNameMatchesFileNameOption,
+        )
+        from wexample_filestate_python.option.python.fix_attrs_option import (
+            FixAttrsOption,
+        )
         from wexample_filestate_python.option.python.fix_blank_lines_option import (
             FixBlankLinesOption,
         )
         from wexample_filestate_python.option.python.format_option import FormatOption
-        from wexample_filestate_python.option.python.fstringify_option import FstringifyOption
+        from wexample_filestate_python.option.python.fstringify_option import (
+            FstringifyOption,
+        )
         from wexample_filestate_python.option.python.modernize_typing_option import (
             ModernizeTypingOption,
         )
@@ -90,7 +96,6 @@ class PythonOption(OptionMixin, AbstractNestedConfigOption):
         from wexample_filestate_python.option.python.unquote_annotations_option import (
             UnquoteAnnotationsOption,
         )
-        from wexample_filestate_python.option.python.class_name_matches_file_name_option import ClassNameMatchesFileNameOption
 
         return [
             AddFutureAnnotationsOption,

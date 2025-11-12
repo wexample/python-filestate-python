@@ -157,7 +157,11 @@ class RelocateImportsOption(AbstractPythonFileContentOption):
         names_to_remove_from_module = (
             (set(runtime_local_final) - runtime_used_anywhere)
             | set(type_only_names)
-            | (set(cast_type_names_anywhere) - set(class_level_names) - runtime_used_anywhere)
+            | (
+                set(cast_type_names_anywhere)
+                - set(class_level_names)
+                - runtime_used_anywhere
+            )
         )
 
         # Do not add to TYPE_CHECKING if the name's module-level import is kept

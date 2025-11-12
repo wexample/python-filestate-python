@@ -27,7 +27,7 @@ class PythonRuntimeSymbolCollector(cst.CSTVisitor):
 
     def visit_Attribute(self, node: cst.Attribute) -> bool:  # type: ignore[override]
         """Visit Attribute nodes to detect runtime usage of imported names.
-        
+
         For example, in TerminalColor.RED, we need to mark TerminalColor as runtime-used.
         """
         if self.in_annotation_stack:
