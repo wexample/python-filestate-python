@@ -27,6 +27,7 @@ class PythonLocalizeRuntimeImports(cst.CSTTransformer):
         self.functions_needing_local = functions_needing_local
         self.skip_local_names = skip_local_names or set()
         self.class_stack: list[str] = []
+        self.func_stack: list[str] = []
 
     @staticmethod
     def _build_module_expr(mod: str | None) -> cst.BaseExpression | None:
@@ -63,10 +64,11 @@ class PythonLocalizeRuntimeImports(cst.CSTTransformer):
         self, original_node: cst.AsyncFunctionDef, updated_node: cst.AsyncFunctionDef
     ) -> cst.AsyncFunctionDef:
         func_qname = (
-            ".".join(self.class_stack + [original_node.name.value])
-            if self.class_stack
+            ".".join(self.class_stack + self.func_stack + [original_node.name.value])
+            if (self.class_stack or self.func_stack)
             else original_node.name.value
         )
+        self.func_stack.pop()
         to_inject, pairs = self._build_local_imports(func_qname)
         if not to_inject:
             return updated_node
@@ -160,10 +162,11 @@ class PythonLocalizeRuntimeImports(cst.CSTTransformer):
         self, original_node: cst.FunctionDef, updated_node: cst.FunctionDef
     ) -> cst.FunctionDef:
         func_qname = (
-            ".".join(self.class_stack + [original_node.name.value])
-            if self.class_stack
+            ".".join(self.class_stack + self.func_stack + [original_node.name.value])
+            if (self.class_stack or self.func_stack)
             else original_node.name.value
         )
+        self.func_stack.pop()
         # Build consolidated imports and list of pairs to hoist
         to_inject, pairs = self._build_local_imports(func_qname)
         if not to_inject:
@@ -251,8 +254,16 @@ class PythonLocalizeRuntimeImports(cst.CSTTransformer):
             body=pruned_node.body.with_changes(body=new_body)
         )
 
+    def visit_AsyncFunctionDef(self, node: cst.AsyncFunctionDef) -> bool:  # type: ignore[override]
+        self.func_stack.append(node.name.value)
+        return True
+
     def visit_ClassDef(self, node: cst.ClassDef) -> bool:  # type: ignore[override]
         self.class_stack.append(node.name.value)
+        return True
+
+    def visit_FunctionDef(self, node: cst.FunctionDef) -> bool:  # type: ignore[override]
+        self.func_stack.append(node.name.value)
         return True
 
     def _build_import_statements_from_pairs(

@@ -341,7 +341,9 @@ class PythonUsageCollector(cst.CSTVisitor):
 
     # ----- internals -----
     def _qualified_func_name(self, base: str) -> str:
-        return ".".join(self.class_stack + [base]) if self.class_stack else base
+        # Include func_stack to distinguish nested functions with the same name
+        # e.g., ScreenExample.demo_with_progress_and_confirm._callback vs ScreenExample.example_extended._callback
+        return ".".join(self.class_stack + self.func_stack + [base]) if (self.class_stack or self.func_stack) else base
 
     def _record_type_names(self, ann: cst.BaseExpression, bucket: set[str]) -> None:
         if isinstance(ann, cst.Name):
