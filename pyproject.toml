@@ -12,14 +12,14 @@ classifiers = ["Programming Language :: Python :: 3", "License :: OSI Approved :
 dependencies = [
     "attrs>=23.1.0",
     "autoflake",
+    "black",
     "cattrs>=23.1.0",
+    "flynt",
+    "isort",
     "libcst",
     "packaging",
-    "tomli",
-    "black",
     "pyupgrade",
-    "isort",
-    "flynt",
+    "tomli",
     "wexample-api==0.0.78",
     "wexample-filestate==0.0.69",
 ]
