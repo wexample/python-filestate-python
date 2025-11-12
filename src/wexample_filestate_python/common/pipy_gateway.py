@@ -1,11 +1,13 @@
 from __future__ import annotations
 
-from pydantic import Field
-from wexample_helpers_api.common.abstract_gateway import AbstractGateway
+from wexample_api.common.abstract_gateway import AbstractGateway
+from wexample_helpers.classes.field import public_field
+from wexample_helpers.decorator.base_class import base_class
 
 
+@base_class
 class PipyGateway(AbstractGateway):
-    base_url: str | None = Field(
+    base_url: str | None = public_field(
         default="https://pypi.org/", description="Base Pipy API URL"
     )
 

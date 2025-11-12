@@ -4,29 +4,24 @@ build-backend = "pdm.backend"
 
 [project]
 name = "wexample-filestate-python"
-version = "0.0.37"
+version = "0.0.55"
 description = "Helpers for Python."
-authors = [
-    { name = "weeger", email = "contact@wexample.com" },
-]
+authors = [{name = "weeger", email = "contact@wexample.com"}]
 requires-python = ">=3.10"
-classifiers = [
-    "Programming Language :: Python :: 3",
-    "License :: OSI Approved :: MIT License",
-    "Operating System :: OS Independent",
-]
+classifiers = ["Programming Language :: Python :: 3", "License :: OSI Approved :: MIT License", "Operating System :: OS Independent"]
 dependencies = [
+    "attrs>=23.1.0",
     "autoflake",
     "black",
+    "cattrs>=23.1.0",
     "flynt",
     "isort",
-    "networkx",
+    "libcst",
     "packaging",
-    "pydantic>=2,<3",
-    "python-dotenv",
     "pyupgrade",
-    "tomlkit",
-    "wexample-filestate-git==0.0.36",
+    "tomli",
+    "wexample-api==0.0.78",
+    "wexample-filestate==0.0.69",
 ]
 
 [project.readme]
@@ -42,23 +37,42 @@ homepage = "https://github.com/wexample/python-filestate-python"
 [project.optional-dependencies]
 dev = [
     "pytest",
+    "pytest-cov",
 ]
+
+[tool.setuptools.packages.find]
+include = ["*"]
+exclude = ["wexample_filestate_python.testing*"]
 
 [tool.pdm]
 distribution = true
 
 [tool.pdm.build]
-includes = [
-    "src/wexample_filestate_python/py.typed",
-]
 package-dir = "src"
 
 [[tool.pdm.build.packages]]
 include = "wexample_filestate_python"
 from = "src"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+
+[tool.coverage.run]
+source = ["wexample_filestate_python"]
+omit = ["*/tests/*", "*/.venv/*", "*/venv/*"]
+
+[tool.coverage.report]
+exclude_lines = ["pragma: no cover", "def __repr__", "raise AssertionError", "raise NotImplementedError", "if __name__ == .__main__.:", "if TYPE_CHECKING:", "@abstractmethod"]
+
 [tool.filestate]
 # These dev packages are removed from dependencies if not specified here.
 keep = [
+  "autoflake",
   "black",
-  "isort"
+  "libcst",
+  "tomli",
+  "pyupgrade",
+  "isort",
+  "flynt"
 ]
