@@ -119,7 +119,7 @@ Community support is available through GitHub Discussions.
 
 ## Contribution Guidelines
 
-We welcome contributions to the Wexample suite! 
+We welcome contributions to the Wexample suite!
 
 ### How to Contribute
 
