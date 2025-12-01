@@ -98,6 +98,7 @@ class PythonOption(OptionMixin, AbstractNestedConfigOption):
         )
 
         return [
+            # filestate: python-iterable-sort
             AddFutureAnnotationsOption,
             AddReturnTypesOption,
             ClassNameMatchesFileNameOption,
