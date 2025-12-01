@@ -4,6 +4,45 @@ Version: 0.0.56
 
 Helpers for Python.
 
+## Table of Contents
+
+- [Status Compatibility](#status-compatibility)
+- [Api Reference](#api-reference)
+- [Tests](#tests)
+- [Code Quality](#code-quality)
+- [Versioning](#versioning)
+- [Changelog](#changelog)
+- [Migration Notes](#migration-notes)
+- [Roadmap](#roadmap)
+- [Security](#security)
+- [Privacy](#privacy)
+- [Support](#support)
+- [Contribution Guidelines](#contribution-guidelines)
+- [Maintainers](#maintainers)
+- [License](#license)
+- [Useful Links](#useful-links)
+- [Suite Integration](#suite-integration)
+- [Compatibility Matrix](#compatibility-matrix)
+- [Dependencies](#dependencies)
+- [Suite Signature](#suite-signature)
+
+
+## Status & Compatibility
+
+**Maturity**: Production-ready
+
+**Python Support**: >=3.10
+
+**OS Support**: Linux, macOS, Windows
+
+**Status**: Actively maintained
+
+## API Reference
+
+Full API documentation is available in the source code docstrings.
+
+Key modules and classes are documented with type hints for better IDE support.
+
 ## Tests
 
 This project uses `pytest` for testing and `pytest-cov` for code coverage analysis.
@@ -143,10 +182,10 @@ Free to use in both personal and commercial projects.
 
 ## Useful Links
 
-- **Homepage**: https://github.com/wexample/python-filestate_python
+- **Homepage**: https://github.com/wexample/python-filestate-python
 - **Documentation**: [docs.wexample.com](https://docs.wexample.com)
-- **Issue Tracker**: https://github.com/wexample/python-filestate_python/issues
-- **Discussions**: https://github.com/wexample/python-filestate_python/discussions
+- **Issue Tracker**: https://github.com/wexample/python-filestate-python/issues
+- **Discussions**: https://github.com/wexample/python-filestate-python/discussions
 - **PyPI**: [pypi.org/project/wexample-filestate-python](https://pypi.org/project/wexample-filestate-python/)
 
 ## Integration in the Suite
@@ -158,6 +197,28 @@ This package is part of the **Wexample Suite** — a collection of high-quality 
 The suite includes packages for configuration management, file handling, prompts, and more. Each package can be used independently or as part of the integrated suite.
 
 Visit the [Wexample Suite documentation](https://docs.wexample.com) for the complete package ecosystem.
+
+## Compatibility Matrix
+
+This package is part of the Wexample suite and is compatible with other suite packages.
+
+Refer to each package's documentation for specific version compatibility requirements.
+
+## Dependencies
+
+- attrs: >=23.1.0
+- autoflake: 
+- black: 
+- cattrs: >=23.1.0
+- flynt: 
+- isort: 
+- libcst: 
+- packaging: 
+- pyupgrade: 
+- tomli: 
+- wexample-api: ==0.0.80
+- wexample-filestate: ==0.0.71
+
 
 # About us
 
