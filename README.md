@@ -1,6 +1,6 @@
 # wexample-filestate-python
 
-Version: 0.0.57
+Version: 0.0.58
 
 Helpers for Python.
 
@@ -190,7 +190,7 @@ Free to use in both personal and commercial projects.
 
 ## Integration in the Suite
 
-This package is part of the **Wexample Suite** — a collection of high-quality Python packages designed to work seamlessly together.
+This package is part of the Wexample Suite — a collection of high-quality, modular tools designed to work seamlessly together across multiple languages and environments.
 
 ### Related Packages
 
@@ -216,8 +216,8 @@ Refer to each package's documentation for specific version compatibility require
 - packaging: 
 - pyupgrade: 
 - tomli: 
-- wexample-api: ==0.0.81
-- wexample-filestate: ==0.0.72
+- wexample-api: ==0.0.83
+- wexample-filestate: ==0.0.74
 
 
 # About us
