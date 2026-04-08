@@ -17,6 +17,10 @@ if TYPE_CHECKING:
 
 @base_class
 class PythonOption(OptionMixin, AbstractNestedConfigOption):
+    @classmethod
+    def get_scopes(cls) -> list[Scope]:
+        return [Scope.CONTENT]
+
     @staticmethod
     def get_raw_value_allowed_type() -> Any:
         from wexample_filestate_python.config_value.python_config_value import (
