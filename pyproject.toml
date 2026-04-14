@@ -20,7 +20,7 @@ dependencies = [
     "packaging",
     "pyupgrade",
     "tomli",
-    "wexample-api==0.0.84",
+    "wexample-api>=0.0.84",
     "wexample-filestate>=1.0.0",
 ]
 
