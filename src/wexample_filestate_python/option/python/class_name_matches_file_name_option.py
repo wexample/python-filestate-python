@@ -16,6 +16,10 @@ if TYPE_CHECKING:
 
 @base_class
 class ClassNameMatchesFileNameOption(OptionMixin, AbstractConfigOption):
+    @classmethod
+    def get_scopes(cls) -> list[Scope]:
+        return [Scope.NAME]
+
     @staticmethod
     def _expected_class_name_from_path(path: Path) -> str | None:
         stem = path.stem
