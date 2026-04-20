@@ -12,9 +12,6 @@ if TYPE_CHECKING:
 
 @base_class
 class AddFutureAnnotationsOption(AbstractPythonFileContentOption):
-    def applicable_on_empty_content_file(self) -> bool:
-        return False
-
     def get_description(self) -> str:
         return "Add `from __future__ import annotations` at the proper location (after shebang/encoding and module docstring)."
 
