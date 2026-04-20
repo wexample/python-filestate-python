@@ -1,3 +1,7 @@
+docker:
+  db: {}
+domains: []
 global:
   name: filestate_python
-  version: 0.1.1
+  type: app
+  version: 6.4.0
