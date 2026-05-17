@@ -22,14 +22,14 @@ class OrderConstantsOption(AbstractPythonFileContentOption):
         A block is a contiguous sequence of simple UPPER_CASE assignments (no blank line between).
         Non-flagged constants and other contexts are ignored.
         """
-        import libcst as cst
-
+        from wexample_filestate_python.utils.cst_cache import (
+            get_python_source_and_module,
+        )
         from wexample_filestate_python.utils.python_constants_utils import (
             reorder_flagged_constants_everywhere,
         )
 
-        src = target.get_local_file().read()
-        module = cst.parse_module(src)
+        src, module = get_python_source_and_module(target)
 
         modified = reorder_flagged_constants_everywhere(module, src)
         return modified.code

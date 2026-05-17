@@ -22,7 +22,14 @@ class AddReturnTypesOption(AbstractPythonFileContentOption):
         statements in a function agree on one of these literal types."""
         import libcst as cst
 
-        src = target.get_local_file().read()
+        from wexample_filestate_python.utils.cst_cache import (
+            get_python_source_and_module,
+        )
+
+        try:
+            src, module = get_python_source_and_module(target)
+        except Exception:
+            return target.get_local_file().read()
 
         # We implement type inference and rewriting using LibCST to ensure
         # robust, formatting-preserving edits. We extend inference to:
@@ -250,12 +257,6 @@ class AddReturnTypesOption(AbstractPythonFileContentOption):
                             returns=cst.Annotation(annotation=cst.Name(rtype))
                         )
                 return updated_node
-
-        try:
-            module = cst.parse_module(src)
-        except Exception:
-            # If parsing fails for any reason, return the original source unchanged
-            return src
 
         # Collect known simple type names from the module
         ktc = _KnownTypesCollector()

@@ -21,15 +21,15 @@ class OrderModuleFunctionsOption(AbstractPythonFileContentOption):
         - Keeps @overload groups attached to their implementation.
         - Preserves spacing/comments by keeping each group's first function's leading_lines.
         """
-        import libcst as cst
-
+        from wexample_filestate_python.utils.cst_cache import (
+            get_python_source_and_module,
+        )
         from wexample_filestate_python.utils.python_functions_utils import (
             module_functions_sorted_before_classes,
             reorder_module_functions,
         )
 
-        src = target.get_local_file().read()
-        module = cst.parse_module(src)
+        src, module = get_python_source_and_module(target)
 
         # Quick no-op detection: if there are no functions, or functions already sorted
         # and placed before classes, the transformation may be a noop.
