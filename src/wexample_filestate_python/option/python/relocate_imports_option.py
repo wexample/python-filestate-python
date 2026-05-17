@@ -35,6 +35,9 @@ class RelocateImportsOption(AbstractPythonFileContentOption):
 
         import libcst as cst
 
+        from wexample_filestate_python.utils.cst_cache import (
+            get_python_source_and_module,
+        )
         from wexample_filestate_python.utils.relocate_imports.python_import_rewriter import (
             PythonImportRewriter,
         )
@@ -50,8 +53,6 @@ class RelocateImportsOption(AbstractPythonFileContentOption):
         from wexample_filestate_python.utils.relocate_imports.python_usage_collector import (
             PythonUsageCollector,
         )
-
-        from wexample_filestate_python.utils.cst_cache import get_python_source_and_module
 
         src, module = get_python_source_and_module(target)
 

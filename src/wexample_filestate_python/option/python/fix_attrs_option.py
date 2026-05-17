@@ -24,13 +24,12 @@ class FixAttrsOption(AbstractPythonFileContentOption):
         - Ensure @attrs.define always uses kw_only=True
         - Ensure @attr.s always uses kw_only=True
         """
-        import libcst as cst
-
+        from wexample_filestate_python.utils.cst_cache import (
+            get_python_source_and_module,
+        )
         from wexample_filestate_python.utils.python_attrs_utils import (
             fix_attrs_kw_only,
         )
-
-        from wexample_filestate_python.utils.cst_cache import get_python_source_and_module
 
         src, module = get_python_source_and_module(target)
 

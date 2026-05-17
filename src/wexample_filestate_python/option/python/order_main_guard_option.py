@@ -21,15 +21,14 @@ class OrderMainGuardOption(AbstractPythonFileContentOption):
         Moves any top-level main-guard blocks to be the last non-empty statement in the
         module (before trailing blank lines), preserving content and spacing as much as possible.
         """
-        import libcst as cst
-
+        from wexample_filestate_python.utils.cst_cache import (
+            get_python_source_and_module,
+        )
         from wexample_filestate_python.utils.python_main_guard_utils import (
             find_main_guard_blocks,
             is_main_guard_at_end,
             move_main_guard_to_end,
         )
-
-        from wexample_filestate_python.utils.cst_cache import get_python_source_and_module
 
         src, module = get_python_source_and_module(target)
 

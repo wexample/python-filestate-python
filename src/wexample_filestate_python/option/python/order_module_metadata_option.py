@@ -23,15 +23,14 @@ class OrderModuleMetadataOption(AbstractPythonFileContentOption):
 
         Placement: after imports and `if TYPE_CHECKING:` blocks, before other module-level code.
         """
-        import libcst as cst
-
+        from wexample_filestate_python.utils.cst_cache import (
+            get_python_source_and_module,
+        )
         from wexample_filestate_python.utils.python_module_metadata_utils import (
             find_module_metadata_statements,
             group_and_sort_module_metadata,
             target_index_for_module_metadata,
         )
-
-        from wexample_filestate_python.utils.cst_cache import get_python_source_and_module
 
         src, module = get_python_source_and_module(target)
 

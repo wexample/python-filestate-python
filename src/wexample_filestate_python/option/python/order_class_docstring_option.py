@@ -23,13 +23,12 @@ class OrderClassDocstringOption(AbstractPythonFileContentOption):
         decorators and the class header). Normalizes to double quotes. Avoids
         whitespace-only diffs when already correct.
         """
-        import libcst as cst
-
+        from wexample_filestate_python.utils.cst_cache import (
+            get_python_source_and_module,
+        )
         from wexample_filestate_python.utils.python_class_docstring_utils import (
             ensure_all_classes_docstring_first,
         )
-
-        from wexample_filestate_python.utils.cst_cache import get_python_source_and_module
 
         src, module = get_python_source_and_module(target)
 

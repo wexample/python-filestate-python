@@ -9,13 +9,13 @@ the same file share a single parse.
 The cache is naturally invalidated between rectification passes (a new
 workdir means new target instances).
 """
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     import libcst as cst
-
     from wexample_filestate.const.types_state_items import TargetFileOrDirectoryType
 
 

@@ -24,13 +24,12 @@ class OrderClassMethodsOption(AbstractPythonFileContentOption):
         - Properties grouped by base name (getter/setter/deleter together), groups A–Z
         - Instance methods: public A–Z, then private/protected A–Z
         """
-        import libcst as cst
-
+        from wexample_filestate_python.utils.cst_cache import (
+            get_python_source_and_module,
+        )
         from wexample_filestate_python.utils.python_class_methods_utils import (
             ensure_order_class_methods_in_module,
         )
-
-        from wexample_filestate_python.utils.cst_cache import get_python_source_and_module
 
         src, module = get_python_source_and_module(target)
 

@@ -22,15 +22,14 @@ class OrderTypeCheckingBlockOption(AbstractPythonFileContentOption):
         after the last regular import section (or after `from __future__ import ...`
         if no regular imports exist). Keeps spacing minimal and preserves content.
         """
-        import libcst as cst
-
+        from wexample_filestate_python.utils.cst_cache import (
+            get_python_source_and_module,
+        )
         from wexample_filestate_python.utils.python_type_checking_utils import (
             find_type_checking_blocks,
             move_type_checking_blocks_after_imports,
             target_index_for_type_checking,
         )
-
-        from wexample_filestate_python.utils.cst_cache import get_python_source_and_module
 
         src, module = get_python_source_and_module(target)
 
