@@ -29,8 +29,9 @@ class OrderClassDocstringOption(AbstractPythonFileContentOption):
             ensure_all_classes_docstring_first,
         )
 
-        src = target.get_local_file().read()
-        module = cst.parse_module(src)
+        from wexample_filestate_python.utils.cst_cache import get_python_source_and_module
+
+        src, module = get_python_source_and_module(target)
 
         modified = ensure_all_classes_docstring_first(module)
         return modified.code

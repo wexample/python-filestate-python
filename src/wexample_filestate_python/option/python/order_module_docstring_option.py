@@ -29,8 +29,9 @@ class OrderModuleDocstringOption(AbstractPythonFileContentOption):
             move_docstring_to_top,
         )
 
-        src = target.get_local_file().read()
-        module = cst.parse_module(src)
+        from wexample_filestate_python.utils.cst_cache import get_python_source_and_module
+
+        src, module = get_python_source_and_module(target)
 
         # Check if there's a docstring and if it needs to be moved
         docstring_node, position = find_module_docstring(module)

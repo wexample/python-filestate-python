@@ -28,8 +28,9 @@ class OrderModuleFunctionsOption(AbstractPythonFileContentOption):
             reorder_module_functions,
         )
 
-        src = target.get_local_file().read()
-        module = cst.parse_module(src)
+        from wexample_filestate_python.utils.cst_cache import get_python_source_and_module
+
+        src, module = get_python_source_and_module(target)
 
         # Quick no-op detection: if there are no functions, or functions already sorted
         # and placed before classes, the transformation may be a noop.

@@ -30,8 +30,9 @@ class OrderTypeCheckingBlockOption(AbstractPythonFileContentOption):
             target_index_for_type_checking,
         )
 
-        src = target.get_local_file().read()
-        module = cst.parse_module(src)
+        from wexample_filestate_python.utils.cst_cache import get_python_source_and_module
+
+        src, module = get_python_source_and_module(target)
 
         blocks = find_type_checking_blocks(module)
         if not blocks:

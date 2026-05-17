@@ -21,7 +21,11 @@ class UnquoteAnnotationsOption(AbstractPythonFileContentOption):
 
         import libcst as cst
 
-        src = target.get_local_file().read()
+        from wexample_filestate_python.utils.cst_cache import (
+            get_python_source_and_module,
+        )
+
+        src, module = get_python_source_and_module(target)
 
         class _Unquoter(cst.CSTTransformer):
             @staticmethod
@@ -80,6 +84,5 @@ class UnquoteAnnotationsOption(AbstractPythonFileContentOption):
                         return updated_node.with_changes(annotation=expr)
                 return updated_node
 
-        module = cst.parse_module(src)
         new_mod = module.visit(_Unquoter())
         return new_mod.code
