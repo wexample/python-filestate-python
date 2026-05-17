@@ -16,30 +16,23 @@ class RemoveUnusedOption(AbstractPythonFileContentOption):
         return "Remove unused imports from the Python file using autoflake."
 
     def _apply_content_change(self, target: TargetFileOrDirectoryType) -> str:
-        """Remove unused Python imports using autoflake."""
-        from wexample_helpers.helpers.shell import shell_run
-        from wexample_helpers.helpers.system import system_get_venv_bin_path
+        """Remove unused Python imports using autoflake's in-process API.
 
-        result = shell_run(
-            cmd=[
-                f"{system_get_venv_bin_path()}/autoflake",
-                "--stdout",
-                "--remove-all-unused-imports",
-                "--remove-unused-variables",
-                "--expand-star-imports",
-                "--remove-duplicate-keys",
-                str(target.get_path()),
-            ],
-        )
+        Previously shelled out to `autoflake --stdout` per file, costing ~80ms
+        of subprocess + Python startup overhead each call (≈20s on a 268-file
+        project).
+        """
+        from autoflake import fix_code
 
-        if result.returncode != 0:
-            # Double line return is important to keep message visible event last line is erased by parent process.
-            target.io.error(f"Autoflake error: {result.stderr}\n\n")
-            return target.get_local_file().read()  # Return original content on error
-
-        modified_content = result.stdout
-
-        if not modified_content.strip():
-            return target.get_local_file().read()  # Return original content if empty
-
-        return modified_content
+        src = target.get_local_file().read()
+        try:
+            return fix_code(
+                src,
+                remove_all_unused_imports=True,
+                remove_unused_variables=True,
+                expand_star_imports=True,
+                remove_duplicate_keys=True,
+            )
+        except Exception as e:
+            target.io.error(f"Autoflake error: {e}\n\n")
+            return src
