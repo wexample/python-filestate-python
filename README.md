@@ -1,6 +1,6 @@
 # filestate_python
 
-Version: 6.6.0
+Version: 6.7.0
 
 Helpers for Python.
 
@@ -91,7 +91,7 @@ Visit the [Wexample Suite documentation](https://docs.wexample.com) for the comp
 - pyupgrade: 
 - tomli: 
 - wexample-api: >=6.1.0
-- wexample-filestate: >=10.0.0
+- wexample-filestate: >=11.1.0
 
 ## Versioning & Compatibility Policy
 
