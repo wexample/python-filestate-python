@@ -1,11 +1,5 @@
 from __future__ import annotations
 
-# Import black eagerly here (not lazily inside _run_batch_on_paths) so its
-# attribute table is fully populated before any thread reads it. Modern black
-# uses lazy attribute loading via module __getattr__, which is not safe under
-# concurrent first-access from multiple threads (race produces spurious
-# "module 'black' has no attribute 'Mode'" errors).
-import black
 
 from typing import TYPE_CHECKING, ClassVar
 
@@ -41,6 +35,13 @@ class FormatOption(WithBatchOptionMixin, AbstractPythonFileContentOption):
         reference_target: TargetFileOrDirectoryType,
         paths: list[Path],
     ) -> None:
+        # Black is loaded lazily here. Thread-safety: dry_run()/apply() always
+        # call _prepare_options() before parallel inspection, which runs this
+        # method in the main thread first — so by the time worker threads run,
+        # the module is fully loaded and there is no concurrent first-import
+        # race on its lazy attribute table.
+        import black
+
         mode = black.Mode(line_length=self._line_length)
         for path in paths:
             src = path.read_text()
