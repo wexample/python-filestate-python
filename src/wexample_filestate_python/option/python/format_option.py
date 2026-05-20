@@ -34,6 +34,11 @@ class FormatOption(WithBatchOptionMixin, AbstractPythonFileContentOption):
         reference_target: TargetFileOrDirectoryType,
         paths: list[Path],
     ) -> None:
+        # Black is loaded lazily here. Thread-safety: dry_run()/apply() always
+        # call _prepare_options() before parallel inspection, which runs this
+        # method in the main thread first — so by the time worker threads run,
+        # the module is fully loaded and there is no concurrent first-import
+        # race on its lazy attribute table.
         import black
 
         mode = black.Mode(line_length=self._line_length)
