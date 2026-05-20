@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-
 from typing import TYPE_CHECKING, ClassVar
 
 from wexample_filestate.option.mixin.with_batch_option_mixin import (
