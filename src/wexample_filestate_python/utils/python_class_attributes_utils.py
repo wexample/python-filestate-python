@@ -229,14 +229,39 @@ def _is_comment_line(node: cst.CSTNode) -> bool:
 
 
 def _is_dataclass(classdef: cst.ClassDef) -> bool:
-    """Detect if class has a @dataclass decorator (dataclass or dataclasses.dataclass)."""
+    """Detect if class needs "required-first" field ordering.
+
+    Triggers on:
+      - ``@dataclass`` / ``@dataclasses.dataclass`` decorator (incl. parenthesized form)
+      - ``NamedTuple`` / ``typing.NamedTuple`` in the base classes
+
+    For both kinds, Python enforces that fields without a default appear
+    before fields with a default. The plain alphabetical sort applied
+    otherwise would silently swap them and raise ``TypeError`` at class
+    creation time (NamedTuple) or produce surprising defaults (dataclass).
+    """
+    # Decorators: @dataclass, @dataclasses.dataclass, @dataclass(...), @dataclasses.dataclass(...)
     for dec in classdef.decorators:
         try:
             expr = dec.decorator
+            # Unwrap parenthesized decorator calls like @dataclass(frozen=True)
+            if isinstance(expr, cst.Call):
+                expr = expr.func
             if isinstance(expr, cst.Name) and expr.value == "dataclass":
                 return True
             if isinstance(expr, cst.Attribute) and isinstance(expr.attr, cst.Name):
                 if expr.attr.value == "dataclass":
+                    return True
+        except Exception:
+            continue
+    # Base classes: NamedTuple / typing.NamedTuple
+    for base in classdef.bases:
+        try:
+            expr = base.value
+            if isinstance(expr, cst.Name) and expr.value == "NamedTuple":
+                return True
+            if isinstance(expr, cst.Attribute) and isinstance(expr.attr, cst.Name):
+                if expr.attr.value == "NamedTuple":
                     return True
         except Exception:
             continue
