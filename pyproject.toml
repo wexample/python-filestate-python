@@ -4,7 +4,7 @@ build-backend = "pdm.backend"
 
 [project]
 name = "wexample-filestate-python"
-version = "6.8.4"
+version = "6.8.5"
 description = "Helpers for Python."
 authors = [{name = "weeger", email = "contact@wexample.com"}]
 requires-python = ">=3.10"
@@ -20,8 +20,8 @@ dependencies = [
     "packaging",
     "pyupgrade",
     "tomli",
-    "wexample-api>=6.2.0",
-    "wexample-filestate>=11.5.0",
+    "wexample-api>=6.3.0",
+    "wexample-filestate>=12.0.0",
 ]
 
 [project.readme]
