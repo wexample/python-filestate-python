@@ -1,6 +1,6 @@
 # filestate_python
 
-Version: 6.8.6
+Version: 6.8.7
 
 Helpers for Python.
 
