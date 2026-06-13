@@ -130,9 +130,6 @@ class PythonOption(OptionMixin, AbstractNestedConfigOption):
     def set_value(self, raw_value: Any) -> None:
         # Convert list form to dict form for consistency
         if isinstance(raw_value, list):
-            dict_value = {}
-            for option_name in raw_value:
-                dict_value[option_name] = True
-            raw_value = dict_value
+            raw_value = {option_name: True for option_name in raw_value}
 
         super().set_value(raw_value=raw_value)

@@ -49,7 +49,7 @@ class PythonParserImportIndex(cst.CSTVisitor):
                     module_name = self._flatten_module_name(name.name)
                     if module_name and "." in module_name:
                         # Store the base module name (first part before dot)
-                        module_name = module_name.split(".")[0]
+                        module_name = module_name.partition(".")[0]
                 else:
                     continue
 

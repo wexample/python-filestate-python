@@ -20,9 +20,10 @@ def package_get_dependencies(root_dir: str | Path) -> dict[str, set[str]]:
         raise ValueError(f"Error: {packages_root} does not exist or is not a directory")
 
     dependencies = {}
+    all_entries = list(packages_root.iterdir())
 
     # First pass: collect all local packages
-    for package_dir in packages_root.iterdir():
+    for package_dir in all_entries:
         if not package_dir.is_dir():
             continue
 
@@ -32,7 +33,7 @@ def package_get_dependencies(root_dir: str | Path) -> dict[str, set[str]]:
             dependencies[name] = set()
 
     # Second pass: analyze dependencies
-    for package_dir in packages_root.iterdir():
+    for package_dir in all_entries:
         if not package_dir.is_dir():
             continue
 

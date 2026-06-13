@@ -84,7 +84,7 @@ def reorder_attribute_block(
 
     def cat(node: cst.CSTNode) -> tuple:
         name = _attr_name(node) or ""
-        if _is_special_attribute(node):
+        if name in SPECIAL_ATTR_NAMES or (isinstance(node, cst.ClassDef) and name in SPECIAL_INNER_CLASS_NAMES):
             # Category 0: special always first
             return (0, _sort_key(name), False)
         if dataclass_mode:

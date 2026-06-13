@@ -70,7 +70,7 @@ class AddFutureAnnotationsOption(AbstractPythonFileContentOption):
         # If there isn't a blank line after the future import and next line is not blank, add one for readability
         j = insert_index + 1
         if j < len(lines):
-            if lines[j].strip() != "":
+            if lines[j].strip():
                 lines.insert(j, "\n")
 
         return "".join(lines)

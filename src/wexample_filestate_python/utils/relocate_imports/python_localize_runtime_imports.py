@@ -319,9 +319,10 @@ class PythonLocalizeRuntimeImports(cst.CSTTransformer):
         for mod, idents in by_module.items():
             if not idents:
                 continue
-            for n in sorted(idents):
+            sorted_idents = sorted(idents)
+            for n in sorted_idents:
                 pairs.add((mod, n))
-            import_names = [cst.ImportAlias(name=cst.Name(n)) for n in sorted(idents)]
+            import_names = [cst.ImportAlias(name=cst.Name(n)) for n in sorted_idents]
             stmts.append(
                 cst.SimpleStatementLine(
                     (

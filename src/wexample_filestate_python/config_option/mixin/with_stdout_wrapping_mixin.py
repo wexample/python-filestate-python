@@ -35,12 +35,8 @@ class WithStdoutWrappingMixin:
             stderr_content = captured_stderr.getvalue()
 
             if stdout_content.strip():
-                sys.stdout.write(stdout_content.rstrip())
-                sys.stdout.write("\n")
-                sys.stdout.write("\n")
+                sys.stdout.write(stdout_content.rstrip() + "\n\n")
             if stderr_content.strip():
-                sys.stderr.write(stderr_content.rstrip())
-                sys.stderr.write("\n")
-                sys.stderr.write("\n")
+                sys.stderr.write(stderr_content.rstrip() + "\n\n")
 
         return result

@@ -149,7 +149,6 @@ class PythonUsageCollector(cst.CSTVisitor):
             if (
                 (callee in self.cast_function_candidates or "cast" in callee.lower())
                 and node.args
-                and len(node.args) >= 1
             ):
                 type_arg = node.args[0].value
                 # Collect any imported names appearing anywhere inside the type expression
@@ -158,8 +157,7 @@ class PythonUsageCollector(cst.CSTVisitor):
                     # Always record for module-wide exclusion from TYPE_CHECKING
                     self.cast_type_names_anywhere.add(n)
                     # Always schedule local import for this function; localizer will filter if module cannot be resolved
-                    if self.func_stack:
-                        self.functions_needing_local[self.func_stack[-1]].add(n)
+                    self.functions_needing_local[self.func_stack[-1]].add(n)
                 return
         elif isinstance(func, cst.Attribute):
             # typing.cast(...) or pkg.cast(...)
@@ -170,14 +168,12 @@ class PythonUsageCollector(cst.CSTVisitor):
                     or "cast" in func.attr.value.lower()
                 )
                 and node.args
-                and len(node.args) >= 1
             ):
                 type_arg = node.args[0].value
                 names = self._collect_names_from_type_expr(type_arg)
                 for n in names:
                     self.cast_type_names_anywhere.add(n)
-                    if self.func_stack:
-                        self.functions_needing_local[self.func_stack[-1]].add(n)
+                    self.functions_needing_local[self.func_stack[-1]].add(n)
                 return
 
     # ----- Stack management -----
@@ -229,8 +225,8 @@ class PythonUsageCollector(cst.CSTVisitor):
             # Resolve module to avoid misclassifying annotation-only names like Mapping
             resolved_mod = None
             try:
-                if hasattr(self, "idx") and getattr(self, "idx") is not None:  # type: ignore[attr-defined]
-                    resolved_mod = getattr(self, "idx").name_to_from.get(val, (None, None))[0]  # type: ignore[index]
+                if self.idx is not None:
+                    resolved_mod = self.idx.name_to_from.get(val, (None, None))[0]  # type: ignore[index]
             except Exception:
                 resolved_mod = None
             # Skip if module is unknown or belongs to typing/collections.abc
@@ -238,7 +234,7 @@ class PythonUsageCollector(cst.CSTVisitor):
             if resolved_mod in (None, "typing", "collections", "collections.abc"):
                 # For bare imports (resolved_mod is None), mark as module-level usage
                 # since we cannot relocate them (can't do "from os import path" locally)
-                if resolved_mod is None and val in self.imported_value_names:
+                if resolved_mod is None:
                     self.used_in_B.add(val)
                 return
             self.functions_needing_local[self.func_stack[-1]].add(val)
@@ -290,9 +286,9 @@ class PythonUsageCollector(cst.CSTVisitor):
             self.func_stack[-1] if self.func_stack else "<module>"
             # Aggregate all parameter-like collections
             all_params: list[cst.Param] = []
-            all_params.extend(list(node.params))
-            all_params.extend(list(node.posonly_params))
-            all_params.extend(list(node.kwonly_params))
+            all_params.extend(node.params)
+            all_params.extend(node.posonly_params)
+            all_params.extend(node.kwonly_params)
             if node.star_arg is not None and isinstance(node.star_arg, cst.Param):
                 all_params.append(node.star_arg)
             if node.star_kwarg is not None and isinstance(node.star_kwarg, cst.Param):
@@ -344,7 +340,7 @@ class PythonUsageCollector(cst.CSTVisitor):
         # Include func_stack to distinguish nested functions with the same name
         # e.g., ScreenExample.demo_with_progress_and_confirm._callback vs ScreenExample.example_extended._callback
         return (
-            ".".join(self.class_stack + self.func_stack + [base])
+            ".".join([*self.class_stack, *self.func_stack, base])
             if (self.class_stack or self.func_stack)
             else base
         )

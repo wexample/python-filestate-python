@@ -28,8 +28,7 @@ def find_class_docstring_nodes(
     According to Python conventions, a class docstring is a first statement that's a
     string literal expression. We detect any top-level string literal in the class body.
     """
-    body_elems = list(classdef.body.body)
-    for i, elem in enumerate(body_elems):
+    for i, elem in enumerate(classdef.body.body):
         if isinstance(elem, cst.SimpleStatementLine) and len(elem.body) == 1:
             small = elem.body[0]
             if isinstance(small, cst.Expr) and isinstance(
@@ -76,7 +75,7 @@ def normalize_docstring_quotes_stmt(
     if not (isinstance(small, cst.Expr) and isinstance(small.value, cst.SimpleString)):
         return stmt
     q = small.value.quote
-    if q.startswith('"""') or q.startswith('"'):
+    if q.startswith('"'):
         return stmt
     # Convert starting quote to double
     new_quote = '"""' if q.startswith("'''") else '"'

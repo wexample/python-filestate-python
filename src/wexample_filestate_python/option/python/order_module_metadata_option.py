@@ -48,7 +48,7 @@ class OrderModuleMetadataOption(AbstractPythonFileContentOption):
         )
         # names sorted?
         names = [name for _, __, name in found]
-        names_sorted = sorted(names, key=lambda n: n.lower())
+        names_sorted = sorted(names, key=str.lower)
         already_sorted = names == names_sorted
         # at correct position?
         desired_index = target_index_for_module_metadata(module)

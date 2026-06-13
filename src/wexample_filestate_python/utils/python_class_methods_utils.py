@@ -22,6 +22,8 @@ for gi, group in enumerate(DUnderGroups):
     for si, name in enumerate(group):
         _DUNDER_ORDER[name] = (gi, si)
 
+_PROP_KINDS: tuple[str, str, str] = ("getter", "setter", "deleter")
+
 
 def ensure_order_class_methods_in_module(module: cst.Module) -> cst.Module:
     changed = False
@@ -86,7 +88,7 @@ def reorder_class_methods(classdef: cst.ClassDef) -> cst.ClassDef:
     # Order dunders by (group, within) then keep unknown dunders after known, alpha by name
     known = [m for m in dunders if m["order"][0] != 999]
     unknown = [m for m in dunders if m["order"][0] == 999]
-    known_sorted = sorted(known, key=lambda m: (m["order"][0], m["order"][1]))
+    known_sorted = sorted(known, key=lambda m: m["order"])
     unknown_sorted = sorted(unknown, key=lambda m: _sort_key_alpha(m["name"]))
     dunder_ordered = [m["node"] for m in known_sorted + unknown_sorted]
 
@@ -118,17 +120,10 @@ def reorder_class_methods(classdef: cst.ClassDef) -> cst.ClassDef:
         g[kind] = node
 
     def prop_group_to_nodes(base: str, g: dict[str, cst.FunctionDef | None]):
-        order = []
-        if g.get("getter") is not None:
-            order.append(g["getter"])  # type: ignore
-        if g.get("setter") is not None:
-            order.append(g["setter"])  # type: ignore
-        if g.get("deleter") is not None:
-            order.append(g["deleter"])  # type: ignore
-        return order
+        return [g[k] for k in _PROP_KINDS if g[k] is not None]  # type: ignore
 
     props_ordered: list[cst.FunctionDef] = []
-    for base in sorted(prop_groups.keys(), key=lambda n: n.lower()):
+    for base in sorted(prop_groups.keys(), key=str.lower):
         props_ordered.extend(prop_group_to_nodes(base, prop_groups[base]))
 
     # Final ordered list: dunder -> classmethods -> staticmethods -> properties -> instances
@@ -219,9 +214,7 @@ def _property_kind(func: cst.FunctionDef) -> tuple[str | None, str | None]:
                 # base name is left side of the attribute if it's a Name
                 base = expr.value
                 if isinstance(base, cst.Name):
-                    return base.value, (
-                        "setter" if expr.attr.value == "setter" else "deleter"
-                    )
+                    return base.value, expr.attr.value
     return None, None
 
 

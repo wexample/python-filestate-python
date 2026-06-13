@@ -39,19 +39,15 @@ def fix_attrs_kw_only(module: cst.Module) -> cst.Module:
                     return updated_node.with_changes(decorator=new_call)
                 else:
                     # Check if kw_only is set to False and change it to True
-                    new_args = []
-                    for arg in call.args:
-                        if (
-                            isinstance(arg.keyword, cst.Name)
+                    new_args = [
+                        arg.with_changes(value=cst.Name("True"))
+                        if (isinstance(arg.keyword, cst.Name)
                             and arg.keyword.value == "kw_only"
                             and isinstance(arg.value, cst.Name)
-                            and arg.value.value == "False"
-                        ):
-                            # Change False to True
-                            new_arg = arg.with_changes(value=cst.Name("True"))
-                            new_args.append(new_arg)
-                        else:
-                            new_args.append(arg)
+                            and arg.value.value == "False")
+                        else arg
+                        for arg in call.args
+                    ]
 
                     if new_args != list(call.args):
                         new_call = call.with_changes(args=new_args)
@@ -76,10 +72,10 @@ def fix_attrs_kw_only(module: cst.Module) -> cst.Module:
 
 def _has_kw_only_arg(call: cst.Call) -> bool:
     """Check if the call already has a kw_only argument."""
-    for arg in call.args:
-        if isinstance(arg.keyword, cst.Name) and arg.keyword.value == "kw_only":
-            return True
-    return False
+    return any(
+        isinstance(arg.keyword, cst.Name) and arg.keyword.value == "kw_only"
+        for arg in call.args
+    )
 
 
 def _is_attrs_decorator(decorator: cst.Decorator) -> bool:
@@ -99,8 +95,7 @@ def _is_attrs_decorator(decorator: cst.Decorator) -> bool:
         ):
             return True
 
-    # Check for @attr.s
-    if isinstance(base_decorator, cst.Attribute):
+        # Check for @attr.s
         if (
             isinstance(base_decorator.value, cst.Name)
             and base_decorator.value.value == "attr"

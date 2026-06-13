@@ -79,7 +79,7 @@ def reorder_module_functions(module: cst.Module) -> cst.Module:
     remove_indices = []
     for idx, g in groups_with_idx:
         remove_indices.extend(range(idx, idx + len(g.nodes)))
-    remove_indices = sorted(set(remove_indices))
+    remove_indices = set(remove_indices)
 
     new_body: list[cst.CSTNode] = []
     for idx, node in enumerate(module.body):

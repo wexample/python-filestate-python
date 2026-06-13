@@ -112,6 +112,6 @@ def normalize_docstring_quotes(
     # Create new string with double quotes
     new_string = string_value.with_changes(quote=new_quote)
     new_expr = expr.with_changes(value=new_string)
-    new_body = [new_expr] + list(docstring_node.body[1:])
+    new_body = [new_expr, *docstring_node.body[1:]]
 
     return docstring_node.with_changes(body=new_body)

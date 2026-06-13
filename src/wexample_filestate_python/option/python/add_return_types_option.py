@@ -200,23 +200,16 @@ class AddReturnTypesOption(AbstractPythonFileContentOption):
             def _infer_for_function(self, func_node: cst.BaseFunctionDef) -> str | None:
                 # Collect returns in the function body (non-nested)
                 collector = _ReturnCollector()
-                # Visit only the immediate body of the function
-                if isinstance(func_node, cst.FunctionDef):
-                    func_node.body.visit(collector)
-                elif isinstance(func_node, cst.AsyncFunctionDef):
-                    func_node.body.visit(collector)
-                else:
+                if not isinstance(func_node, (cst.FunctionDef, cst.AsyncFunctionDef)):
                     return None
+                func_node.body.visit(collector)
                 # If no return statements -> None
                 if not collector.returns:
                     return "None"
 
                 # Build a simple assignment map within the function
                 fac = _FunctionAssignCollector(self.known_types)
-                if isinstance(func_node, cst.FunctionDef):
-                    func_node.body.visit(fac)
-                elif isinstance(func_node, cst.AsyncFunctionDef):
-                    func_node.body.visit(fac)
+                func_node.body.visit(fac)
 
                 kinds: set[str] = set()
                 for r in collector.returns:

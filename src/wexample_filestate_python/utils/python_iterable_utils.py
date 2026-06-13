@@ -71,9 +71,7 @@ def reorder_flagged_iterables(src: str) -> str:
             continue
 
         # Flatten groups back to lines
-        new_block: list[str] = []
-        for g in sorted_groups:
-            new_block.extend(g)
+        new_block = [ln for g in sorted_groups for ln in g]
 
         lines[start:end] = new_block
         changed = True
@@ -111,7 +109,7 @@ def _collect_iterable_block(lines: list[str], flag_idx: int) -> tuple[int, int]:
         if stripped.startswith("]") and curr_indent <= base_indent:
             break
         # Stop if we encounter a trailing comment-only line
-        if lines[i].lstrip().startswith("#"):
+        if stripped.startswith("#"):
             break
         i += 1
 
@@ -124,8 +122,4 @@ def _find_flag_line_indices(src: str) -> list[int]:
     from wexample_filestate.helpers.flag import flag_exists
 
     lines = src.splitlines()
-    indices: list[int] = []
-    for i, line in enumerate(lines):
-        if flag_exists(FLAG_NAME, line):
-            indices.append(i)
-    return indices
+    return [i for i, line in enumerate(lines) if flag_exists(FLAG_NAME, line)]

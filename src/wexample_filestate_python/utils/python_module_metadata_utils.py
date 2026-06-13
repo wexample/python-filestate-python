@@ -48,7 +48,7 @@ def group_and_sort_module_metadata(module: cst.Module) -> cst.Module:
     insert_at = target_index_for_module_metadata(module)
 
     # Remove from body (reverse order) and collect nodes with cleaned leading lines
-    to_remove_indices = sorted([i for i, _, _ in found], reverse=True)
+    to_remove_indices = sorted((i for i, _, _ in found), reverse=True)
     new_body: list[cst.CSTNode] = list(module.body)
     moved: list[tuple[str, cst.SimpleStatementLine]] = []
 
@@ -92,9 +92,9 @@ def target_index_for_module_metadata(module: cst.Module) -> int:
         find_type_checking_blocks,
     )
 
-    last_type_checking = -1
-    for idx, _if in find_type_checking_blocks(module):
-        last_type_checking = max(last_type_checking, idx)
+    last_type_checking = max(
+        (idx for idx, _ in find_type_checking_blocks(module)), default=-1
+    )
 
     last_regular_import = -1
     last_future_import = -1

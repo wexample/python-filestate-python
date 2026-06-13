@@ -27,11 +27,12 @@ def find_flagged_constant_blocks(
 
     i = 0
     body = module.body
+    body_list = list(body)
     n = len(body)
     while i < n:
         stmt = body[i]
         if isinstance(stmt, cst.SimpleStatementLine):
-            has_flag = _stmt_has_flag(stmt, src) or _prev_line_has_flag(list(body), i)
+            has_flag = _stmt_has_flag(stmt, src) or _prev_line_has_flag(body_list, i)
             if has_flag and _get_simple_assignment_name(stmt) is not None:
                 # Start a block at i
                 j = i
@@ -187,17 +188,15 @@ def sort_constants_block(
             collected_flag_lines = fl
             break
 
-    pairs: list[tuple[str, cst.SimpleStatementLine]] = []
-    for node in nodes:
-        name = _get_simple_assignment_name(node)
-        if name is None:
-            # Shouldn't happen given precondition
-            continue
-        pairs.append((name, node))
+    pairs = [
+        (name, node)
+        for node in nodes
+        if (name := _get_simple_assignment_name(node)) is not None
+    ]
 
     # If already sorted, return original (no changes)
     sorted_pairs = sorted(pairs, key=lambda p: p[0].lower())
-    if [n for _, n in sorted_pairs] == [n for _, n in pairs]:
+    if all(a is b for (_, a), (_, b) in zip(sorted_pairs, pairs)):
         return nodes
 
     # Build new nodes preserving each node's original leading_lines, but move the

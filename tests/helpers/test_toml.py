@@ -123,12 +123,6 @@ def test_toml_sort_string_array_non_array_returns_false() -> None:
     assert toml_sort_string_array(["not", "an", "array"]) is False
 
 
-@pytest.mark.xfail(
-    reason="toml_sort_string_array captures the bound multiline method instead of the "
-    "current flag state, so it forces multiline=True instead of preserving it. "
-    "See roadmap: filestate-python-toml-sort-forces-multiline.md",
-    strict=True,
-)
 def test_toml_sort_string_array_preserves_single_line_style() -> None:
     from tomlkit import array
 
@@ -140,3 +134,16 @@ def test_toml_sort_string_array_preserves_single_line_style() -> None:
     arr.multiline(False)
     toml_sort_string_array(arr)
     assert "\n" not in arr.as_string()
+
+
+def test_toml_sort_string_array_preserves_multiline_style() -> None:
+    from tomlkit import array
+
+    from wexample_filestate_python.helpers.toml import toml_sort_string_array
+
+    arr = array()
+    arr.append("b")
+    arr.append("a")
+    arr.multiline(True)
+    toml_sort_string_array(arr)
+    assert "\n" in arr.as_string()

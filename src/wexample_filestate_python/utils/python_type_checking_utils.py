@@ -5,11 +5,11 @@ import libcst as cst
 
 def find_type_checking_blocks(module: cst.Module) -> list[tuple[int, cst.If]]:
     """Return list of (index, IfNode) for all top-level `if TYPE_CHECKING:` blocks."""
-    results: list[tuple[int, cst.If]] = []
-    for i, stmt in enumerate(module.body):
-        if isinstance(stmt, cst.If) and _is_type_checking_test(stmt.test):
-            results.append((i, stmt))
-    return results
+    return [
+        (i, stmt)
+        for i, stmt in enumerate(module.body)
+        if isinstance(stmt, cst.If) and _is_type_checking_test(stmt.test)
+    ]
 
 
 def move_type_checking_blocks_after_imports(module: cst.Module) -> cst.Module:

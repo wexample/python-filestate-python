@@ -32,7 +32,7 @@ class PythonImportRewriter(cst.CSTTransformer):
         self.found_type_checking_import = False
         # Track whether we are at module level; only prune at module level
         self._inside_class_func_stack: list[str] = []
-        self.need_type_checking_block: bool = len(used_in_C_only) > 0
+        self.need_type_checking_block: bool = bool(used_in_C_only)
         self._inside_type_checking_stack: list[bool] = []
 
     @staticmethod
@@ -132,14 +132,10 @@ class PythonImportRewriter(cst.CSTTransformer):
             return original_node
 
         # Rebuild aliases freshly to drop any stale trailing comma tokens.
-        rebuilt_aliases: list[cst.ImportAlias] = []
-        for alias in kept_aliases:
-            rebuilt_aliases.append(
-                cst.ImportAlias(
-                    name=alias.name,
-                    asname=alias.asname,
-                )
-            )
+        rebuilt_aliases = [
+            cst.ImportAlias(name=alias.name, asname=alias.asname)
+            for alias in kept_aliases
+        ]
         return updated_node.with_changes(names=tuple(rebuilt_aliases))
 
     def leave_ImportFrom(
@@ -197,14 +193,10 @@ class PythonImportRewriter(cst.CSTTransformer):
             return original_node
 
         # Rebuild aliases freshly to drop any stale trailing comma tokens.
-        rebuilt_aliases: list[cst.ImportAlias] = []
-        for alias in kept_aliases:
-            rebuilt_aliases.append(
-                cst.ImportAlias(
-                    name=alias.name,
-                    asname=alias.asname,
-                )
-            )
+        rebuilt_aliases = [
+            cst.ImportAlias(name=alias.name, asname=alias.asname)
+            for alias in kept_aliases
+        ]
         return updated_node.with_changes(names=tuple(rebuilt_aliases))
 
     def leave_Module(
@@ -349,10 +341,7 @@ class PythonImportRewriter(cst.CSTTransformer):
             if (
                 isinstance(stmt, cst.SimpleStatementLine)
                 and stmt.body
-                and (
-                    isinstance(stmt.body[0], cst.ImportFrom)
-                    or isinstance(stmt.body[0], cst.Import)
-                )
+                and isinstance(stmt.body[0], (cst.ImportFrom, cst.Import))
             ):
                 i += 1
                 insert_index = i
