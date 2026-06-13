@@ -58,9 +58,6 @@ class AddReturnTypesOption(AbstractPythonFileContentOption):
             def visit_FunctionDef(self, node: cst.FunctionDef) -> bool:  # type: ignore[override]
                 return False
 
-            def visit_AsyncFunctionDef(self, node: cst.AsyncFunctionDef) -> bool:  # type: ignore[override]
-                return False
-
             def visit_Lambda(self, node: cst.Lambda) -> bool:  # type: ignore[override]
                 return False
 
@@ -145,9 +142,6 @@ class AddReturnTypesOption(AbstractPythonFileContentOption):
             def visit_FunctionDef(self, node: cst.FunctionDef) -> bool:  # type: ignore[override]
                 return False
 
-            def visit_AsyncFunctionDef(self, node: cst.AsyncFunctionDef) -> bool:  # type: ignore[override]
-                return False
-
             def visit_ClassDef(self, node: cst.ClassDef) -> bool:  # type: ignore[override]
                 return False
 
@@ -197,10 +191,10 @@ class AddReturnTypesOption(AbstractPythonFileContentOption):
 
                 return None
 
-            def _infer_for_function(self, func_node: cst.BaseFunctionDef) -> str | None:
+            def _infer_for_function(self, func_node: cst.FunctionDef) -> str | None:
                 # Collect returns in the function body (non-nested)
                 collector = _ReturnCollector()
-                if not isinstance(func_node, (cst.FunctionDef, cst.AsyncFunctionDef)):
+                if not isinstance(func_node, cst.FunctionDef):
                     return None
                 func_node.body.visit(collector)
                 # If no return statements -> None
@@ -238,18 +232,6 @@ class AddReturnTypesOption(AbstractPythonFileContentOption):
                         )
                 return updated_node
 
-            def leave_AsyncFunctionDef(
-                self,
-                original_node: cst.AsyncFunctionDef,
-                updated_node: cst.AsyncFunctionDef,
-            ) -> cst.AsyncFunctionDef:
-                if updated_node.returns is None:
-                    rtype = self._infer_for_function(original_node)
-                    if rtype is not None:
-                        return updated_node.with_changes(
-                            returns=cst.Annotation(annotation=cst.Name(rtype))
-                        )
-                return updated_node
 
         # Collect known simple type names from the module
         ktc = _KnownTypesCollector()
