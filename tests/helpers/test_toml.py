@@ -47,12 +47,6 @@ def test_toml_ensure_table_existing_non_empty_path_unchanged() -> None:
     assert changed is False
 
 
-@pytest.mark.xfail(
-    reason="toml_ensure_table uses `not tbl`, which is truthy for an existing but "
-    "empty table, so it recreates it and wrongly reports changed=True. "
-    "See roadmap: filestate-python-toml-ensure-table-empty-reports-changed.md",
-    strict=True,
-)
 def test_toml_ensure_table_existing_empty_path_unchanged() -> None:
     from tomlkit import document
 

@@ -49,7 +49,7 @@ def toml_ensure_table(doc: Any, path: list[str]) -> tuple[Any, bool]:
     current = doc
     for key in path:
         tbl = current.get(key) if isinstance(current, dict) else None
-        if not tbl or not isinstance(tbl, dict):
+        if tbl is None or not isinstance(tbl, dict):
             tbl = table()
             current[key] = tbl
             changed = True

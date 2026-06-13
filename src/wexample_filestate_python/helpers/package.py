@@ -94,11 +94,15 @@ def package_parse_setup(path: Path) -> dict:
         ):
             result = {}
             for kw in node.keywords:
-                if isinstance(kw.value, ast.Str):
-                    result[kw.arg] = kw.value.s
+                if isinstance(kw.value, ast.Constant) and isinstance(
+                    kw.value.value, str
+                ):
+                    result[kw.arg] = kw.value.value
                 elif isinstance(kw.value, ast.List):
                     result[kw.arg] = [
-                        elt.s for elt in kw.value.elts if isinstance(elt, ast.Str)
+                        elt.value
+                        for elt in kw.value.elts
+                        if isinstance(elt, ast.Constant) and isinstance(elt.value, str)
                     ]
             return result
     return {}
