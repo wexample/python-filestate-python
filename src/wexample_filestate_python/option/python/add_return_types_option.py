@@ -232,7 +232,6 @@ class AddReturnTypesOption(AbstractPythonFileContentOption):
                         )
                 return updated_node
 
-
         # Collect known simple type names from the module
         ktc = _KnownTypesCollector()
         module.visit(ktc)

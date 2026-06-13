@@ -40,12 +40,16 @@ def fix_attrs_kw_only(module: cst.Module) -> cst.Module:
                 else:
                     # Check if kw_only is set to False and change it to True
                     new_args = [
-                        arg.with_changes(value=cst.Name("True"))
-                        if (isinstance(arg.keyword, cst.Name)
-                            and arg.keyword.value == "kw_only"
-                            and isinstance(arg.value, cst.Name)
-                            and arg.value.value == "False")
-                        else arg
+                        (
+                            arg.with_changes(value=cst.Name("True"))
+                            if (
+                                isinstance(arg.keyword, cst.Name)
+                                and arg.keyword.value == "kw_only"
+                                and isinstance(arg.value, cst.Name)
+                                and arg.value.value == "False"
+                            )
+                            else arg
+                        )
                         for arg in call.args
                     ]
 

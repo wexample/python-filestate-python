@@ -5,11 +5,7 @@ import libcst as cst
 
 def find_main_guard_blocks(module: cst.Module) -> list[tuple[int, cst.If]]:
     """Return list of (index, IfNode) for all top-level __main__ guard blocks."""
-    return [
-        (i, stmt)
-        for i, stmt in enumerate(module.body)
-        if is_main_guard_if(stmt)
-    ]
+    return [(i, stmt) for i, stmt in enumerate(module.body) if is_main_guard_if(stmt)]
 
 
 def is_main_guard_at_end(module: cst.Module) -> bool:

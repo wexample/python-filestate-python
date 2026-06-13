@@ -143,7 +143,8 @@ def _fix_module_docstring_spacing(module: cst.Module) -> cst.Module:
         blank_count = 0
         if isinstance(next_stmt, cst.SimpleStatementLine):
             blank_count = sum(
-                1 for line in next_stmt.leading_lines
+                1
+                for line in next_stmt.leading_lines
                 if isinstance(line, cst.EmptyLine) and line.comment is None
             )
 

@@ -43,9 +43,7 @@ class OrderModuleDocstringOption(AbstractPythonFileContentOption):
 
         if is_module_docstring_at_top(module):
             # Check if quotes need normalization
-            if docstring_node.body and isinstance(
-                docstring_node.body[0], cst.Expr
-            ):
+            if docstring_node.body and isinstance(docstring_node.body[0], cst.Expr):
                 expr = docstring_node.body[0]
                 if isinstance(expr.value, cst.SimpleString):
                     quote = expr.value.quote

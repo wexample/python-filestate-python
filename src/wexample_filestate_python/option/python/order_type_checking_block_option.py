@@ -41,7 +41,9 @@ class OrderTypeCheckingBlockOption(AbstractPythonFileContentOption):
         current_indices = [i for i, _ in blocks]
         desired_index = target_index_for_type_checking(module)
         # Already correct if first block starts at desired index and blocks are contiguous
-        contiguous = all(b - a == 1 for a, b in zip(current_indices, current_indices[1:]))
+        contiguous = all(
+            b - a == 1 for a, b in zip(current_indices, current_indices[1:])
+        )
         if contiguous and current_indices[0] == desired_index:
             return src
 

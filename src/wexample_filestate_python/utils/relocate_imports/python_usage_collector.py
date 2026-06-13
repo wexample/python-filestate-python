@@ -147,9 +147,8 @@ class PythonUsageCollector(cst.CSTVisitor):
                 return
             # typing.cast(x, MyClass) when used as bare `cast(...)`
             if (
-                (callee in self.cast_function_candidates or "cast" in callee.lower())
-                and node.args
-            ):
+                callee in self.cast_function_candidates or "cast" in callee.lower()
+            ) and node.args:
                 type_arg = node.args[0].value
                 # Collect any imported names appearing anywhere inside the type expression
                 names = self._collect_names_from_type_expr(type_arg)

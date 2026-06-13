@@ -157,7 +157,9 @@ class RelocateImportsOption(AbstractPythonFileContentOption):
         )
 
         # Do not add to TYPE_CHECKING if the name's module-level import is kept
-        kept_module_imports: set[str] = imported_value_names - names_to_remove_from_module
+        kept_module_imports: set[str] = (
+            imported_value_names - names_to_remove_from_module
+        )
         used_in_C_only_final: set[str] = set(type_only_for_block) - kept_module_imports
 
         # Debug summary removed
