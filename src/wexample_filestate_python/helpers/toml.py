@@ -105,12 +105,11 @@ def toml_sort_string_array(arr: Any) -> bool:
     if items == sorted_items:
         return False
 
-    multiline_flag = getattr(arr, "multiline", None)
+    multiline_flag = arr._multiline
     # Clear and re-append to preserve tomlkit item identity
     while len(arr):
         arr.pop()
     for item in sorted_items:
         arr.append(item)
-    if multiline_flag is not None:
-        arr.multiline(multiline_flag)
+    arr.multiline(multiline_flag)
     return True
