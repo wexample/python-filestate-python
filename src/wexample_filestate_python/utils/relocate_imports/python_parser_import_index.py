@@ -45,11 +45,11 @@ class PythonParserImportIndex(cst.CSTVisitor):
                 if isinstance(name.name, cst.Name):
                     module_name = name.name.value
                 elif isinstance(name.name, cst.Attribute):
-                    # For "import os.path", extract the base name "os"
-                    module_name = self._flatten_module_name(name.name)
-                    if module_name and "." in module_name:
-                        # Store the base module name (first part before dot)
-                        module_name = module_name.partition(".")[0]
+                    # For "import os.path", walk left to the root Name directly
+                    cur: cst.BaseExpression = name.name
+                    while isinstance(cur, cst.Attribute):
+                        cur = cur.value
+                    module_name = cur.value if isinstance(cur, cst.Name) else None
                 else:
                     continue
 
@@ -74,7 +74,7 @@ class PythonParserImportIndex(cst.CSTVisitor):
                 asname = alias.asname.name.value if alias.asname else None
                 name = alias.name.value if isinstance(alias.name, cst.Name) else None
                 if name:
-                    self.name_to_from[name if not asname else asname] = (
+                    self.name_to_from[asname or name] = (
                         module_name,
                         asname,
                     )

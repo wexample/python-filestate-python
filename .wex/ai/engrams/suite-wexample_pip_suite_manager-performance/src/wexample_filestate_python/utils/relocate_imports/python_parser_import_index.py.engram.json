@@ -1,0 +1,11 @@
+{
+  "engram_version": 1,
+  "source_key": "src/wexample_filestate_python/utils/relocate_imports/python_parser_import_index.py",
+  "cache_nonce": "1c2800147ebc4367950bb7b61bd21d00",
+  "last_visited_at": "2026-06-14T17:00:37+00:00",
+  "last_rev": "599fa4c0299302d37938afbd1354c2225dfce122",
+  "last_decision": "edit",
+  "kinds": [],
+  "notes": "avoid flatten+partition for dotted bare imports; simplify asname key lookup with `or`",
+  "in_progress": null
+}
