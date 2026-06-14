@@ -193,8 +193,6 @@ class AddReturnTypesOption(AbstractPythonFileContentOption):
             def _infer_for_function(self, func_node: cst.FunctionDef) -> str | None:
                 # Collect returns in the function body (non-nested)
                 collector = _ReturnCollector()
-                if not isinstance(func_node, cst.FunctionDef):
-                    return None
                 func_node.body.visit(collector)
                 # Generator: never annotate via this simple pass. The function
                 # actually returns Iterator[X] / Generator[X, ...], which we
@@ -220,7 +218,7 @@ class AddReturnTypesOption(AbstractPythonFileContentOption):
                     kinds.add(inferred)
 
                 if len(kinds) == 1:
-                    return next(iter(kinds))
+                    return kinds.pop()
                 return None
 
             def leave_FunctionDef(

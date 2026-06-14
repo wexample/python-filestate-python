@@ -1,0 +1,11 @@
+{
+  "engram_version": 1,
+  "source_key": "src/wexample_filestate_python/option/python/add_return_types_option.py",
+  "cache_nonce": "1c2800147ebc4367950bb7b61bd21d00",
+  "last_visited_at": "2026-06-14T14:38:24+00:00",
+  "last_rev": "4ad31230737bbc57b511160cc8e5ccd754c5c119",
+  "last_decision": "edit",
+  "kinds": [],
+  "notes": "removed always-True isinstance guard in _infer_for_function; replaced next(iter(kinds)) with kinds.pop() to avoid iterator allocation",
+  "in_progress": null
+}
