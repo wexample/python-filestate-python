@@ -18,3 +18,6 @@ has zero `return` nodes, so `_ReturnCollector.returns` is empty and the inferred
 
 ## Suggested direction
 Extend `_ReturnCollector` to also record any `cst.Yield` / `cst.YieldFrom` it encounters at the same nesting level. If any yield is found, **bail** (return `None` from the inference, leaving the function unannotated) — proper `Iterator[X]` inference is out of scope for the simple-types pass and would need to peek into yielded expressions. Add a regression test on a tiny generator and a `yield from` case.
+
+## Resolution
+Implemented as suggested. `_ReturnCollector` now carries a `has_yield: bool` flag set by a new `visit_Yield` hook. libcst represents `yield from X` as a `Yield` whose value is `cst.From(item=X)`, so this single hook catches both forms (`yield X` and `yield from X`) — no separate `visit_YieldFrom` needed. `_infer_for_function` short-circuits with `return None` when the flag is set, so generators stay unannotated for a human to fill in the correct `Iterator[X]` / `Generator[...]` shape.
