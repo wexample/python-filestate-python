@@ -1,0 +1,11 @@
+{
+  "engram_version": 1,
+  "source_key": "src/wexample_filestate_python/option/python/class_name_matches_file_name_option.py",
+  "cache_nonce": "1c2800147ebc4367950bb7b61bd21d00",
+  "last_visited_at": "2026-06-14T14:39:16+00:00",
+  "last_rev": "084503fae1683243be23d5ccdf4a13eccfd6f994",
+  "last_decision": "edit",
+  "kinds": [],
+  "notes": "inlined _normalize_part slices, replaced manual loop with any() generator in _class_name_matches_file_name",
+  "in_progress": null
+}

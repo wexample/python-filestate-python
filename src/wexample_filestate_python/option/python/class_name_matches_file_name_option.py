@@ -36,8 +36,7 @@ class ClassNameMatchesFileNameOption(OptionMixin, AbstractConfigOption):
 
     @staticmethod
     def _normalize_part(part: str) -> str:
-        head, tail = part[:1], part[1:]
-        return head.upper() + tail.lower()
+        return part[:1].upper() + part[1:].lower()
 
     def create_required_operation(
         self, target: TargetFileOrDirectoryType, scopes: set[Scope]
@@ -65,7 +64,7 @@ class ClassNameMatchesFileNameOption(OptionMixin, AbstractConfigOption):
         except SyntaxError:
             return False
 
-        for node in module.body:
-            if isinstance(node, ast.ClassDef) and node.name == expected_name:
-                return True
-        return False
+        return any(
+            isinstance(node, ast.ClassDef) and node.name == expected_name
+            for node in module.body
+        )
