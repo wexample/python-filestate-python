@@ -48,8 +48,10 @@ class PythonUsageCollector(cst.CSTVisitor):
         self.func_stack: list[str] = []
         self._in_annotation_stack: list[bool] = []
         self._in_decorator_stack: list[bool] = []
-        self._in_param_default_stack: list[bool] = []
-        self._in_param_annot_stack: list[bool] = []
+        # Integer counters replace boolean stacks: O(1) truthiness check in visit_Name
+        # rather than any()-over-list iteration.
+        self._in_param_default_count: int = 0
+        self._in_param_annot_count: int = 0
 
     def leave_Annotation(self, node: cst.Annotation) -> None:  # type: ignore[override]
         if self._in_annotation_stack:
@@ -69,10 +71,10 @@ class PythonUsageCollector(cst.CSTVisitor):
         self.func_stack.pop()
 
     def leave_Param(self, node: cst.Param) -> None:  # type: ignore[override]
-        if self._in_param_default_stack:
-            self._in_param_default_stack.pop()
-        if self._in_param_annot_stack:
-            self._in_param_annot_stack.pop()
+        if node.default is not None:
+            self._in_param_default_count -= 1
+        if node.annotation is not None:
+            self._in_param_annot_count -= 1
 
     # ----- B: class-level property annotations -----
     def visit_AnnAssign(self, node: cst.AnnAssign) -> None:  # type: ignore[override]
@@ -213,8 +215,8 @@ class PythonUsageCollector(cst.CSTVisitor):
         if (
             self._in_annotation_stack
             or self._in_decorator_stack
-            or any(self._in_param_default_stack)
-            or any(self._in_param_annot_stack)
+            or self._in_param_default_count
+            or self._in_param_annot_count
         ):
             return
         val = node.value
@@ -226,7 +228,8 @@ class PythonUsageCollector(cst.CSTVisitor):
             resolved_mod = None
             try:
                 if self.idx is not None:
-                    resolved_mod = self.idx.name_to_from.get(val, (None, None))[0]  # type: ignore[index]
+                    _entry = self.idx.name_to_from.get(val)
+                    resolved_mod = _entry[0] if _entry is not None else None  # type: ignore[index]
             except Exception:
                 resolved_mod = None
             # Skip if module is unknown or belongs to typing/collections.abc
@@ -278,12 +281,14 @@ class PythonUsageCollector(cst.CSTVisitor):
     # ----- C: function param annotations -----
     def visit_Param(self, node: cst.Param) -> None:  # type: ignore[override]
         if node.annotation is not None:
+            self._in_param_annot_count += 1
             self._record_type_names(node.annotation.annotation, self.used_in_C_annot)
+        if node.default is not None:
+            self._in_param_default_count += 1
 
     # Fallback: explicitly scan Parameters node for defaults (some environments may not trigger visit_Param)
     def visit_Parameters(self, node: cst.Parameters) -> bool:  # type: ignore[override]
         try:
-            self.func_stack[-1] if self.func_stack else "<module>"
             # Aggregate all parameter-like collections
             all_params: list[cst.Param] = []
             all_params.extend(node.params)
@@ -371,12 +376,10 @@ class PythonUsageCollector(cst.CSTVisitor):
             # confusion with instance/class attributes like self.verbosity vs imported verbosity
         elif isinstance(expr, cst.BinaryOperation):
             # Handle PEP 604 union types: e.g., Path | None
-            # Traverse both sides of the binary operation
+            # Traverse both sides of the binary operation (single handler avoids
+            # setting up two separate exception frames on every call).
             try:
                 self._walk_expr_for_names(expr.left, bucket)
-            except Exception:
-                pass
-            try:
                 self._walk_expr_for_names(expr.right, bucket)
             except Exception:
                 pass

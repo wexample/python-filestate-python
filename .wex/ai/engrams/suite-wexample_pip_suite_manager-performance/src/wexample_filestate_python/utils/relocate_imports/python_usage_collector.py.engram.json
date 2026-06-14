@@ -1,0 +1,11 @@
+{
+  "engram_version": 1,
+  "source_key": "src/wexample_filestate_python/utils/relocate_imports/python_usage_collector.py",
+  "cache_nonce": "1c2800147ebc4367950bb7b61bd21d00",
+  "last_visited_at": "2026-06-14T17:05:53+00:00",
+  "last_rev": "646e6804f3d41b344c9c54b38929ab7996a8dd24",
+  "last_decision": "edit",
+  "kinds": [],
+  "notes": "replace any()-over-bool-lists with int counters in visit_Name hot path, collapse BinaryOperation double try/except, drop (None,None) default tuple, remove dead expression in visit_Parameters",
+  "in_progress": null
+}
