@@ -191,9 +191,6 @@ class PythonLocalizeRuntimeImports(cst.CSTTransformer):
                         ):
                             found.add((mod, alias.name.value))
 
-                def leave_Import(self, node: cst.Import) -> None:  # type: ignore[override]
-                    return
-
             fn.visit(_Find())
             return found
 
@@ -271,8 +268,6 @@ class PythonLocalizeRuntimeImports(cst.CSTTransformer):
         self, pairs: set[tuple[str | None, str]]
     ) -> list[cst.BaseStatement]:
         """Build import statements from a set of (module, name) pairs."""
-        from collections import defaultdict
-
         by_module: defaultdict[str | None, list[str]] = defaultdict(list)
         for mod, name in pairs:
             by_module[mod].append(name)
@@ -297,8 +292,6 @@ class PythonLocalizeRuntimeImports(cst.CSTTransformer):
     def _build_local_imports(
         self, func_qname: str
     ) -> tuple[list[cst.BaseStatement], set[tuple[str | None, str]]]:
-        from collections import defaultdict
-
         names = self.functions_needing_local.get(func_qname)
         if not names:
             return [], set()
@@ -320,10 +313,9 @@ class PythonLocalizeRuntimeImports(cst.CSTTransformer):
         for mod, idents in by_module.items():
             if not idents:
                 continue
-            sorted_idents = sorted(idents)
-            for n in sorted_idents:
-                pairs.add((mod, n))
-            import_names = [cst.ImportAlias(name=cst.Name(n)) for n in sorted_idents]
+            # idents is already sorted (names were iterated via sorted(names) above)
+            pairs.update((mod, n) for n in idents)
+            import_names = [cst.ImportAlias(name=cst.Name(n)) for n in idents]
             stmts.append(
                 cst.SimpleStatementLine(
                     (

@@ -1,0 +1,11 @@
+{
+  "engram_version": 1,
+  "source_key": "src/wexample_filestate_python/utils/relocate_imports/python_localize_runtime_imports.py",
+  "cache_nonce": "1c2800147ebc4367950bb7b61bd21d00",
+  "last_visited_at": "2026-06-14T16:59:24+00:00",
+  "last_rev": "5819e661cbc7aae688446297926eec16f7674397",
+  "last_decision": "edit",
+  "kinds": [],
+  "notes": "removed 2 redundant inner defaultdict imports, eliminated double-sort in _build_local_imports, replaced per-element pairs.add loop with pairs.update, dropped no-op leave_Import stub",
+  "in_progress": null
+}
