@@ -9,4 +9,4 @@ class PythonFile(ItemTargetFile):
     EXTENSION_ENV: ClassVar[str] = "py"
 
     def _expected_file_name_extension(self) -> str | None:
-        return PythonFile.EXTENSION_ENV
+        return self.EXTENSION_ENV

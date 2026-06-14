@@ -1,0 +1,11 @@
+{
+  "engram_version": 1,
+  "source_key": "src/wexample_filestate_python/file/python_file.py",
+  "cache_nonce": "1c2800147ebc4367950bb7b61bd21d00",
+  "last_visited_at": "2026-06-14T14:33:36+00:00",
+  "last_rev": "1fdba5a342974c783341b93549ecd5c9d3c607bd",
+  "last_decision": "edit",
+  "kinds": [],
+  "notes": "replaced PythonFile.EXTENSION_ENV global name lookup with self.EXTENSION_ENV instance lookup in _expected_file_name_extension",
+  "in_progress": null
+}
