@@ -1,11 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
 import libcst as cst
-
-if TYPE_CHECKING:
-    pass
 
 
 def find_module_docstring(
@@ -22,13 +17,13 @@ def find_module_docstring(
     """
     for i, stmt in enumerate(module.body):
         # Skip comments and blank lines at the start
-        if isinstance(stmt, (cst.SimpleStatementLine)):
+        if isinstance(stmt, cst.SimpleStatementLine):
             if len(stmt.body) == 1 and isinstance(stmt.body[0], cst.Expr):
                 expr = stmt.body[0]
                 if isinstance(expr.value, cst.SimpleString):
                     # This is a string literal at module level - likely a docstring
                     return stmt, i
-        elif not isinstance(stmt, cst.SimpleStatementLine):
+        else:
             # Hit a non-simple statement (like import, class, def) - no docstring
             break
 

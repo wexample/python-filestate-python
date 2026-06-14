@@ -1,0 +1,11 @@
+{
+  "engram_version": 1,
+  "source_key": "src/wexample_filestate_python/utils/python_docstring_utils.py",
+  "cache_nonce": "1c2800147ebc4367950bb7b61bd21d00",
+  "last_visited_at": "2026-06-14T16:50:30+00:00",
+  "last_rev": "9be370039d986bce8fe4dbd06b342f980258d96a",
+  "last_decision": "edit",
+  "kinds": [],
+  "notes": "drop dead TYPE_CHECKING block, remove redundant single-elem tuple in isinstance, replace always-true elif with else",
+  "in_progress": null
+}
