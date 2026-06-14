@@ -1,0 +1,11 @@
+{
+  "engram_version": 1,
+  "source_key": "src/wexample_filestate_python/helpers/package.py",
+  "cache_nonce": "1c2800147ebc4367950bb7b61bd21d00",
+  "last_visited_at": "2026-06-14T14:34:55+00:00",
+  "last_rev": "0f2763a625017280e26e53ea3709f8cd003959de",
+  "last_decision": "edit",
+  "kinds": [],
+  "notes": "hoist re import; filter dirs once; cache package_get_info results eliminating second I/O pass; use set intersection for dep filtering",
+  "in_progress": null
+}

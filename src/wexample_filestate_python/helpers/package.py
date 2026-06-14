@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import ast
+import re
 from typing import TYPE_CHECKING
 
 import tomli
@@ -19,32 +20,21 @@ def package_get_dependencies(root_dir: str | Path) -> dict[str, set[str]]:
     if not packages_root.exists() or not packages_root.is_dir():
         raise ValueError(f"Error: {packages_root} does not exist or is not a directory")
 
-    dependencies = {}
-    all_entries = list(packages_root.iterdir())
+    # Filter to directories once; avoids repeated is_dir() calls in two passes.
+    all_dirs = [e for e in packages_root.iterdir() if e.is_dir()]
 
-    # First pass: collect all local packages
-    for package_dir in all_entries:
-        if not package_dir.is_dir():
-            continue
-
-        package_info = package_get_info(package_dir)
-        if package_info:
-            name, _ = package_info
-            dependencies[name] = set()
-
-    # Second pass: analyze dependencies
-    for package_dir in all_entries:
-        if not package_dir.is_dir():
-            continue
-
+    # Single pass: collect all local package infos (name → raw deps).
+    pkg_infos: dict[str, set[str]] = {}
+    for package_dir in all_dirs:
         package_info = package_get_info(package_dir)
         if package_info:
             name, deps = package_info
-            if name in dependencies:
-                # Only keep dependencies that are local packages
-                dependencies[name] = {dep for dep in deps if dep in dependencies}
+            pkg_infos[name] = deps
 
-    return dependencies
+    local_names: set[str] = set(pkg_infos)  # O(1) membership for filtering
+
+    # Keep only deps that resolve to a local package (set intersection).
+    return {name: deps & local_names for name, deps in pkg_infos.items()}
 
 
 def package_get_info(package_dir: Path) -> tuple[str, set[str]] | None:
@@ -72,10 +62,8 @@ def package_get_info(package_dir: Path) -> tuple[str, set[str]] | None:
 
 
 def package_normalize_name(val: str) -> str:
-    import re as _re
-
     # strip extras, versions, markers
-    base = _re.split(r"[\s<>=!~;\[]", val, maxsplit=1)[0]
+    base = re.split(r"[\s<>=!~;\[]", val, maxsplit=1)[0]
     return base.strip().lower()
 
 
