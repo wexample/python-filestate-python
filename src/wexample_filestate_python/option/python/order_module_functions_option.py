@@ -36,5 +36,4 @@ class OrderModuleFunctionsOption(AbstractPythonFileContentOption):
         if module_functions_already_ordered(module):
             return src
 
-        modified = reorder_module_functions(module)
-        return modified.code
+        return reorder_module_functions(module).code
