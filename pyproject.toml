@@ -18,7 +18,7 @@ dependencies = [
     "isort",
     "libcst",
     "packaging",
-    "pyupgrade",
+    "ruff",
     "tomli",
     "wexample-api>=6.4.0",
     "wexample-filestate>=12.2.0",
