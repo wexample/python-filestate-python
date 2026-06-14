@@ -5,17 +5,16 @@ import libcst as cst
 
 def ensure_all_classes_docstring_first(module: cst.Module) -> cst.Module:
     """For each class in the module, ensure its docstring (if present) is first."""
-    changed = False
-    new_body = list(module.body)
+    new_body: list | None = None
 
-    for i, node in enumerate(new_body):
-        if isinstance(node, cst.ClassDef):
-            if not is_class_docstring_first(node):
-                updated = move_class_docstring_to_top(node)
-                if updated is not node:
-                    new_body[i] = updated
-                    changed = True
-    if not changed:
+    for i, node in enumerate(module.body):
+        if isinstance(node, cst.ClassDef) and not is_class_docstring_first(node):
+            updated = move_class_docstring_to_top(node)
+            if updated is not node:
+                if new_body is None:
+                    new_body = list(module.body)
+                new_body[i] = updated
+    if new_body is None:
         return module
     return module.with_changes(body=new_body)
 
@@ -58,9 +57,8 @@ def move_class_docstring_to_top(classdef: cst.ClassDef) -> cst.ClassDef:
 
     normalized = normalize_docstring_quotes_stmt(doc).with_changes(leading_lines=[])
 
-    body_list = list(classdef.body.body)
-    body_list.pop(idx)
-    body_list.insert(0, normalized)
+    body_seq = classdef.body.body
+    body_list = [normalized, *body_seq[:idx], *body_seq[idx + 1:]]
     new_suite = classdef.body.with_changes(body=body_list)
     return classdef.with_changes(body=new_suite)
 

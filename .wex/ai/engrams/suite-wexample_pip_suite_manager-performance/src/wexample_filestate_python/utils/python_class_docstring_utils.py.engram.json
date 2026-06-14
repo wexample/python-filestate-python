@@ -1,0 +1,11 @@
+{
+  "engram_version": 1,
+  "source_key": "src/wexample_filestate_python/utils/python_class_docstring_utils.py",
+  "cache_nonce": "1c2800147ebc4367950bb7b61bd21d00",
+  "last_visited_at": "2026-06-14T16:45:35+00:00",
+  "last_rev": "33ede50f5cca1cb3ad5e8f8398787be3a6f99f5f",
+  "last_decision": "edit",
+  "kinds": [],
+  "notes": "deferred module.body list copy to first change hit; replaced pop+insert with single slice-spread in move_class_docstring_to_top",
+  "in_progress": null
+}
