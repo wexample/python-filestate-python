@@ -1,6 +1,41 @@
 from __future__ import annotations
 
+from wexample_filestate.helpers.flag import flag_exists
+
 FLAG_NAME = "python-iterable-sort"
+
+
+def _split_into_groups(block_lines: list[str]) -> list[list[str]]:
+    groups: list[list[str]] = []
+    pending_comments: list[str] = []
+    for ln in block_lines:
+        if ln.lstrip().startswith("#"):
+            pending_comments.append(ln)
+            continue
+        # item line
+        group = pending_comments + [ln]
+        groups.append(group)
+        pending_comments = []
+    # Any trailing comments without item are ignored for sorting and left in place
+    # (shouldn't occur in expected usage). If present, attach to last group to preserve.
+    if pending_comments:
+        if groups:
+            groups[-1].extend(pending_comments)
+        else:
+            groups.append(pending_comments)
+    return groups
+
+
+def _group_key(g: list[str]) -> str:
+    # Use the first non-comment line in group as key
+    for ln in g:
+        if not ln.lstrip().startswith("#"):
+            # Remove trailing comma for comparison but don't modify actual text
+            item = ln.strip()
+            if item.endswith(","):
+                item = item[:-1]
+            return item.lower()
+    return ""  # fallback
 
 
 def reorder_flagged_iterables(src: str) -> str:
@@ -24,56 +59,22 @@ def reorder_flagged_iterables(src: str) -> str:
 
     changed = False
 
-    def split_into_groups(block_lines: list[str]) -> list[list[str]]:
-        groups: list[list[str]] = []
-        pending_comments: list[str] = []
-        for ln in block_lines:
-            if ln.lstrip().startswith("#"):
-                pending_comments.append(ln)
-                continue
-            # item line
-            group = pending_comments + [ln]
-            groups.append(group)
-            pending_comments = []
-        # Any trailing comments without item are ignored for sorting and left in place
-        # (shouldn't occur in expected usage). If present, attach to last group to preserve.
-        if pending_comments:
-            if groups:
-                groups[-1].extend(pending_comments)
-            else:
-                groups.append(pending_comments)
-        return groups
-
-    def group_key(g: list[str]) -> str:
-        # Use the first non-comment line in group as key
-        for ln in g:
-            if not ln.lstrip().startswith("#"):
-                # Remove trailing comma for comparison but don't modify actual text
-                item = ln.strip()
-                if item.endswith(","):
-                    item = item[:-1]
-                return item.lower()
-        return ""  # fallback
-
     for flag_idx in reversed(flag_lines):
         start, end = _collect_iterable_block(lines, flag_idx)
         if start >= end:
             continue
         block = lines[start:end]
 
-        groups = split_into_groups(block)
-        # Build current order keys for no-op detection
-        current_keys = [group_key(g) for g in groups]
-        sorted_groups = sorted(groups, key=group_key)
-        sorted_keys = [group_key(g) for g in sorted_groups]
+        groups = _split_into_groups(block)
+        # Compute keys once; reuse for both no-op check and sort order
+        keys = [_group_key(g) for g in groups]
+        sorted_keys = sorted(keys)
 
-        if sorted_keys == current_keys:
+        if sorted_keys == keys:
             continue
 
-        # Flatten groups back to lines
-        new_block = [ln for g in sorted_groups for ln in g]
-
-        lines[start:end] = new_block
+        order = sorted(range(len(groups)), key=lambda i: keys[i])
+        lines[start:end] = [ln for i in order for ln in groups[i]]
         changed = True
 
     return "\n".join(lines) if changed else src
@@ -100,12 +101,13 @@ def _collect_iterable_block(lines: list[str], flag_idx: int) -> tuple[int, int]:
 
     # Scan until blank line or closing bracket ']' at indentation <= base
     while i < n:
-        stripped = lines[i].strip()
+        lstripped = lines[i].lstrip(" \t")
+        stripped = lstripped.rstrip()
         # Stop at blank separator line
         if stripped == "":
             break
         # Stop when list ends
-        curr_indent = len(lines[i]) - len(lines[i].lstrip(" \t"))
+        curr_indent = len(lines[i]) - len(lstripped)
         if stripped.startswith("]") and curr_indent <= base_indent:
             break
         # Stop if we encounter a trailing comment-only line
@@ -119,6 +121,4 @@ def _collect_iterable_block(lines: list[str], flag_idx: int) -> tuple[int, int]:
 
 def _find_flag_line_indices(lines: list[str]) -> list[int]:
     """Return line indices where the iterable sort flag appears."""
-    from wexample_filestate.helpers.flag import flag_exists
-
     return [i for i, line in enumerate(lines) if flag_exists(FLAG_NAME, line)]
