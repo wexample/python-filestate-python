@@ -1,0 +1,11 @@
+{
+  "engram_version": 1,
+  "source_key": "src/wexample_filestate_python/option/python/relocate_imports_option.py",
+  "cache_nonce": "1c2800147ebc4367950bb7b61bd21d00",
+  "last_visited_at": "2026-06-14T16:34:03+00:00",
+  "last_rev": "a917e0b10779b8c1e10b81611f3c9fa54dcb22d4",
+  "last_decision": "edit",
+  "kinds": [],
+  "notes": "replaced set(dict.keys()) with set(dict) and set().union(*values) with flat-map comprehension",
+  "in_progress": null
+}

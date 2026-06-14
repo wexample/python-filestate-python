@@ -59,7 +59,7 @@ class RelocateImportsOption(AbstractPythonFileContentOption):
         idx = PythonParserImportIndex()
         module.visit(idx)
 
-        imported_value_names: set[str] = set(idx.name_to_from.keys())
+        imported_value_names: set[str] = set(idx.name_to_from)
 
         # Usage collection
         # runtime_local: usage inside function bodies
@@ -87,7 +87,7 @@ class RelocateImportsOption(AbstractPythonFileContentOption):
         runtime_used_anywhere: set[str] = rsc.runtime_used_anywhere
 
         # Resolve categories
-        runtime_local_all: set[str] = set().union(*functions_needing_local.values())
+        runtime_local_all: set[str] = {n for s in functions_needing_local.values() for n in s}
         # class_level has priority over runtime_local: if a name is class-level, we do NOT local-import it
         runtime_local_final: set[str] = {
             n for n in runtime_local_all if n not in class_level_names
