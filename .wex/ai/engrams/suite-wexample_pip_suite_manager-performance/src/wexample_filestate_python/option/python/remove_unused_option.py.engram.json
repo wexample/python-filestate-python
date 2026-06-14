@@ -1,0 +1,11 @@
+{
+  "engram_version": 1,
+  "source_key": "src/wexample_filestate_python/option/python/remove_unused_option.py",
+  "cache_nonce": "1c2800147ebc4367950bb7b61bd21d00",
+  "last_visited_at": "2026-06-14T16:34:58+00:00",
+  "last_rev": "8623b850e9904cda3cd98aba9cf04de2f0213a44",
+  "last_decision": "skip",
+  "kinds": [],
+  "notes": "already uses in-process fix_code API; no loops, redundant allocations, or hoistable invariants remain in the method body",
+  "in_progress": null
+}
