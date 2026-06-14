@@ -1,0 +1,11 @@
+{
+  "engram_version": 1,
+  "source_key": "src/wexample_filestate_python/utils/python_constants_utils.py",
+  "cache_nonce": "1c2800147ebc4367950bb7b61bd21d00",
+  "last_visited_at": "2026-06-14T16:49:43+00:00",
+  "last_rev": "6ccaffc3a835c7b6bd5dfcdcba1305cb8f67c674",
+  "last_decision": "edit",
+  "kinds": [],
+  "notes": "removed duplicate Sequence/TYPE_CHECKING imports, unified body_list indexing, O(n²)→O(n) node lookup via id-dict in sort_constants_block",
+  "in_progress": null
+}

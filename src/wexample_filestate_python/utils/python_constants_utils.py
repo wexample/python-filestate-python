@@ -1,12 +1,8 @@
 from __future__ import annotations
 
 from collections.abc import Sequence
-from typing import TYPE_CHECKING
 
 import libcst as cst
-
-if TYPE_CHECKING:
-    from collections.abc import Sequence
 
 FLAG_NAME = "python-constant-sort"
 
@@ -25,12 +21,11 @@ def find_flagged_constant_blocks(
     """
     blocks: list[tuple[int, int, list[cst.SimpleStatementLine]]] = []
 
+    body_list = list(module.body)
+    n = len(body_list)
     i = 0
-    body = module.body
-    body_list = list(body)
-    n = len(body)
     while i < n:
-        stmt = body[i]
+        stmt = body_list[i]
         if isinstance(stmt, cst.SimpleStatementLine):
             has_flag = _stmt_has_flag(stmt, src) or _prev_line_has_flag(body_list, i)
             if has_flag and _get_simple_assignment_name(stmt) is not None:
@@ -38,7 +33,7 @@ def find_flagged_constant_blocks(
                 j = i
                 nodes: list[cst.SimpleStatementLine] = []
                 while j < n:
-                    s = body[j]
+                    s = body_list[j]
                     if isinstance(s, cst.SimpleStatementLine):
                         if j != i:
                             # Stop the block ONLY if there is a blank line separation
@@ -225,9 +220,11 @@ def sort_constants_block(
         ]
         cleaned_leadings.append(cleaned)
 
+    # Pre-build O(1) id-keyed lookup: node object id → original index in pairs
+    node_to_original_index: dict[int, int] = {id(n): i for i, (_, n) in enumerate(pairs)}
+
     for idx, (_, node) in enumerate(sorted_pairs):
-        # Determine the original index of this node in 'nodes' list
-        original_index = next((i for i, (_, n) in enumerate(pairs) if n is node), None)
+        original_index = node_to_original_index.get(id(node))
         leading = (
             cleaned_leadings[original_index]
             if original_index is not None
