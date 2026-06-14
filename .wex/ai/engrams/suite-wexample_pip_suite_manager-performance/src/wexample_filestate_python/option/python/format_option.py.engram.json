@@ -1,0 +1,11 @@
+{
+  "engram_version": 1,
+  "source_key": "src/wexample_filestate_python/option/python/format_option.py",
+  "cache_nonce": "1c2800147ebc4367950bb7b61bd21d00",
+  "last_visited_at": "2026-06-14T14:42:20+00:00",
+  "last_rev": "4b28853548c88305937c6b66850136b53ef37ed7",
+  "last_decision": "edit",
+  "kinds": [],
+  "notes": "guard empty-paths before lazy black import; explicit UTF-8 encoding on read/write; drop redundant return None",
+  "in_progress": null
+}

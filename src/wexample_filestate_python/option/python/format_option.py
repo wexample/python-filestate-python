@@ -34,6 +34,8 @@ class FormatOption(WithBatchOptionMixin, AbstractPythonFileContentOption):
         reference_target: TargetFileOrDirectoryType,
         paths: list[Path],
     ) -> None:
+        if not paths:
+            return
         # Black is loaded lazily here. Thread-safety: dry_run()/apply() always
         # call _prepare_options() before parallel inspection, which runs this
         # method in the main thread first — so by the time worker threads run,
@@ -43,11 +45,10 @@ class FormatOption(WithBatchOptionMixin, AbstractPythonFileContentOption):
 
         mode = black.Mode(line_length=self._line_length)
         for path in paths:
-            src = path.read_text()
+            src = path.read_text(encoding="utf-8")
             try:
                 formatted = black.format_file_contents(src, fast=False, mode=mode)
                 if formatted != src:
-                    path.write_text(formatted)
+                    path.write_text(formatted, encoding="utf-8")
             except black.NothingChanged:
                 pass
-        return None
