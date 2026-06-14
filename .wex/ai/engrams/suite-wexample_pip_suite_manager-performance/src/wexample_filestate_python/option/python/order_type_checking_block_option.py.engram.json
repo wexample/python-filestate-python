@@ -1,0 +1,11 @@
+{
+  "engram_version": 1,
+  "source_key": "src/wexample_filestate_python/option/python/order_type_checking_block_option.py",
+  "cache_nonce": "1c2800147ebc4367950bb7b61bd21d00",
+  "last_visited_at": "2026-06-14T16:32:59+00:00",
+  "last_rev": "044c488ed56b0d6d37cb720dc8f64d13df2b1422",
+  "last_decision": "edit",
+  "kinds": [],
+  "notes": "deferred target_index_for_type_checking call into short-circuit `and` to skip it when not contiguous",
+  "in_progress": null
+}
