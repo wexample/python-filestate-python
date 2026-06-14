@@ -1,0 +1,11 @@
+{
+  "engram_version": 1,
+  "source_key": "src/wexample_filestate_python/utils/python_module_metadata_utils.py",
+  "cache_nonce": "1c2800147ebc4367950bb7b61bd21d00",
+  "last_visited_at": "2026-06-14T16:55:39+00:00",
+  "last_rev": "01b8f6217c8ed132f9c08184c8388049f0caf3cc",
+  "last_decision": "edit",
+  "kinds": [],
+  "notes": "eliminated redundant _get_assignment_target_name re-calls in removal loop by building moved list directly from found tuples",
+  "in_progress": null
+}

@@ -50,22 +50,18 @@ def group_and_sort_module_metadata(module: cst.Module) -> cst.Module:
     # Determine insertion index before we mutate the body
     insert_at = target_index_for_module_metadata(module)
 
-    # Remove from body (reverse order) and collect nodes with cleaned leading lines
+    # Build moved list directly from found; names are already known, no re-parse needed
+    moved: list[tuple[str, cst.SimpleStatementLine]] = [
+        (name, stmt.with_changes(leading_lines=[]))
+        for _, stmt, name in found
+    ]
+    moved.sort(key=lambda t: t[0].lower())
+
+    # Remove from body in reverse-index order to preserve positions
     to_remove_indices = sorted((i for i, _, _ in found), reverse=True)
     new_body: list[cst.CSTNode] = list(module.body)
-    moved: list[tuple[str, cst.SimpleStatementLine]] = []
-
     for idx in to_remove_indices:
-        node = new_body.pop(idx)
-        assert isinstance(node, cst.SimpleStatementLine)
-        name = _get_assignment_target_name(node)
-        if name is None:
-            # Should not happen; skip
-            continue
-        moved.append((name, node.with_changes(leading_lines=[])))
-
-    # Sort moved by name case-insensitively, '_' after letters rule not needed here
-    moved.sort(key=lambda t: t[0].lower())
+        new_body.pop(idx)
 
     # Adjust insertion index after removals that occurred before it
     num_removed_before = sum(1 for idx in to_remove_indices if idx < insert_at)
