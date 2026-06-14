@@ -1,0 +1,11 @@
+{
+  "engram_version": 1,
+  "source_key": "src/wexample_filestate_python/common/pipy_gateway.py",
+  "cache_nonce": "1c2800147ebc4367950bb7b61bd21d00",
+  "last_visited_at": "2026-06-14T14:30:48+00:00",
+  "last_rev": "d90d8cb646aa6e60ad51f331ce30dc14a051339a",
+  "last_decision": "skip",
+  "kinds": [],
+  "notes": "single network-bound method; HTTP round-trip dwarfs any Python-level micro-optimisation by 5+ orders of magnitude",
+  "in_progress": null
+}
