@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from collections import defaultdict
 from typing import TYPE_CHECKING
 
 import libcst as cst
@@ -124,10 +125,11 @@ class PythonImportRewriter(cst.CSTTransformer):
 
         # If nothing changed (same number of aliases kept as original and none removed),
         # return the original node to preserve exact formatting (commas, parentheses, whitespace).
-        try:
-            original_alias_count = len(original_node.names) if not isinstance(original_node.names, cst.ImportStar) else 0  # type: ignore[arg-type]
-        except Exception:
-            original_alias_count = -1
+        original_alias_count = (
+            len(original_node.names)  # type: ignore[arg-type]
+            if not isinstance(original_node.names, cst.ImportStar)
+            else 0
+        )
         if original_alias_count == len(kept_aliases) and not removed_any:
             return original_node
 
@@ -185,10 +187,11 @@ class PythonImportRewriter(cst.CSTTransformer):
 
         # If nothing changed (same number of aliases kept as original and none removed),
         # return the original node to preserve exact formatting (commas, parentheses, whitespace).
-        try:
-            original_alias_count = len(original_node.names) if not isinstance(original_node.names, cst.ImportStar) else 0  # type: ignore[arg-type]
-        except Exception:
-            original_alias_count = -1
+        original_alias_count = (
+            len(original_node.names)  # type: ignore[arg-type]
+            if not isinstance(original_node.names, cst.ImportStar)
+            else 0
+        )
         if original_alias_count == len(kept_aliases) and not removed_any:
             return original_node
 
@@ -202,14 +205,12 @@ class PythonImportRewriter(cst.CSTTransformer):
     def leave_Module(
         self, original_node: cst.Module, updated_node: cst.Module
     ) -> cst.Module:
-        from collections import defaultdict
-
         if not self.need_type_checking_block or not self.used_in_C_only:
             return updated_node
 
         # Build desired imports for C-only
         desired_by_module: defaultdict[str | None, set[str]] = defaultdict(set)
-        for ident in sorted(self.used_in_C_only):
+        for ident in self.used_in_C_only:
             mod, _ = self.idx.name_to_from.get(ident, (None, None))
             # Never add typing.* under TYPE_CHECKING; keep them at module level only.
             if mod == "typing":
