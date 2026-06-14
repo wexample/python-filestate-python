@@ -25,18 +25,14 @@ class OrderMainGuardOption(AbstractPythonFileContentOption):
             get_python_source_and_module,
         )
         from wexample_filestate_python.utils.python_main_guard_utils import (
-            find_main_guard_blocks,
             is_main_guard_at_end,
             move_main_guard_to_end,
         )
 
         src, module = get_python_source_and_module(target)
 
-        # No main guard present => nothing to do
-        if not find_main_guard_blocks(module):
-            return src
-
-        # Already at end => avoid whitespace-only diffs
+        # No main guard present, or already at end => avoid whitespace-only diffs
+        # (is_main_guard_at_end returns True when no guard exists, so one check suffices)
         if is_main_guard_at_end(module):
             return src
 

@@ -1,0 +1,11 @@
+{
+  "engram_version": 1,
+  "source_key": "src/wexample_filestate_python/option/python/order_main_guard_option.py",
+  "cache_nonce": "1c2800147ebc4367950bb7b61bd21d00",
+  "last_visited_at": "2026-06-14T14:51:45+00:00",
+  "last_rev": "1a92c5dac77684065d1ed5602d5fad7c60d2e883",
+  "last_decision": "edit",
+  "kinds": [],
+  "notes": "dropped redundant find_main_guard_blocks pre-check; is_main_guard_at_end already handles the no-guard case, saving one CST traversal per call",
+  "in_progress": null
+}
