@@ -31,7 +31,6 @@ class RelocateImportsOption(AbstractPythonFileContentOption):
              if missing). Files already have `from __future__ import annotations`.
         """
         from collections import defaultdict
-        from typing import DefaultDict
 
         import libcst as cst
 
@@ -66,7 +65,7 @@ class RelocateImportsOption(AbstractPythonFileContentOption):
         # runtime_local: usage inside function bodies
         # class_level: usage inside class body annotations (needed at definition time)
         # type_only: type-only annotations across module if not in runtime_local or class_level
-        functions_needing_local: DefaultDict[str, set[str]] = defaultdict(
+        functions_needing_local: defaultdict[str, set[str]] = defaultdict(
             set
         )  # func_qualified_name -> names
         class_level_names: set[str] = set()

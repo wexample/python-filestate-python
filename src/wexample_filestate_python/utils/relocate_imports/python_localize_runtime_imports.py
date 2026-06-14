@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, DefaultDict
+from collections import defaultdict
+from typing import TYPE_CHECKING
 
 import libcst as cst
 
@@ -19,7 +20,7 @@ class PythonLocalizeRuntimeImports(cst.CSTTransformer):
     def __init__(
         self,
         idx: PythonParserImportIndex,
-        functions_needing_local: DefaultDict[str, set[str]],
+        functions_needing_local: defaultdict[str, set[str]],
         skip_local_names: set[str] | None = None,
     ) -> None:
         super().__init__()
@@ -272,7 +273,7 @@ class PythonLocalizeRuntimeImports(cst.CSTTransformer):
         """Build import statements from a set of (module, name) pairs."""
         from collections import defaultdict
 
-        by_module: DefaultDict[str | None, list[str]] = defaultdict(list)
+        by_module: defaultdict[str | None, list[str]] = defaultdict(list)
         for mod, name in pairs:
             by_module[mod].append(name)
 
@@ -302,7 +303,7 @@ class PythonLocalizeRuntimeImports(cst.CSTTransformer):
         if not names:
             return [], set()
         # Group by module
-        by_module: DefaultDict[str | None, list[str]] = defaultdict(list)
+        by_module: defaultdict[str | None, list[str]] = defaultdict(list)
         for ident in sorted(names):
             if ident in self.skip_local_names:
                 continue

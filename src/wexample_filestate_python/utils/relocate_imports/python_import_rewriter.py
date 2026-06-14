@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, DefaultDict
+from typing import TYPE_CHECKING
 
 import libcst as cst
 
@@ -208,7 +208,7 @@ class PythonImportRewriter(cst.CSTTransformer):
             return updated_node
 
         # Build desired imports for C-only
-        desired_by_module: DefaultDict[str | None, set[str]] = defaultdict(set)
+        desired_by_module: defaultdict[str | None, set[str]] = defaultdict(set)
         for ident in sorted(self.used_in_C_only):
             mod, _ = self.idx.name_to_from.get(ident, (None, None))
             # Never add typing.* under TYPE_CHECKING; keep them at module level only.
@@ -247,7 +247,7 @@ class PythonImportRewriter(cst.CSTTransformer):
                 break
 
         # Compute missing imports
-        missing_by_module: DefaultDict[str | None, list[str]] = defaultdict(list)
+        missing_by_module: defaultdict[str | None, list[str]] = defaultdict(list)
         for mod, names in desired_by_module.items():
             for n in sorted(names):
                 if (mod, n) not in existing_imported:

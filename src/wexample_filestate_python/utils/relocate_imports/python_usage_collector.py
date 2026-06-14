@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from typing import ClassVar, DefaultDict
+from collections import defaultdict
+from typing import ClassVar
 
 import libcst as cst
 
@@ -21,7 +22,7 @@ class PythonUsageCollector(cst.CSTVisitor):
     def __init__(
         self,
         imported_value_names: set[str],
-        functions_needing_local: DefaultDict[str, set[str]],
+        functions_needing_local: defaultdict[str, set[str]],
         used_in_B: set[str],
         used_in_C_annot: set[str],
         cast_type_names_anywhere: set[str],

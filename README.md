@@ -88,7 +88,6 @@ Visit the [Wexample Suite documentation](https://docs.wexample.com) for the comp
 - isort: 
 - libcst: 
 - packaging: 
-- pyupgrade: 
 - tomli: 
 - wexample-api: >=6.4.0
 - wexample-filestate: >=12.2.0
