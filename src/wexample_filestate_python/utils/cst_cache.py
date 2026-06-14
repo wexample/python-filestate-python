@@ -33,5 +33,6 @@ def get_python_source_and_module(
 
     src = target.get_local_file().read()
     module = cst.parse_module(src)
-    setattr(target, _CACHE_ATTR, (src, module))
-    return src, module
+    result = (src, module)
+    setattr(target, _CACHE_ATTR, result)
+    return result

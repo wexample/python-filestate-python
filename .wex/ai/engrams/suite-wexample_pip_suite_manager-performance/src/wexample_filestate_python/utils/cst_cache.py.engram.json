@@ -1,0 +1,11 @@
+{
+  "engram_version": 1,
+  "source_key": "src/wexample_filestate_python/utils/cst_cache.py",
+  "cache_nonce": "1c2800147ebc4367950bb7b61bd21d00",
+  "last_visited_at": "2026-06-14T16:38:59+00:00",
+  "last_rev": "5331da2f7cfde106aa7606cb27194465529a57f3",
+  "last_decision": "edit",
+  "kinds": [],
+  "notes": "reuse single tuple on cache-miss path, eliminating duplicate (src, module) allocation",
+  "in_progress": null
+}
