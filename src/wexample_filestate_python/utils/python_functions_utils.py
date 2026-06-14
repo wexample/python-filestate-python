@@ -43,6 +43,27 @@ def collect_module_function_groups(
     return groups
 
 
+def module_functions_already_ordered(module: cst.Module) -> bool:
+    """Check if module-level functions are already in the canonical order.
+
+    Canonical = all function groups before any class, then within the function
+    block: public (A–Z) → private (`_*`, A–Z). Overload groups are detected by
+    `collect_module_function_groups`, so contiguity of @overload sequences is
+    enforced implicitly: a non-contiguous overload chain would split into
+    multiple single-name groups and fail the sorted-name comparison.
+
+    Lets `OrderModuleFunctionsOption` skip the full rebuild on already-compliant
+    modules instead of recomputing-then-comparing.
+    """
+    if not module_functions_sorted_before_classes(module):
+        return False
+    groups = [g for _, g in collect_module_function_groups(module)]
+    if not groups:
+        return True
+    expected = sort_function_groups(groups)
+    return [g.name for g in groups] == [g.name for g in expected]
+
+
 def module_functions_sorted_before_classes(module: cst.Module) -> bool:
     """Check if all function groups appear before the first class in the module."""
     first_class_index: int | None = None

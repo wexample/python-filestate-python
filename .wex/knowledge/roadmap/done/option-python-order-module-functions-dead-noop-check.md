@@ -10,3 +10,6 @@
 
 ## Suggested direction
 Either complete the early-return path (`if module_functions_sorted_before_classes(module) and <alpha+visibility already sorted>: return src`) or remove the dead block entirely after confirming the function has no side effects.
+
+## Resolution
+Picked "complete the early-return path" over "remove". See sibling ticket `option-python-order-module-functions-finish-broken-fast-path.md` for the new `module_functions_already_ordered` helper and the option-side wiring.

@@ -25,18 +25,16 @@ class OrderModuleFunctionsOption(AbstractPythonFileContentOption):
             get_python_source_and_module,
         )
         from wexample_filestate_python.utils.python_functions_utils import (
-            module_functions_sorted_before_classes,
+            module_functions_already_ordered,
             reorder_module_functions,
         )
 
         src, module = get_python_source_and_module(target)
 
-        # Quick no-op detection: if there are no functions, or functions already sorted
-        # and placed before classes, the transformation may be a noop.
-        if module_functions_sorted_before_classes(module):
-            # We still need to check sorting (public then private) and alpha order.
-            # We will compute the transformed module and compare.
-            pass
+        # Fast path: module is already in the canonical order (functions before
+        # classes + public A–Z → private A–Z). Skips the full rebuild + render.
+        if module_functions_already_ordered(module):
+            return src
 
         modified = reorder_module_functions(module)
         return modified.code

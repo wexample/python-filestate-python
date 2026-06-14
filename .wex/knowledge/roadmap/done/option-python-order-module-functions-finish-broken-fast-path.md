@@ -15,3 +15,8 @@ Add a `module_functions_already_ordered(module) -> bool` helper in `python_funct
 3. `@overload` groups are contiguous with their implementation.
 
 In the option, replace the `if ...: pass` with `if module_functions_already_ordered(module): return src`. This converts the existing dead traversal into an actual win.
+
+## Resolution
+Added `module_functions_already_ordered(module) -> bool` in `python_functions_utils.py`. It delegates to `module_functions_sorted_before_classes` for the function-before-class check, then collects function groups via `collect_module_function_groups` and compares their names to the canonical order produced by `sort_function_groups`. Overload contiguity is enforced implicitly: a non-contiguous overload chain would split into multiple single-name groups and fail the name comparison.
+
+In `order_module_functions_option.py`, the dead `if ...: pass` block is gone, replaced by `if module_functions_already_ordered(module): return src`. Closes both this ticket and its sibling `option-python-order-module-functions-dead-noop-check.md` (the pre-existing one that flagged the dead block).
