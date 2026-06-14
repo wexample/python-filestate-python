@@ -53,6 +53,11 @@ class AddReturnTypesOption(AbstractPythonFileContentOption):
         class _ReturnCollector(cst.CSTVisitor):
             def __init__(self) -> None:
                 self.returns: list[cst.Return] = []
+                # A function with any `yield` / `yield from` is a generator —
+                # its real return type is Iterator[X], not whatever the return
+                # statements imply. We can't infer Iterator[X] from this simple
+                # pass, so we record the flag and bail out at the caller.
+                self.has_yield: bool = False
 
             # Do not descend into nested scopes that could have their own returns
             def visit_FunctionDef(self, node: cst.FunctionDef) -> bool:  # type: ignore[override]
@@ -66,6 +71,11 @@ class AddReturnTypesOption(AbstractPythonFileContentOption):
 
             def visit_Return(self, node: cst.Return) -> None:  # type: ignore[override]
                 self.returns.append(node)
+
+            def visit_Yield(self, node: cst.Yield) -> None:  # type: ignore[override]
+                # libcst represents `yield from X` as a Yield whose value is
+                # `cst.From(item=X)`, so this single hook catches both forms.
+                self.has_yield = True
 
         class _KnownTypesCollector(cst.CSTVisitor):
             """Collect known simple type names from class defs and from-imports.
@@ -197,6 +207,11 @@ class AddReturnTypesOption(AbstractPythonFileContentOption):
                 if not isinstance(func_node, cst.FunctionDef):
                     return None
                 func_node.body.visit(collector)
+                # Generator: never annotate via this simple pass. The function
+                # actually returns Iterator[X] / Generator[X, ...], which we
+                # can't infer here — leave it unannotated for a human to fill.
+                if collector.has_yield:
+                    return None
                 # If no return statements -> None
                 if not collector.returns:
                     return "None"
