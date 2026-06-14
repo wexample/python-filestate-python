@@ -1,0 +1,11 @@
+{
+  "engram_version": 1,
+  "source_key": "src/wexample_filestate_python/option/python/sort_imports_option.py",
+  "cache_nonce": "1c2800147ebc4367950bb7b61bd21d00",
+  "last_visited_at": "2026-06-14T16:35:40+00:00",
+  "last_rev": "6beedf5c4c32476355b51c199e34c13ccd4a6cd3",
+  "last_decision": "edit",
+  "kinds": [],
+  "notes": "hoisted Config(profile=\"black\") construction into lru_cache(maxsize=1) to avoid rebuilding on every _apply_content_change call",
+  "in_progress": null
+}
