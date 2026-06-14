@@ -1,0 +1,11 @@
+{
+  "engram_version": 1,
+  "source_key": "src/wexample_filestate_python/option/python/modernize_typing_option.py",
+  "cache_nonce": "1c2800147ebc4367950bb7b61bd21d00",
+  "last_visited_at": "2026-06-14T14:43:51+00:00",
+  "last_rev": "ed5966b33ccfa3d4513594c3a5ccc6cb485ebd59",
+  "last_decision": "edit",
+  "kinds": [],
+  "notes": "hoisted subprocess import to module level, swapped generator for list comprehension in cmd build, removed dead return None",
+  "in_progress": null
+}

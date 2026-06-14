@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import subprocess
 import sys
 from typing import TYPE_CHECKING, ClassVar
 
@@ -55,8 +56,6 @@ class ModernizeTypingOption(WithBatchOptionMixin, AbstractPythonFileContentOptio
         # `--fix-only` makes Ruff exit 0 even when unfixable findings remain:
         # this option's job is to *apply* UP fixes, not to report on lint
         # findings (that would belong to a dedicated lint rule).
-        import subprocess
-
         cmd = [
             sys.executable,
             "-m",
@@ -67,7 +66,7 @@ class ModernizeTypingOption(WithBatchOptionMixin, AbstractPythonFileContentOptio
             "--fix-only",
             f"--target-version={self._target_version}",
             "--no-cache",
-            *(str(p) for p in paths),
+            *[str(p) for p in paths],
         ]
         result = subprocess.run(cmd, capture_output=True, text=True, check=False)
         if result.returncode != 0:
@@ -76,4 +75,3 @@ class ModernizeTypingOption(WithBatchOptionMixin, AbstractPythonFileContentOptio
                 f"stderr: {result.stderr.strip()}\n"
                 f"stdout: {result.stdout.strip()}"
             )
-        return None
