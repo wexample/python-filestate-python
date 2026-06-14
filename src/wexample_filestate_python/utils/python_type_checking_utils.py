@@ -24,7 +24,8 @@ def move_type_checking_blocks_after_imports(module: cst.Module) -> cst.Module:
     insert_at = target_index_for_type_checking(module)
 
     # Remove blocks from body (from highest index to lowest to keep indices valid)
-    remove_indices = sorted((i for i, _ in blocks), reverse=True)
+    # blocks is already in ascending order from enumerate(); reversing is O(n) vs O(n log n) sort
+    remove_indices = [i for i, _ in reversed(blocks)]
     new_body = list(module.body)
     moved_blocks: list[cst.If] = []
     for idx in remove_indices:
@@ -59,11 +60,6 @@ def target_index_for_type_checking(module: cst.Module) -> int:
             last_regular_import = i
         elif _is_future_import(stmt):
             last_future_import = i
-        else:
-            # stop scanning when hitting first non-import after having passed imports?
-            # We still record all to get the last occurrence.
-            pass
-
     if last_regular_import != -1:
         return last_regular_import + 1
     if last_future_import != -1:

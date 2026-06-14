@@ -1,0 +1,11 @@
+{
+  "engram_version": 1,
+  "source_key": "src/wexample_filestate_python/utils/python_type_checking_utils.py",
+  "cache_nonce": "1c2800147ebc4367950bb7b61bd21d00",
+  "last_visited_at": "2026-06-14T16:56:42+00:00",
+  "last_rev": "3bbba2fece53c05b7febedaeeb0852f6c2c7a27b",
+  "last_decision": "edit",
+  "kinds": [],
+  "notes": "replaced O(n log n) sort with O(n) list reversal in move_type_checking_blocks_after_imports; removed dead else: pass in target_index_for_type_checking",
+  "in_progress": null
+}
