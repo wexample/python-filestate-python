@@ -1,0 +1,11 @@
+{
+  "engram_version": 1,
+  "source_key": "src/wexample_filestate_python/option/python/order_class_methods_option.py",
+  "cache_nonce": "1c2800147ebc4367950bb7b61bd21d00",
+  "last_visited_at": "2026-06-14T14:47:09+00:00",
+  "last_rev": "bf53aa04c95a99d469c3a51c6bea229bcfd6c672",
+  "last_decision": "edit",
+  "kinds": [],
+  "notes": "skip CST serialization in _apply_content_change when methods already in order (identity check mirrors order_class_attributes_option)",
+  "in_progress": null
+}
