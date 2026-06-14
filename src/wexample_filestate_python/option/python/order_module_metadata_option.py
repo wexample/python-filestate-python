@@ -39,20 +39,16 @@ class OrderModuleMetadataOption(AbstractPythonFileContentOption):
             return src
 
         # Determine if already grouped and sorted at the correct position
+        # `found` is non-empty (early-return above), so `indices` is always non-empty
         indices = [i for i, _, _ in found]
-        # contiguous block?
-        contiguous = (
-            indices == list(range(indices[0], indices[0] + len(indices)))
-            if indices
-            else True
-        )
-        # names sorted?
+        # contiguous block? — pairwise diff avoids list(range(...)) allocation; short-circuits
+        contiguous = all(b - a == 1 for a, b in zip(indices, indices[1:]))
+        # names sorted? — pairwise comparison avoids building a sorted copy; short-circuits
         names = [name for _, __, name in found]
-        names_sorted = sorted(names, key=str.lower)
-        already_sorted = names == names_sorted
+        already_sorted = all(str.lower(a) <= str.lower(b) for a, b in zip(names, names[1:]))
         # at correct position?
         desired_index = target_index_for_module_metadata(module)
-        at_target_position = indices and indices[0] == desired_index
+        at_target_position = indices[0] == desired_index
 
         # If everything is already correct, avoid making whitespace-only changes
         if contiguous and already_sorted and at_target_position:
