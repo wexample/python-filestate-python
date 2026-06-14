@@ -1,0 +1,11 @@
+{
+  "engram_version": 1,
+  "source_key": "src/wexample_filestate_python/utils/python_main_guard_utils.py",
+  "cache_nonce": "1c2800147ebc4367950bb7b61bd21d00",
+  "last_visited_at": "2026-06-14T16:54:46+00:00",
+  "last_rev": "7031be0ccd1894921cb2507a819d58d5cfe309f6",
+  "last_decision": "edit",
+  "kinds": [],
+  "notes": "replaced sort+lambda with reversed(), for/break sentinel with next(), and inlined left_ok boolean",
+  "in_progress": null
+}

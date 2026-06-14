@@ -15,11 +15,10 @@ def is_main_guard_at_end(module: cst.Module) -> bool:
     last_index = blocks[-1][0]
     # Consider "at the end" if it's the last non-empty node (ignoring trailing blank lines)
     # Find last non-empty node index
-    last_non_empty = -1
-    for i in range(len(module.body) - 1, -1, -1):
-        if not isinstance(module.body[i], cst.EmptyLine):
-            last_non_empty = i
-            break
+    last_non_empty = next(
+        (i for i in range(len(module.body) - 1, -1, -1) if not isinstance(module.body[i], cst.EmptyLine)),
+        -1,
+    )
     return last_index == last_non_empty
 
 
@@ -36,7 +35,7 @@ def move_main_guard_to_end(module: cst.Module) -> cst.Module:
 
     # Remove all blocks first (from highest index to lowest)
     removed: list[cst.If] = []
-    for idx, node in sorted(blocks, key=lambda t: t[0], reverse=True):
+    for idx, node in reversed(blocks):
         removed.append(new_body.pop(idx))
     removed.reverse()  # preserve original order
 
@@ -65,8 +64,7 @@ def _is_name_eq_main(test: cst.BaseExpression) -> bool:
     if not isinstance(comp.operator, cst.Equal):
         return False
     # Left should be Name("__name__") (optionally with parentheses tolerated by CST?)
-    left_ok = isinstance(test.left, cst.Name) and test.left.value == "__name__"
-    if not left_ok:
+    if not (isinstance(test.left, cst.Name) and test.left.value == "__name__"):
         return False
     # Right should be SimpleString of __main__
     right = comp.comparator
