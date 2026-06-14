@@ -1,0 +1,11 @@
+{
+  "engram_version": 1,
+  "source_key": "src/wexample_filestate_python/utils/python_class_methods_utils.py",
+  "cache_nonce": "1c2800147ebc4367950bb7b61bd21d00",
+  "last_visited_at": "2026-06-14T16:48:26+00:00",
+  "last_rev": "ddf71ff9fbacdec63b1a2801c44e88044d798a80",
+  "last_decision": "edit",
+  "kinds": [],
+  "notes": "single-pass decorator scan in _classify_method, hoist closures to module level, inline _is_dunder in _is_private, remove dead helpers",
+  "in_progress": null
+}

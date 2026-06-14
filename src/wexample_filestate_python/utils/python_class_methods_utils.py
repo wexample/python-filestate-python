@@ -25,6 +25,21 @@ for gi, group in enumerate(DUnderGroups):
 _PROP_KINDS: tuple[str, str, str] = ("getter", "setter", "deleter")
 
 
+def _sort_by_visibility(items: list[dict]) -> list[cst.FunctionDef]:
+    """Sort methods: public A-Z then private/protected A-Z (single-pass split)."""
+    pub: list[dict] = []
+    priv: list[dict] = []
+    for i in items:
+        (priv if _is_private(i["name"]) else pub).append(i)
+    pub_sorted = [i["node"] for i in sorted(pub, key=lambda x: _sort_key_alpha(x["name"]))]
+    priv_sorted = [i["node"] for i in sorted(priv, key=lambda x: _sort_key_alpha(x["name"]))]
+    return pub_sorted + priv_sorted
+
+
+def _prop_group_to_nodes(g: dict[str, cst.FunctionDef | None]) -> list[cst.FunctionDef]:
+    return [g[k] for k in _PROP_KINDS if g[k] is not None]  # type: ignore
+
+
 def ensure_order_class_methods_in_module(module: cst.Module) -> cst.Module:
     changed = False
     new_body = list(module.body)
@@ -43,10 +58,10 @@ def reorder_class_methods(classdef: cst.ClassDef) -> cst.ClassDef:
     """Reorder methods and properties in the class body according to rules 13-17.
 
     - Dunder methods ordered in logical groups
-    - Classmethods sorted public A–Z then private A–Z
-    - Staticmethods sorted public A–Z then private A–Z
-    - Properties grouped by base name (getter, setter, deleter together), groups A–Z
-    - Instance methods sorted public A–Z then private/protected A–Z
+    - Classmethods sorted public A-Z then private A-Z
+    - Staticmethods sorted public A-Z then private A-Z
+    - Properties grouped by base name (getter, setter, deleter together), groups A-Z
+    - Instance methods sorted public A-Z then private/protected A-Z
 
     Non-method nodes (attributes, inner classes, etc.) retain their relative positions; the
     collection of methods/properties is reordered as a single subsequence in place of the
@@ -58,7 +73,7 @@ def reorder_class_methods(classdef: cst.ClassDef) -> cst.ClassDef:
     method_indices: list[int] = []
     method_nodes: list[cst.FunctionDef] = []
     for idx, node in enumerate(body_list):
-        if _is_method_node(node):
+        if isinstance(node, cst.FunctionDef):
             method_indices.append(idx)
             method_nodes.append(node)
 
@@ -85,28 +100,19 @@ def reorder_class_methods(classdef: cst.ClassDef) -> cst.ClassDef:
         else:
             instances.append(meta)
 
-    # Order dunders by (group, within) then keep unknown dunders after known, alpha by name
-    known = [m for m in dunders if m["order"][0] != 999]
-    unknown = [m for m in dunders if m["order"][0] == 999]
-    known_sorted = sorted(known, key=lambda m: m["order"])
-    unknown_sorted = sorted(unknown, key=lambda m: _sort_key_alpha(m["name"]))
-    dunder_ordered = [m["node"] for m in known_sorted + unknown_sorted]
+    # Order dunders: known groups first (sorted by order), unknown after (alphabetical)
+    # Single-pass split avoids iterating dunders twice.
+    known: list[dict] = []
+    unknown: list[dict] = []
+    for m in dunders:
+        (unknown if m["order"][0] == 999 else known).append(m)
+    dunder_ordered = [m["node"] for m in sorted(known, key=lambda m: m["order"])]
+    dunder_ordered += [m["node"] for m in sorted(unknown, key=lambda m: _sort_key_alpha(m["name"]))]
 
     # Sort classmethods/staticmethods and instances: public first then private
-    def sort_by_visibility(items: list[dict]) -> list[cst.FunctionDef]:
-        pub = [i for i in items if not _is_private(i["name"])]
-        priv = [i for i in items if _is_private(i["name"])]
-        pub_sorted = [
-            i["node"] for i in sorted(pub, key=lambda x: _sort_key_alpha(x["name"]))
-        ]
-        priv_sorted = [
-            i["node"] for i in sorted(priv, key=lambda x: _sort_key_alpha(x["name"]))
-        ]
-        return pub_sorted + priv_sorted
-
-    classmethods_ordered = sort_by_visibility(classmethods)
-    staticmethods_ordered = sort_by_visibility(staticmethods)
-    instances_ordered = sort_by_visibility(instances)
+    classmethods_ordered = _sort_by_visibility(classmethods)
+    staticmethods_ordered = _sort_by_visibility(staticmethods)
+    instances_ordered = _sort_by_visibility(instances)
 
     # Group properties by base name, order getter, setter, deleter within group
     prop_groups: dict[str, dict[str, cst.FunctionDef | None]] = {}
@@ -119,12 +125,9 @@ def reorder_class_methods(classdef: cst.ClassDef) -> cst.ClassDef:
         )
         g[kind] = node
 
-    def prop_group_to_nodes(base: str, g: dict[str, cst.FunctionDef | None]):
-        return [g[k] for k in _PROP_KINDS if g[k] is not None]  # type: ignore
-
     props_ordered: list[cst.FunctionDef] = []
     for base in sorted(prop_groups.keys(), key=str.lower):
-        props_ordered.extend(prop_group_to_nodes(base, prop_groups[base]))
+        props_ordered.extend(_prop_group_to_nodes(prop_groups[base]))
 
     # Final ordered list: dunder -> classmethods -> staticmethods -> properties -> instances
     ordered_methods: list[cst.FunctionDef] = (
@@ -151,71 +154,54 @@ def reorder_class_methods(classdef: cst.ClassDef) -> cst.ClassDef:
 
 def _classify_method(func: cst.FunctionDef) -> tuple[str, dict]:
     """Classify a FunctionDef into one of: dunder, classmethod, staticmethod, property, instance.
+
+    Single-pass over decorators replaces the previous multi-pass approach
+    (_has_decorator + _property_kind calls), eliminating up to 4x redundant list iteration.
     Returns (kind, meta) where meta provides extra info like name, dunder order, property base/kind.
     """
     name = func.name.value
-    # Properties first (they may also have classmethod/staticmethod in theory, ignore that)
-    base, pkind = _property_kind(func)
-    if base is not None:
-        return "property", {"base": base, "kind": pkind, "node": func}
-    # Classmethod / staticmethod
-    if _has_decorator(func, "classmethod"):
+    is_classmethod = False
+    is_staticmethod = False
+    property_kind: str | None = None
+    property_base: str | None = None
+
+    for dec in func.decorators:
+        expr = dec.decorator
+        if isinstance(expr, cst.Name):
+            v = expr.value
+            if v == "property":
+                property_kind = "getter"
+                property_base = name
+            elif v == "classmethod":
+                is_classmethod = True
+            elif v == "staticmethod":
+                is_staticmethod = True
+        elif isinstance(expr, cst.Attribute) and isinstance(expr.attr, cst.Name):
+            attr_val = expr.attr.value
+            if attr_val in {"setter", "deleter"}:
+                base = expr.value
+                if isinstance(base, cst.Name):
+                    property_kind = attr_val
+                    property_base = base.value
+
+    if property_base is not None:
+        return "property", {"base": property_base, "kind": property_kind, "node": func}
+    if is_classmethod:
         return "classmethod", {"name": name, "node": func}
-    if _has_decorator(func, "staticmethod"):
+    if is_staticmethod:
         return "staticmethod", {"name": name, "node": func}
-    # Dunder methods
     if _is_dunder(name):
         order = _DUNDER_ORDER.get(name, (999, 999))
         return "dunder", {"name": name, "order": order, "node": func}
-    # Instance method
     return "instance", {"name": name, "node": func}
-
-
-def _has_decorator(func: cst.FunctionDef, decorator_name: str) -> bool:
-    for dec in func.decorators:
-        expr = dec.decorator
-        # @decorator
-        if isinstance(expr, cst.Name) and expr.value == decorator_name:
-            return True
-        # @module.decorator
-        if (
-            isinstance(expr, cst.Attribute)
-            and isinstance(expr.attr, cst.Name)
-            and expr.attr.value == decorator_name
-        ):
-            return True
-    return False
 
 
 def _is_dunder(name: str) -> bool:
     return name.startswith("__") and name.endswith("__")
 
 
-def _is_method_node(node: cst.CSTNode) -> bool:
-    return isinstance(node, cst.FunctionDef)
-
-
 def _is_private(name: str) -> bool:
-    return name.startswith("_") and not _is_dunder(name)
-
-
-def _property_kind(func: cst.FunctionDef) -> tuple[str | None, str | None]:
-    """Return (base_name, kind) where kind in {getter, setter, deleter} or (None, None).
-    For setters/deleters, decorator is like @<name>.setter or @<name>.deleter.
-    """
-    # Getter: @property on a function whose name is the property name
-    if _has_decorator(func, "property"):
-        return func.name.value, "getter"
-    # Setter/deleter: look for Attribute decorator <name>.setter / <name>.deleter
-    for dec in func.decorators:
-        expr = dec.decorator
-        if isinstance(expr, cst.Attribute) and isinstance(expr.attr, cst.Name):
-            if expr.attr.value in {"setter", "deleter"}:
-                # base name is left side of the attribute if it's a Name
-                base = expr.value
-                if isinstance(base, cst.Name):
-                    return base.value, expr.attr.value
-    return None, None
+    return name.startswith("_") and not (name.startswith("__") and name.endswith("__"))
 
 
 def _sort_key_alpha(name: str) -> tuple:
