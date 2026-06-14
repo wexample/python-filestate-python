@@ -28,7 +28,12 @@ class OrderClassAttributesOption(AbstractPythonFileContentOption):
             ensure_order_class_attributes_in_module,
         )
 
-        _, module = get_python_source_and_module(target)
+        src, module = get_python_source_and_module(target)
 
         modified = ensure_order_class_attributes_in_module(module)
+        # Avoid re-serialising the whole CST when the tree is unchanged.
+        # ensure_order_class_attributes_in_module returns the same object when
+        # nothing was reordered, so an identity check is sufficient.
+        if modified is module:
+            return src
         return modified.code

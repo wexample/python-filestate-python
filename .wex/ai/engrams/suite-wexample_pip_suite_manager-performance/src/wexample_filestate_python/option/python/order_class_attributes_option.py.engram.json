@@ -1,0 +1,11 @@
+{
+  "engram_version": 1,
+  "source_key": "src/wexample_filestate_python/option/python/order_class_attributes_option.py",
+  "cache_nonce": "1c2800147ebc4367950bb7b61bd21d00",
+  "last_visited_at": "2026-06-14T14:44:46+00:00",
+  "last_rev": "0a5955a9434e4b52e18d69c5daa6a549ef9af616",
+  "last_decision": "edit",
+  "kinds": [],
+  "notes": "skip CST .code re-serialisation when ensure_order_class_attributes_in_module returns unchanged module (identity guard)",
+  "in_progress": null
+}
