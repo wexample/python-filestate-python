@@ -1,0 +1,11 @@
+{
+  "engram_version": 1,
+  "source_key": "src/wexample_filestate_python/options_provider/python_options_provider.py",
+  "cache_nonce": "1c2800147ebc4367950bb7b61bd21d00",
+  "last_visited_at": "2026-06-14T16:38:30+00:00",
+  "last_rev": "947c166aa783c031dd5b7f4b9b6dda07c7f6ee7a",
+  "last_decision": "edit",
+  "kinds": [],
+  "notes": "cached get_options list in class-level _options_cache to avoid per-call list allocation",
+  "in_progress": null
+}
