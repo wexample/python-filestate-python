@@ -1,0 +1,11 @@
+{
+  "engram_version": 1,
+  "source_key": "src/wexample_filestate_python/option/python/add_future_annotations_option.py",
+  "cache_nonce": "1c2800147ebc4367950bb7b61bd21d00",
+  "last_visited_at": "2026-06-14T14:37:13+00:00",
+  "last_rev": "e50702a4dd44ce43719bc1a2cbc3a61ee1475883",
+  "last_decision": "edit",
+  "kinds": [],
+  "notes": "hoisted `import ast` to module level; replaced dead getattr calls with direct attribute access; dropped redundant max(0,…) on always-non-negative insert_at",
+  "in_progress": null
+}

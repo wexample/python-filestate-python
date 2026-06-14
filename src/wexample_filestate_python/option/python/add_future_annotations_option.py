@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import ast
 import re
 from typing import TYPE_CHECKING
 
@@ -28,8 +29,6 @@ class AddFutureAnnotationsOption(AbstractPythonFileContentOption):
         if "from __future__ import annotations" in src:
             return src
 
-        import ast
-
         lines = src.splitlines(keepends=True)
 
         # Detect shebang and encoding cookie positions
@@ -48,11 +47,11 @@ class AddFutureAnnotationsOption(AbstractPythonFileContentOption):
             # If parsing fails, be conservative: insert after header block
             insert_at = idx
         else:
-            body = getattr(tree, "body", [])
+            body = tree.body
             if (
                 body
                 and isinstance(body[0], ast.Expr)
-                and isinstance(getattr(body[0], "value", None), ast.Constant)
+                and isinstance(body[0].value, ast.Constant)
                 and isinstance(body[0].value.value, str)
             ):
                 # Module docstring present; insert after its end_lineno
@@ -62,7 +61,7 @@ class AddFutureAnnotationsOption(AbstractPythonFileContentOption):
                 insert_at = idx
 
         # lines is 0-based; insert_at is 1-based line count from AST
-        insert_index = max(0, min(len(lines), insert_at))
+        insert_index = min(len(lines), insert_at)
 
         # Ensure there is a newline after the inserted import if needed
         future_line = "from __future__ import annotations\n"
