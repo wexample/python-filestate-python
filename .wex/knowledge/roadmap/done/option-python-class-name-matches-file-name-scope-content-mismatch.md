@@ -14,3 +14,6 @@ The intent is probably: "the rule depends on CONTENT to compute the expected out
 
 ## Suggested direction
 Declare both scopes — `return [Scope.NAME, Scope.CONTENT]` — so the option is included whenever either is in scope, OR split into two collaborating options (a content-side validator that emits a diagnostic, and a name-side rectifier that consumes it). Confirm against `_prepare_options` semantics that listing multiple scopes does not duplicate work.
+
+## Resolution
+Applied option 1: `get_scopes()` now returns `[Scope.NAME, Scope.CONTENT]`. Confirms the option needs CONTENT to read the class name from source and NAME because the eventual rectification (see sibling postponed ticket on the `print()` TODO) targets the file name.
