@@ -10,3 +10,6 @@
 
 ## Suggested direction
 Merge into one loop that tracks both `first_class_index` and `first_func_index`, breaking early once both are found.
+
+## Resolution
+Merged into a single pass that tracks both `first_class_index` and `first_func_index`, breaks out as soon as both are set. Same semantics, half the worst-case traversal cost.

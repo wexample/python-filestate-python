@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 from typing import TYPE_CHECKING
 
 from wexample_helpers.decorator.base_class import base_class
@@ -8,6 +9,10 @@ from .abstract_python_file_content_option import AbstractPythonFileContentOption
 
 if TYPE_CHECKING:
     from wexample_filestate.const.types_state_items import TargetFileOrDirectoryType
+
+# PEP 263 encoding cookie matcher. Compiled once at import time, reused
+# across every file the rectifier touches.
+_ENCODING_COOKIE_RE = re.compile(r"^#.*coding[:=]\s*([-_.a-zA-Z0-9]+)")
 
 
 @base_class
@@ -24,7 +29,6 @@ class AddFutureAnnotationsOption(AbstractPythonFileContentOption):
             return src
 
         import ast
-        import re
 
         lines = src.splitlines(keepends=True)
 
@@ -33,9 +37,8 @@ class AddFutureAnnotationsOption(AbstractPythonFileContentOption):
         if lines and lines[0].startswith("#!"):
             idx = 1
         # Encoding cookie can be on first or second line (after shebang)
-        enc_re = re.compile(r"^#.*coding[:=]\s*([-_.a-zA-Z0-9]+)")
         for i in range(idx, min(idx + 2, len(lines))):
-            if enc_re.match(lines[i]):
+            if _ENCODING_COOKIE_RE.match(lines[i]):
                 idx = i + 1
 
         # Parse to find module docstring span

@@ -14,3 +14,6 @@ Any future refinement (handling generics, qualified module paths, subscripted ca
 
 ## Suggested direction
 Extract a module-private helper `def _infer_class_call_type(call: cst.Call, known_types: set[str]) -> str | None:` and have both call sites delegate. Keep it `@staticmethod` if any, or a plain function. No behavior change expected — just one source of truth.
+
+## Resolution
+Extracted as a nested helper `_infer_class_call_type(call, known_types)` next to the existing `_infer_literal_type` (same closure scope, consistent with the file's style). Both `_FunctionAssignCollector._record_assignment` and `AddReturnTypesTransformer._infer_return_expr_type` now delegate to it; the deleted `_FunctionAssignCollector._infer_call_type` is gone. No behavior change.

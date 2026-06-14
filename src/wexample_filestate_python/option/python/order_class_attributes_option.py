@@ -28,7 +28,7 @@ class OrderClassAttributesOption(AbstractPythonFileContentOption):
             ensure_order_class_attributes_in_module,
         )
 
-        src, module = get_python_source_and_module(target)
+        _, module = get_python_source_and_module(target)
 
         modified = ensure_order_class_attributes_in_module(module)
         return modified.code

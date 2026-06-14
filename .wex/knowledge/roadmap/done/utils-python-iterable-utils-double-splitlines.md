@@ -10,3 +10,6 @@
 
 ## Suggested direction
 Accept an already-split `lines: list[str]` parameter in `_find_flag_line_indices` (or inline the flag search into `reorder_flagged_iterables`) so the string is split only once.
+
+## Resolution
+`_find_flag_line_indices` now takes `lines: list[str]` instead of `src: str`. The caller in `reorder_flagged_iterables` passes the already-split `lines`. Verified by grep: it's the only caller in `src/`.

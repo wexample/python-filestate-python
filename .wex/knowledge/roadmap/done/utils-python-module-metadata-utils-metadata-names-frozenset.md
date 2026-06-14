@@ -10,3 +10,6 @@
 
 ## Suggested direction
 Verify no caller iterates or indexes `METADATA_NAMES` by position, then change its type to `frozenset[str]` and update the annotation.
+
+## Resolution
+Grepped: both call sites use `in METADATA_NAMES` membership only — no iteration, no indexing. Migrated to `frozenset[str]` with the matching annotation.

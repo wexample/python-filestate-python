@@ -10,3 +10,6 @@
 
 ## Suggested direction
 Move `normalize` to a module-level helper or a `@staticmethod` on the class so it is created once at import time rather than re-created on each invocation.
+
+## Resolution
+Promoted to `ClassNameMatchesFileNameOption._normalize_part` (`@staticmethod`). Kept the local `normalize = ClassNameMatchesFileNameOption._normalize_part` alias inside `_expected_class_name_from_path` so the comprehension reads the same way as before.

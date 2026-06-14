@@ -18,7 +18,7 @@ def reorder_flagged_iterables(src: str) -> str:
     if not lines:
         return src
 
-    flag_lines = _find_flag_line_indices(src)
+    flag_lines = _find_flag_line_indices(lines)
     if not flag_lines:
         return src
 
@@ -117,9 +117,8 @@ def _collect_iterable_block(lines: list[str], flag_idx: int) -> tuple[int, int]:
     return start, end
 
 
-def _find_flag_line_indices(src: str) -> list[int]:
+def _find_flag_line_indices(lines: list[str]) -> list[int]:
     """Return line indices where the iterable sort flag appears."""
     from wexample_filestate.helpers.flag import flag_exists
 
-    lines = src.splitlines()
     return [i for i, line in enumerate(lines) if flag_exists(FLAG_NAME, line)]

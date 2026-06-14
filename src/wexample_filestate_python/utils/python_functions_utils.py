@@ -45,18 +45,22 @@ def collect_module_function_groups(
 
 def module_functions_sorted_before_classes(module: cst.Module) -> bool:
     """Check if all function groups appear before the first class in the module."""
-    first_class_index = None
+    first_class_index: int | None = None
+    first_func_index: int | None = None
     for idx, node in enumerate(module.body):
-        if isinstance(node, cst.ClassDef):
+        if first_class_index is None and isinstance(node, cst.ClassDef):
             first_class_index = idx
-            break
+            if first_func_index is not None:
+                break
+        elif first_func_index is None and isinstance(node, cst.FunctionDef):
+            first_func_index = idx
+            if first_class_index is not None:
+                break
     if first_class_index is None:
         return True
-    # Find first function index
-    for idx, node in enumerate(module.body):
-        if isinstance(node, cst.FunctionDef):
-            return idx < first_class_index
-    return True
+    if first_func_index is None:
+        return True
+    return first_func_index < first_class_index
 
 
 def reorder_module_functions(module: cst.Module) -> cst.Module:

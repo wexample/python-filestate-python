@@ -2,16 +2,19 @@ from __future__ import annotations
 
 import libcst as cst
 
-# Common, recognized module metadata names
-METADATA_NAMES: tuple[str, ...] = (
-    "__all__",
-    "__version__",
-    "__author__",
-    "__email__",
-    "__license__",
-    "__copyright__",
-    "__title__",
-    "__description__",
+# Common, recognized module metadata names.
+# frozenset for O(1) membership tests; the names are used exclusively via `in`.
+METADATA_NAMES: frozenset[str] = frozenset(
+    {
+        "__all__",
+        "__version__",
+        "__author__",
+        "__email__",
+        "__license__",
+        "__copyright__",
+        "__title__",
+        "__description__",
+    }
 )
 
 

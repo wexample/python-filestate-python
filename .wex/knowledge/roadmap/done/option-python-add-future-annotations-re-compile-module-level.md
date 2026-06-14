@@ -10,3 +10,6 @@
 
 ## Suggested direction
 Move the compiled pattern to module-level (or class-level) so it is compiled once at import time and reused across all calls.
+
+## Resolution
+Hoisted to module-level constant `_ENCODING_COOKIE_RE`. `re` import promoted from inside `_apply_content_change` to the top of the file. Compiled once at import time, reused across every file the rectifier touches.

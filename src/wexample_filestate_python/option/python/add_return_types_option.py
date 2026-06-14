@@ -47,6 +47,27 @@ class AddReturnTypesOption(AbstractPythonFileContentOption):
                 return "float"
             return None
 
+        def _infer_class_call_type(
+            call: cst.Call, known_types: set[str]
+        ) -> str | None:
+            """Return the class name if `call` instantiates a known type.
+
+            Recognizes `Foo()` and `module.Foo()` shapes; requires the matched
+            name to be uppercase-first to stay conservative. Single source of
+            truth shared by the assignment collector and the return-expression
+            transformer.
+            """
+            func = call.func
+            if isinstance(func, cst.Name):
+                if func.value in known_types and func.value[:1].isupper():
+                    return func.value
+                return None
+            if isinstance(func, cst.Attribute) and isinstance(func.attr, cst.Name):
+                attr_name = func.attr.value
+                if attr_name in known_types and attr_name[:1].isupper():
+                    return attr_name
+            return None
+
         class _ReturnCollector(cst.CSTVisitor):
             def __init__(self) -> None:
                 self.returns: list[cst.Return] = []
@@ -110,20 +131,6 @@ class AddReturnTypesOption(AbstractPythonFileContentOption):
                 self.var_type: dict[str, str] = {}
                 self.discarded: set[str] = set()
 
-            def _infer_call_type(self, call: cst.Call) -> str | None:
-                func = call.func
-                if isinstance(func, cst.Name):
-                    # Only keep conservative matches: known type names
-                    if func.value in self.known_types and func.value[:1].isupper():
-                        return func.value
-                elif isinstance(func, cst.Attribute):
-                    # module.MyClass(...) -> infer MyClass if it's a known type
-                    if isinstance(func.attr, cst.Name):
-                        attr_name = func.attr.value
-                        if attr_name in self.known_types and attr_name[:1].isupper():
-                            return attr_name
-                return None
-
             def _record_assignment(
                 self, target: cst.BaseExpression, value: cst.BaseExpression
             ) -> None:
@@ -134,7 +141,7 @@ class AddReturnTypesOption(AbstractPythonFileContentOption):
                     return
                 if not isinstance(value, cst.Call):
                     return
-                rtype = self._infer_call_type(value)
+                rtype = _infer_class_call_type(value, self.known_types)
                 if rtype is None:
                     return
                 existing = self.var_type.get(var)
@@ -177,20 +184,7 @@ class AddReturnTypesOption(AbstractPythonFileContentOption):
 
                 # Call to a known class
                 if isinstance(expr, cst.Call):
-                    func = expr.func
-                    if (
-                        isinstance(func, cst.Name)
-                        and func.value in self.known_types
-                        and func.value[:1].isupper()
-                    ):
-                        return func.value
-                    if isinstance(func, cst.Attribute) and isinstance(
-                        func.attr, cst.Name
-                    ):
-                        attr_name = func.attr.value
-                        if attr_name in self.known_types and attr_name[:1].isupper():
-                            return attr_name
-                    return None
+                    return _infer_class_call_type(expr, self.known_types)
 
                 # Variable referring to a previously inferred var type
                 if isinstance(expr, cst.Name):

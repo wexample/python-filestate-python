@@ -21,6 +21,11 @@ class ClassNameMatchesFileNameOption(OptionMixin, AbstractConfigOption):
         return [Scope.NAME, Scope.CONTENT]
 
     @staticmethod
+    def _normalize_part(part: str) -> str:
+        head, tail = part[:1], part[1:]
+        return head.upper() + tail.lower()
+
+    @staticmethod
     def _expected_class_name_from_path(path: Path) -> str | None:
         stem = path.stem
         if not stem or stem == "__init__":
@@ -31,10 +36,7 @@ class ClassNameMatchesFileNameOption(OptionMixin, AbstractConfigOption):
         if not parts:
             return None
 
-        def normalize(part: str) -> str:
-            head, tail = part[:1], part[1:]
-            return head.upper() + tail.lower()
-
+        normalize = ClassNameMatchesFileNameOption._normalize_part
         return "".join(normalize(part) for part in parts)
 
     def create_required_operation(
