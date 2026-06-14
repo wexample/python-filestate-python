@@ -34,8 +34,8 @@ def collect_module_function_groups(
                 ):
                     collected.append(next_node)
                     j += 1
-                    continue
-                break
+                else:
+                    break
             groups.append((i, FunctionGroup(name=name, nodes=tuple(collected))))
             i = j
             continue
@@ -61,7 +61,7 @@ def module_functions_already_ordered(module: cst.Module) -> bool:
     if not groups:
         return True
     expected = sort_function_groups(groups)
-    return [g.name for g in groups] == [g.name for g in expected]
+    return all(g.name == e.name for g, e in zip(groups, expected))
 
 
 def module_functions_sorted_before_classes(module: cst.Module) -> bool:
@@ -101,10 +101,11 @@ def reorder_module_functions(module: cst.Module) -> cst.Module:
     sorted_groups = sort_function_groups(groups)
 
     # Remove all function nodes from body
-    remove_indices = []
-    for idx, g in groups_with_idx:
-        remove_indices.extend(range(idx, idx + len(g.nodes)))
-    remove_indices = set(remove_indices)
+    remove_indices: set[int] = {
+        i
+        for idx, g in groups_with_idx
+        for i in range(idx, idx + len(g.nodes))
+    }
 
     new_body: list[cst.CSTNode] = []
     for idx, node in enumerate(module.body):
@@ -118,34 +119,6 @@ def reorder_module_functions(module: cst.Module) -> cst.Module:
     #   (adjusted for removals). This avoids moving unrelated code like type
     #   aliases or sys.path mutations and preserves the developer's chosen
     #   placement of the function block.
-    def _is_main_guard(node: cst.CSTNode) -> bool:
-        if not isinstance(node, cst.If):
-            return False
-        test = node.test
-        # Match patterns like: if __name__ == "__main__":
-        if isinstance(test, cst.Comparison):
-            left = test.left
-            comps = test.comparisons
-            if (
-                len(comps) == 1
-                and isinstance(left, cst.Name)
-                and left.value == "__name__"
-            ):
-                comp = comps[0]
-                # operator should be ==
-                if isinstance(comp.operator, cst.Equal):
-                    right = comp.comparator
-                    if isinstance(right, cst.SimpleString):
-                        val = (
-                            right.evaluated_value
-                            if hasattr(right, "evaluated_value")
-                            else right.value.strip("\"'")
-                        )
-                        return val == "__main__" or right.value.strip() in (
-                            "'__main__'",
-                            '"__main__"',
-                        )
-        return False
 
     # Anchor = index of first function in original body
     first_func_index: int | None = None
@@ -196,13 +169,40 @@ def reorder_module_functions(module: cst.Module) -> cst.Module:
     return module.with_changes(body=new_body)
 
 
+def _is_main_guard(node: cst.CSTNode) -> bool:
+    """Return True if *node* is an ``if __name__ == "__main__":`` guard."""
+    if not isinstance(node, cst.If):
+        return False
+    test = node.test
+    # Match patterns like: if __name__ == "__main__":
+    if isinstance(test, cst.Comparison):
+        left = test.left
+        comps = test.comparisons
+        if (
+            len(comps) == 1
+            and isinstance(left, cst.Name)
+            and left.value == "__name__"
+        ):
+            comp = comps[0]
+            # operator should be ==
+            if isinstance(comp.operator, cst.Equal):
+                right = comp.comparator
+                if isinstance(right, cst.SimpleString):
+                    val = (
+                        right.evaluated_value
+                        if hasattr(right, "evaluated_value")
+                        else right.value.strip("\"'")
+                    )
+                    return val == "__main__" or right.value.strip() in (
+                        "'__main__'",
+                        '"__main__"',
+                    )
+    return False
+
+
 def sort_function_groups(groups: list[FunctionGroup]) -> list[FunctionGroup]:
     """Sort groups by public (A–Z) then private (_*), each alphabetically case-insensitive."""
-    public = [g for g in groups if not _is_private_name(g.name)]
-    private = [g for g in groups if _is_private_name(g.name)]
-    public.sort(key=lambda g: g.name.lower())
-    private.sort(key=lambda g: g.name.lower())
-    return public + private
+    return sorted(groups, key=lambda g: (_is_private_name(g.name), g.name.lower()))
 
 
 def _func_name(fn: cst.FunctionDef) -> str:
