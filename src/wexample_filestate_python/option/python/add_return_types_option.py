@@ -47,9 +47,7 @@ class AddReturnTypesOption(AbstractPythonFileContentOption):
                 return "float"
             return None
 
-        def _infer_class_call_type(
-            call: cst.Call, known_types: set[str]
-        ) -> str | None:
+        def _infer_class_call_type(call: cst.Call, known_types: set[str]) -> str | None:
             """Return the class name if `call` instantiates a known type.
 
             Recognizes `Foo()` and `module.Foo()` shapes; requires the matched
