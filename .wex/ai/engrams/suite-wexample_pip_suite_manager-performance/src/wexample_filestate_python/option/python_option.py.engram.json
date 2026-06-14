@@ -1,0 +1,11 @@
+{
+  "engram_version": 1,
+  "source_key": "src/wexample_filestate_python/option/python_option.py",
+  "cache_nonce": "1c2800147ebc4367950bb7b61bd21d00",
+  "last_visited_at": "2026-06-14T16:37:50+00:00",
+  "last_rev": "a3523bf388596a5947fa6eb50e246ccecf09c04d",
+  "last_decision": "edit",
+  "kinds": [],
+  "notes": "cached get_allowed_options (22 imports + list build) and get_raw_value_allowed_type (Union build) in class-level variables to avoid repeated work on every call",
+  "in_progress": null
+}
