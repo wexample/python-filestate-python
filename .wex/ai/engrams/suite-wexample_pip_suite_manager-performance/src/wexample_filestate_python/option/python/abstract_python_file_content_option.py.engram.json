@@ -1,0 +1,11 @@
+{
+  "engram_version": 1,
+  "source_key": "src/wexample_filestate_python/option/python/abstract_python_file_content_option.py",
+  "cache_nonce": "1c2800147ebc4367950bb7b61bd21d00",
+  "last_visited_at": "2026-06-14T14:36:09+00:00",
+  "last_rev": "ac06fceb435fbd593b5d552b4b2af1d22014b2ea",
+  "last_decision": "skip",
+  "kinds": [],
+  "notes": "only a base class stub with one constant-returning method, no hot path to optimize",
+  "in_progress": null
+}
