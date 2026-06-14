@@ -1,0 +1,11 @@
+{
+  "engram_version": 1,
+  "source_key": "src/wexample_filestate_python/config_value/python_config_value.py",
+  "cache_nonce": "1c2800147ebc4367950bb7b61bd21d00",
+  "last_visited_at": "2026-06-14T14:33:02+00:00",
+  "last_rev": "c582762d81987a255ad4c9a0813f8c24367934b5",
+  "last_decision": "edit",
+  "kinds": [],
+  "notes": "cache 22 deferred imports and get_name() calls in module-level dict, paying cost only once per process",
+  "in_progress": null
+}
