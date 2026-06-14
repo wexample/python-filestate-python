@@ -1,0 +1,11 @@
+{
+  "engram_version": 1,
+  "source_key": "src/wexample_filestate_python/utils/python_class_attributes_utils.py",
+  "cache_nonce": "1c2800147ebc4367950bb7b61bd21d00",
+  "last_visited_at": "2026-06-14T16:44:40+00:00",
+  "last_rev": "a3d08af8d2425d9c55bb47afe4dc80b9b922bbbd",
+  "last_decision": "edit",
+  "kinds": [],
+  "notes": "drop list() copy of read-only body sequence, remove redundant _is_dataclass_field re-check, strip always-False sort-key element",
+  "in_progress": null
+}

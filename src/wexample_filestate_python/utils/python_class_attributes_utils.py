@@ -34,7 +34,7 @@ def find_attribute_blocks_in_class(
     Returns list of (start_index, end_index_exclusive, nodes)
     where indices refer to classdef.body.body positions.
     """
-    body_list = list(classdef.body.body)
+    body_list = classdef.body.body  # already an indexable sequence (tuple); no copy needed
     n = len(body_list)
     blocks: list[tuple[int, int, list[cst.CSTNode]]] = []
     i = 0
@@ -88,26 +88,26 @@ def reorder_attribute_block(
             isinstance(node, cst.ClassDef) and name in SPECIAL_INNER_CLASS_NAMES
         ):
             # Category 0: special always first
-            return (0, _sort_key(name), False)
+            return (0, _sort_key(name))
         if dataclass_mode:
             # In dataclass mode, prioritize fields without defaults (required),
             # then fields with defaults/default_factory; non-field attributes come after.
             if _is_dataclass_field(node):
                 if _dataclass_field_has_default(node):
                     # Category 2: defaulted fields
-                    return (2, _sort_key(name), False)
+                    return (2, _sort_key(name))
                 # Category 1: required fields
-                return (1, _sort_key(name), False)
+                return (1, _sort_key(name))
             # Non-field attributes: keep public before private after fields
             if _is_public(name):
-                return (3, _sort_key(name), False)
-            return (4, _sort_key(name), False)
+                return (3, _sort_key(name))
+            return (4, _sort_key(name))
         # Default (non-dataclass) ordering: public, then private
         if _is_public(name):
             # Category 1
-            return (1, _sort_key(name), False)
+            return (1, _sort_key(name))
         # Category 2 (private/protected)
-        return (2, _sort_key(name), False)
+        return (2, _sort_key(name))
 
     original = list(nodes)
     sorted_nodes = sorted(nodes, key=cat)
@@ -177,9 +177,9 @@ def _dataclass_field_has_default(node: cst.CSTNode) -> bool:
 
     We treat any AnnAssign with a non-None value as having a default.
     This includes calls like field(default=..., default_factory=...).
+
+    Precondition: _is_dataclass_field(node) is True (callers must verify first).
     """
-    if not _is_dataclass_field(node):
-        return False
     assert isinstance(node, cst.SimpleStatementLine)
     small = node.body[0]
     assert isinstance(small, cst.AnnAssign)
