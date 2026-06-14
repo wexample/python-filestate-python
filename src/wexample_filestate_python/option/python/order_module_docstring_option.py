@@ -30,6 +30,7 @@ class OrderModuleDocstringOption(AbstractPythonFileContentOption):
             find_module_docstring,
             is_module_docstring_at_top,
             move_docstring_to_top,
+            normalize_docstring_quotes,
         )
 
         src, module = get_python_source_and_module(target)
@@ -47,14 +48,8 @@ class OrderModuleDocstringOption(AbstractPythonFileContentOption):
                 expr = docstring_node.body[0]
                 if isinstance(expr.value, cst.SimpleString):
                     quote = expr.value.quote
-                    if quote.startswith("'''") or (
-                        quote.startswith("'") and not quote.startswith('"')
-                    ):
+                    if quote.startswith("'"):
                         # Need to normalize quotes
-                        from wexample_filestate_python.utils.python_docstring_utils import (
-                            normalize_docstring_quotes,
-                        )
-
                         normalized_docstring = normalize_docstring_quotes(
                             docstring_node
                         )

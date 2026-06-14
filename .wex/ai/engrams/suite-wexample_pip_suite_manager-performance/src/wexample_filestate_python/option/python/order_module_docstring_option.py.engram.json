@@ -1,0 +1,11 @@
+{
+  "engram_version": 1,
+  "source_key": "src/wexample_filestate_python/option/python/order_module_docstring_option.py",
+  "cache_nonce": "1c2800147ebc4367950bb7b61bd21d00",
+  "last_visited_at": "2026-06-14T14:52:31+00:00",
+  "last_rev": "3a61aca3676557b20ffb052f2e7dc7783e09f66b",
+  "last_decision": "edit",
+  "kinds": [],
+  "notes": "hoisted normalize_docstring_quotes import and collapsed redundant quote-prefix condition to quote.startswith(\"'\")",
+  "in_progress": null
+}
