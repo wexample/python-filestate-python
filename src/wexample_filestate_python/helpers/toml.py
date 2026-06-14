@@ -96,11 +96,12 @@ def toml_sort_string_array(arr: Any) -> bool:
     if not items or not all(isinstance(i, String) for i in items):
         return False
 
-    sorted_items = sorted(items, key=lambda i: i.value.lower())
-
-    if items == sorted_items:
+    keys = [i.value.lower() for i in items]
+    sorted_keys = sorted(keys)
+    if keys == sorted_keys:
         return False
 
+    sorted_items = sorted(items, key=lambda i: i.value.lower())
     multiline_flag = arr._multiline
     # Clear and re-append to preserve tomlkit item identity
     while arr:

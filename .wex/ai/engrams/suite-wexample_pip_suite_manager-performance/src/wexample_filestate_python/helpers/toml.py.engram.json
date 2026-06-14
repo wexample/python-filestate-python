@@ -1,0 +1,11 @@
+{
+  "engram_version": 1,
+  "source_key": "src/wexample_filestate_python/helpers/toml.py",
+  "cache_nonce": "1c2800147ebc4367950bb7b61bd21d00",
+  "last_visited_at": "2026-06-14T14:35:48+00:00",
+  "last_rev": "d7bc4231f8d95c87c950dde4ea519d744b6cddd2",
+  "last_decision": "edit",
+  "kinds": [],
+  "notes": "replace tomlkit String object comparison with plain string key comparison in toml_sort_string_array, deferring sorted_items construction until change is confirmed",
+  "in_progress": null
+}
