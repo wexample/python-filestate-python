@@ -1,0 +1,11 @@
+{
+  "engram_version": 1,
+  "source_key": "src/wexample_filestate_python/option/python/order_class_docstring_option.py",
+  "cache_nonce": "1c2800147ebc4367950bb7b61bd21d00",
+  "last_visited_at": "2026-06-14T14:45:58+00:00",
+  "last_rev": "bc5a108d27a27afe72a57b1f4b5533c9ed8ebd24",
+  "last_decision": "edit",
+  "kinds": [],
+  "notes": "skip CST re-serialization when no changes made by returning cached src early",
+  "in_progress": null
+}

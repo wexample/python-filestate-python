@@ -33,4 +33,6 @@ class OrderClassDocstringOption(AbstractPythonFileContentOption):
         src, module = get_python_source_and_module(target)
 
         modified = ensure_all_classes_docstring_first(module)
+        if modified is module:
+            return src
         return modified.code
