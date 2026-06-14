@@ -25,14 +25,10 @@ class RemoveUnusedOption(AbstractPythonFileContentOption):
         from autoflake import fix_code
 
         src = target.get_local_file().read()
-        try:
-            return fix_code(
-                src,
-                remove_all_unused_imports=True,
-                remove_unused_variables=True,
-                expand_star_imports=True,
-                remove_duplicate_keys=True,
-            )
-        except Exception as e:
-            target.io.error(f"Autoflake error: {e}\n\n")
-            return src
+        return fix_code(
+            src,
+            remove_all_unused_imports=True,
+            remove_unused_variables=True,
+            expand_star_imports=True,
+            remove_duplicate_keys=True,
+        )

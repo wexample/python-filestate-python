@@ -21,3 +21,6 @@ The catch is also too broad — `Exception` covers programming bugs in our own c
 - Drop the broad catch. Let exceptions propagate so the rectifier surfaces the offending file via the normal traceback path.
 - If a real autoflake limitation must be tolerated (e.g. specific known patterns), narrow the catch to `autoflake.AutoflakeError` (or whichever concrete class autoflake exposes) and `raise FileStateBatchToolException(...)` so the framework treats it as a real failure.
 - Mirrors the policy already documented in memory `feedback_no_silent_errors`.
+
+## Resolution
+Same pattern as the sibling `add_return_types` broad-except fix: dropped the try/except entirely. Any autoflake failure now propagates as it should. No narrow-catch + `FileStateBatchToolException` variant added yet — we'll only introduce it if a legitimately tolerable autoflake limitation shows up in a real sweep.
