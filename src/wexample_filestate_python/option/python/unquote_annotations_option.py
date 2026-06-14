@@ -55,23 +55,26 @@ class UnquoteAnnotationsOption(AbstractPythonFileContentOption):
             def leave_Param(
                 self, original_node: cst.Param, updated_node: cst.Param
             ) -> cst.Param:
-                return updated_node.with_changes(
-                    annotation=self._process_annotation(updated_node.annotation)
-                )
+                new_ann = self._process_annotation(updated_node.annotation)
+                if new_ann is updated_node.annotation:
+                    return updated_node
+                return updated_node.with_changes(annotation=new_ann)
 
             def leave_FunctionDef(
                 self, original_node: cst.FunctionDef, updated_node: cst.FunctionDef
             ) -> cst.FunctionDef:
-                return updated_node.with_changes(
-                    returns=self._process_annotation(updated_node.returns)
-                )
+                new_ret = self._process_annotation(updated_node.returns)
+                if new_ret is updated_node.returns:
+                    return updated_node
+                return updated_node.with_changes(returns=new_ret)
 
             def leave_AnnAssign(
                 self, original_node: cst.AnnAssign, updated_node: cst.AnnAssign
             ) -> cst.AnnAssign:
-                return updated_node.with_changes(
-                    annotation=self._process_annotation(updated_node.annotation)
-                )
+                new_ann = self._process_annotation(updated_node.annotation)
+                if new_ann is updated_node.annotation:
+                    return updated_node
+                return updated_node.with_changes(annotation=new_ann)
 
             def leave_TypeAlias(
                 self, original_node: cst.TypeAlias, updated_node: cst.TypeAlias

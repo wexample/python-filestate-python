@@ -1,0 +1,11 @@
+{
+  "engram_version": 1,
+  "source_key": "src/wexample_filestate_python/option/python/unquote_annotations_option.py",
+  "cache_nonce": "1c2800147ebc4367950bb7b61bd21d00",
+  "last_visited_at": "2026-06-14T16:36:36+00:00",
+  "last_rev": "14fc3611ce764c7c838683bebb01c9fbafa26f42",
+  "last_decision": "edit",
+  "kinds": [],
+  "notes": "skip with_changes allocation in leave_Param/FunctionDef/AnnAssign when annotation is unchanged (identity check)",
+  "in_progress": null
+}
