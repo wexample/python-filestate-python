@@ -26,9 +26,4 @@ class FstringifyOption(WithStdoutWrappingMixin, AbstractPythonFileContentOption)
 
         src = target.get_local_file().read()
         state = State(aggressive=False, multiline=False, len_limit=120)
-
-        def _execute_fstringify():
-            return fstringify_code(src, state=state)
-
-        result = self._execute_and_wrap_stdout(_execute_fstringify)
-        return result.content
+        return self._execute_and_wrap_stdout(lambda: fstringify_code(src, state=state)).content

@@ -1,0 +1,11 @@
+{
+  "engram_version": 1,
+  "source_key": "src/wexample_filestate_python/option/python/fstringify_option.py",
+  "cache_nonce": "1c2800147ebc4367950bb7b61bd21d00",
+  "last_visited_at": "2026-06-14T14:42:58+00:00",
+  "last_rev": "4ffb6d4145d6d5107ae5a393fc9c575b2a8ab8b3",
+  "last_decision": "edit",
+  "kinds": [],
+  "notes": "replaced named inner function with lambda and collapsed result variable in _apply_content_change",
+  "in_progress": null
+}
