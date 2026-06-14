@@ -16,3 +16,6 @@ Any failure during the cached parse (libcst syntax error, OS error, unicode deco
 
 ## Suggested direction
 Drop the try/except entirely: let the exception bubble. If a few legitimate cases really need to be tolerated (e.g. genuinely unparseable Python 2 files), narrow the catch to `cst.ParserSyntaxError` and emit `target.io.warning(f"add_return_types: skipped {path} — parse error: {e}")` so the user sees what was skipped and why. Never catch bare `Exception`.
+
+## Resolution
+Applied the simplest version: dropped the try/except entirely. Any parse error in `get_python_source_and_module` (libcst syntax error, OS error, unicode decode error, …) now propagates as it should — surfacing real bugs instead of silently leaving files unrectified. No need yet for the narrow-catch + warning variant; we'll add it only if a legitimately unparseable file shows up in a real sweep.

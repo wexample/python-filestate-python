@@ -26,10 +26,7 @@ class AddReturnTypesOption(AbstractPythonFileContentOption):
             get_python_source_and_module,
         )
 
-        try:
-            src, module = get_python_source_and_module(target)
-        except Exception:
-            return target.get_local_file().read()
+        src, module = get_python_source_and_module(target)
 
         # We implement type inference and rewriting using LibCST to ensure
         # robust, formatting-preserving edits. We extend inference to:
