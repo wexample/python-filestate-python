@@ -67,11 +67,7 @@ def _fix_module_docstring_spacing(module: cst.Module) -> cst.Module:
     # Check if module has header with blank lines
     if module.header:
         # Remove blank lines from module header
-        new_header = [
-            line
-            for line in module.header
-            if not (isinstance(line, cst.EmptyLine) and line.comment is None)
-        ]
+        new_header = _filter_blank_lines(module.header)
         if len(new_header) != len(module.header):
             module = module.with_changes(header=new_header)
             changed = True
@@ -104,11 +100,7 @@ def _fix_module_docstring_spacing(module: cst.Module) -> cst.Module:
         if body_list:
             first_stmt = body_list[0]
             if hasattr(first_stmt, "leading_lines") and first_stmt.leading_lines:
-                new_leading = [
-                    line
-                    for line in first_stmt.leading_lines
-                    if not (isinstance(line, cst.EmptyLine) and line.comment is None)
-                ]
+                new_leading = _filter_blank_lines(first_stmt.leading_lines)
                 if len(new_leading) != len(first_stmt.leading_lines):
                     body_list[0] = first_stmt.with_changes(leading_lines=new_leading)
                     changed = True
@@ -123,11 +115,7 @@ def _fix_module_docstring_spacing(module: cst.Module) -> cst.Module:
     if docstring_idx == 0:
         # Docstring is first - remove any leading blank lines
         if docstring_stmt.leading_lines:
-            new_leading = [
-                line
-                for line in docstring_stmt.leading_lines
-                if not (isinstance(line, cst.EmptyLine) and line.comment is None)
-            ]
+            new_leading = _filter_blank_lines(docstring_stmt.leading_lines)
             if len(new_leading) != len(docstring_stmt.leading_lines):
                 body_list[docstring_idx] = docstring_stmt.with_changes(
                     leading_lines=new_leading
@@ -142,21 +130,13 @@ def _fix_module_docstring_spacing(module: cst.Module) -> cst.Module:
         # Count existing blank lines after docstring
         blank_count = 0
         if isinstance(next_stmt, cst.SimpleStatementLine):
-            blank_count = sum(
-                1
-                for line in next_stmt.leading_lines
-                if isinstance(line, cst.EmptyLine) and line.comment is None
-            )
+            blank_count = sum(map(_is_blank_line, next_stmt.leading_lines))
 
         # Ensure exactly 1 blank line
         if blank_count != 1:
             if isinstance(next_stmt, cst.SimpleStatementLine):
                 # Remove all blank leading lines and add exactly one
-                non_blank_leading = [
-                    line
-                    for line in next_stmt.leading_lines
-                    if not (isinstance(line, cst.EmptyLine) and line.comment is None)
-                ]
+                non_blank_leading = _filter_blank_lines(next_stmt.leading_lines)
                 new_leading = [cst.EmptyLine()] + non_blank_leading
                 body_list[next_idx] = next_stmt.with_changes(leading_lines=new_leading)
                 changed = True
@@ -186,6 +166,11 @@ def _is_blank_line(node: cst.CSTNode) -> bool:
     return isinstance(node, cst.EmptyLine) and node.comment is None
 
 
+def _filter_blank_lines(lines) -> list:
+    """Return only non-blank lines from a leading_lines (or header) sequence."""
+    return [line for line in lines if not _is_blank_line(line)]
+
+
 def _is_class_definition(node: cst.CSTNode) -> bool:
     """Check if node is a class definition."""
     return isinstance(node, cst.ClassDef)
@@ -206,13 +191,11 @@ def _is_class_property(node: cst.CSTNode) -> bool:
 def _is_dataclass(class_node: cst.ClassDef) -> bool:
     """Check if a class has @dataclass decorator."""
     for decorator in class_node.decorators:
-        if isinstance(decorator.decorator, cst.Name):
-            if decorator.decorator.value == "dataclass":
-                return True
-        elif isinstance(decorator.decorator, cst.Call):
-            if isinstance(decorator.decorator.func, cst.Name):
-                if decorator.decorator.func.value == "dataclass":
-                    return True
+        dec = decorator.decorator
+        if isinstance(dec, cst.Name) and dec.value == "dataclass":
+            return True
+        if isinstance(dec, cst.Call) and isinstance(dec.func, cst.Name) and dec.func.value == "dataclass":
+            return True
     return False
 
 
@@ -334,11 +317,7 @@ def _normalize_class_properties_spacing(
             continue
 
         # Count blank lines
-        blank_count = sum(
-            1
-            for line in current_node.leading_lines
-            if isinstance(line, cst.EmptyLine) and line.comment is None
-        )
+        blank_count = sum(map(_is_blank_line, current_node.leading_lines))
 
         # Determine if we should have a blank line
         should_have_blank = False
@@ -362,11 +341,7 @@ def _normalize_class_properties_spacing(
         target_blanks = 1 if should_have_blank else 0
 
         if blank_count != target_blanks:
-            non_blank_leading = [
-                line
-                for line in current_node.leading_lines
-                if not (isinstance(line, cst.EmptyLine) and line.comment is None)
-            ]
+            non_blank_leading = _filter_blank_lines(current_node.leading_lines)
             new_leading = [cst.EmptyLine()] * target_blanks + non_blank_leading
             body_list[i] = current_node.with_changes(leading_lines=new_leading)
             changed = True
@@ -379,20 +354,10 @@ def _normalize_class_properties_spacing(
         # Only add blank line if previous node is a property
         if _is_class_property(prev_node):
             if hasattr(method_node, "leading_lines"):
-                blank_count = sum(
-                    1
-                    for line in method_node.leading_lines
-                    if isinstance(line, cst.EmptyLine) and line.comment is None
-                )
+                blank_count = sum(map(_is_blank_line, method_node.leading_lines))
 
                 if blank_count != 1:
-                    non_blank_leading = [
-                        line
-                        for line in method_node.leading_lines
-                        if not (
-                            isinstance(line, cst.EmptyLine) and line.comment is None
-                        )
-                    ]
+                    non_blank_leading = _filter_blank_lines(method_node.leading_lines)
                     new_leading = [cst.EmptyLine()] + non_blank_leading
                     body_list[first_method_idx] = method_node.with_changes(
                         leading_lines=new_leading
@@ -420,20 +385,12 @@ def _normalize_double_blank_lines_in_suite(suite: cst.Suite) -> cst.Suite:
             continue
 
         # Count blank lines in leading_lines
-        blank_count = sum(
-            1
-            for line in current_node.leading_lines
-            if isinstance(line, cst.EmptyLine) and line.comment is None
-        )
+        blank_count = sum(map(_is_blank_line, current_node.leading_lines))
 
         # Inside function/class bodies, allow maximum 1 blank line
         if blank_count > 1:
             # Keep non-blank leading lines and add exactly 1 blank line
-            non_blank_leading = [
-                line
-                for line in current_node.leading_lines
-                if not (isinstance(line, cst.EmptyLine) and line.comment is None)
-            ]
+            non_blank_leading = _filter_blank_lines(current_node.leading_lines)
             new_leading = [cst.EmptyLine()] + non_blank_leading
             body_list[i] = current_node.with_changes(leading_lines=new_leading)
             changed = True
@@ -467,11 +424,7 @@ def _remove_leading_blank_lines_from_class_suite(
         first_stmt = body_list[0]
         if hasattr(first_stmt, "leading_lines") and first_stmt.leading_lines:
             # Remove blank leading lines from the first statement
-            new_leading = [
-                line
-                for line in first_stmt.leading_lines
-                if not (isinstance(line, cst.EmptyLine) and line.comment is None)
-            ]
+            new_leading = _filter_blank_lines(first_stmt.leading_lines)
             if len(new_leading) != len(first_stmt.leading_lines):
                 body_list[0] = first_stmt.with_changes(leading_lines=new_leading)
                 changed = True
@@ -519,11 +472,7 @@ def _remove_leading_blank_lines_from_suite(suite: cst.Suite) -> cst.Suite:
         first_stmt = body_list[0]
         if first_stmt.leading_lines:
             # Remove blank leading lines from the first statement
-            new_leading = [
-                line
-                for line in first_stmt.leading_lines
-                if not (isinstance(line, cst.EmptyLine) and line.comment is None)
-            ]
+            new_leading = _filter_blank_lines(first_stmt.leading_lines)
             if len(new_leading) != len(first_stmt.leading_lines):
                 body_list[0] = first_stmt.with_changes(leading_lines=new_leading)
                 changed = True
@@ -551,13 +500,7 @@ def _remove_leading_blank_lines_from_suite(suite: cst.Suite) -> cst.Suite:
             if i < len(body_list) and isinstance(body_list[i], cst.SimpleStatementLine):
                 next_stmt = body_list[i]
                 if next_stmt.leading_lines:
-                    new_leading = [
-                        line
-                        for line in next_stmt.leading_lines
-                        if not (
-                            isinstance(line, cst.EmptyLine) and line.comment is None
-                        )
-                    ]
+                    new_leading = _filter_blank_lines(next_stmt.leading_lines)
                     if len(new_leading) != len(next_stmt.leading_lines):
                         body_list[i] = next_stmt.with_changes(leading_lines=new_leading)
                         changed = True
