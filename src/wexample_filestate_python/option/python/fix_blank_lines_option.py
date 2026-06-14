@@ -41,7 +41,6 @@ class FixBlankLinesOption(AbstractPythonFileContentOption):
             fix_function_blank_lines,
         )
 
-        src, module = get_python_source_and_module(target)
+        _, module = get_python_source_and_module(target)
 
-        modified = fix_function_blank_lines(module)
-        return modified.code
+        return fix_function_blank_lines(module).code

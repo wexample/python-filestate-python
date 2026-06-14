@@ -1,0 +1,11 @@
+{
+  "engram_version": 1,
+  "source_key": "src/wexample_filestate_python/option/python/fix_blank_lines_option.py",
+  "cache_nonce": "1c2800147ebc4367950bb7b61bd21d00",
+  "last_visited_at": "2026-06-14T14:41:30+00:00",
+  "last_rev": "51ce9f961c042a69af8fad8c3bddab0b1b8105c2",
+  "last_decision": "edit",
+  "kinds": [],
+  "notes": "drop unused `src` binding (→ `_`) and inline single-use `modified` in `_apply_content_change`",
+  "in_progress": null
+}
