@@ -1,0 +1,11 @@
+{
+  "engram_version": 1,
+  "source_key": "src/wexample_filestate_python/option/python/order_iterable_items_option.py",
+  "cache_nonce": "1c2800147ebc4367950bb7b61bd21d00",
+  "last_visited_at": "2026-06-14T14:50:19+00:00",
+  "last_rev": "30a7dabfd2e1396a77e7ca5437b7d17614f0b76c",
+  "last_decision": "edit",
+  "kinds": [],
+  "notes": "eliminated single-use `modified` intermediate variable, folding into direct return",
+  "in_progress": null
+}

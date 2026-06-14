@@ -27,5 +27,4 @@ class OrderIterableItemsOption(AbstractPythonFileContentOption):
         )
 
         src = target.get_local_file().read()
-        modified = reorder_flagged_iterables(src)
-        return modified
+        return reorder_flagged_iterables(src)
