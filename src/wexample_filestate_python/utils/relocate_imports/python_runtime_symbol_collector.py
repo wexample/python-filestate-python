@@ -14,15 +14,15 @@ class PythonRuntimeSymbolCollector(cst.CSTVisitor):
     def __init__(self, imported_value_names: set[str]) -> None:
         super().__init__()
         self.imported_value_names = imported_value_names
-        self.in_annotation_stack: list[bool] = []
+        self._annotation_depth: int = 0
         self.runtime_used_anywhere: set[str] = set()
 
     def leave_Annotation(self, node: cst.Annotation) -> None:  # type: ignore[override]
-        self.in_annotation_stack.pop()
+        self._annotation_depth -= 1
 
     # Track entering/leaving annotations
     def visit_Annotation(self, node: cst.Annotation) -> bool:  # type: ignore[override]
-        self.in_annotation_stack.append(True)
+        self._annotation_depth += 1
         return True
 
     def visit_Attribute(self, node: cst.Attribute) -> bool:  # type: ignore[override]
@@ -30,26 +30,29 @@ class PythonRuntimeSymbolCollector(cst.CSTVisitor):
 
         For example, in TerminalColor.RED, we need to mark TerminalColor as runtime-used.
         """
-        if self.in_annotation_stack:
+        if self._annotation_depth:
             return True
         # Walk the value (left side) to find the base name
         self._walk_for_runtime_names(node.value)
         return False  # Don't visit children since we handled it manually
 
     def visit_Name(self, node: cst.Name) -> None:  # type: ignore[override]
-        if self.in_annotation_stack:
+        if self._annotation_depth:
             return
         val = node.value
         if val in self.imported_value_names:
             self.runtime_used_anywhere.add(val)
 
     def _walk_for_runtime_names(self, expr: cst.BaseExpression) -> None:
-        """Recursively walk an expression to find imported names used at runtime."""
-        if isinstance(expr, cst.Name):
-            if expr.value in self.imported_value_names:
-                self.runtime_used_anywhere.add(expr.value)
-        elif isinstance(expr, cst.Attribute):
-            # Recurse into the value (left side) only
-            self._walk_for_runtime_names(expr.value)
-        elif isinstance(expr, cst.Subscript):
-            self._walk_for_runtime_names(expr.value)
+        """Iteratively walk an expression to find imported names used at runtime."""
+        imported = self.imported_value_names
+        runtime = self.runtime_used_anywhere
+        while True:
+            if isinstance(expr, cst.Name):
+                if expr.value in imported:
+                    runtime.add(expr.value)
+                return
+            if isinstance(expr, (cst.Attribute, cst.Subscript)):
+                expr = expr.value
+            else:
+                return

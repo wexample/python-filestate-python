@@ -1,0 +1,11 @@
+{
+  "engram_version": 1,
+  "source_key": "src/wexample_filestate_python/utils/relocate_imports/python_runtime_symbol_collector.py",
+  "cache_nonce": "1c2800147ebc4367950bb7b61bd21d00",
+  "last_visited_at": "2026-06-14T17:01:49+00:00",
+  "last_rev": "afe9b3afbdc02543e95967532844430a72a532a6",
+  "last_decision": "edit",
+  "kinds": [],
+  "notes": "replaced bool-list annotation stack with int depth counter; converted recursive _walk_for_runtime_names to iterative while loop with hoisted locals",
+  "in_progress": null
+}
