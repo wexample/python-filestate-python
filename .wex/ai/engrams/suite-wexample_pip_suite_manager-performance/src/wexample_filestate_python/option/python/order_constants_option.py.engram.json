@@ -1,0 +1,11 @@
+{
+  "engram_version": 1,
+  "source_key": "src/wexample_filestate_python/option/python/order_constants_option.py",
+  "cache_nonce": "1c2800147ebc4367950bb7b61bd21d00",
+  "last_visited_at": "2026-06-14T14:48:26+00:00",
+  "last_rev": "09028c34ffc492b0830ca2ccd9a11271f415d368",
+  "last_decision": "edit",
+  "kinds": [],
+  "notes": "skip CST re-serialisation via identity check when reorder_flagged_constants_everywhere returns unchanged module",
+  "in_progress": null
+}

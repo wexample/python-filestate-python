@@ -32,4 +32,9 @@ class OrderConstantsOption(AbstractPythonFileContentOption):
         src, module = get_python_source_and_module(target)
 
         modified = reorder_flagged_constants_everywhere(module, src)
+        # Avoid re-serialising the whole CST when the tree is unchanged.
+        # reorder_flagged_constants_everywhere returns the same object when
+        # nothing was reordered, so an identity check is sufficient.
+        if modified is module:
+            return src
         return modified.code
