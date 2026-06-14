@@ -1,0 +1,11 @@
+{
+  "engram_version": 1,
+  "source_key": "src/wexample_filestate_python/utils/python_attrs_utils.py",
+  "cache_nonce": "1c2800147ebc4367950bb7b61bd21d00",
+  "last_visited_at": "2026-06-14T16:40:34+00:00",
+  "last_rev": "01ae2e873639cceb6857a5305b42043d85b5c37e",
+  "last_decision": "edit",
+  "kinds": [],
+  "notes": "hoisted _AttrsKwOnlyFixer to module level, replaced list+append with tuple-unpack, replaced comprehension+list comparison with changed-flag loop, collapsed double isinstance check in _is_attrs_decorator",
+  "in_progress": null
+}
