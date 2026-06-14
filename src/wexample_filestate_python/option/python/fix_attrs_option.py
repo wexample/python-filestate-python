@@ -31,7 +31,7 @@ class FixAttrsOption(AbstractPythonFileContentOption):
             fix_attrs_kw_only,
         )
 
-        src, module = get_python_source_and_module(target)
+        _, module = get_python_source_and_module(target)
 
         modified = fix_attrs_kw_only(module)
         return modified.code

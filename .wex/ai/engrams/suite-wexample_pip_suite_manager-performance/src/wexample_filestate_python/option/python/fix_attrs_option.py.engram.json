@@ -1,0 +1,11 @@
+{
+  "engram_version": 1,
+  "source_key": "src/wexample_filestate_python/option/python/fix_attrs_option.py",
+  "cache_nonce": "1c2800147ebc4367950bb7b61bd21d00",
+  "last_visited_at": "2026-06-14T14:40:15+00:00",
+  "last_rev": "871b395b743fc831dc09fd1539967bf50bea94cb",
+  "last_decision": "edit",
+  "kinds": [],
+  "notes": "replaced unused `src` binding with `_` to discard unneeded source string reference",
+  "in_progress": null
+}
