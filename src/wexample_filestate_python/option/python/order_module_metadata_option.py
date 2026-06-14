@@ -40,12 +40,12 @@ class OrderModuleMetadataOption(AbstractPythonFileContentOption):
 
         # Determine if already grouped and sorted at the correct position
         # `found` is non-empty (early-return above), so `indices` is always non-empty
-        indices = [i for i, _, _ in found]
+        # single-pass unzip avoids iterating `found` twice
+        indices, names = map(list, zip(*((i, name) for i, _, name in found)))
         # contiguous block? — pairwise diff avoids list(range(...)) allocation; short-circuits
         contiguous = all(b - a == 1 for a, b in zip(indices, indices[1:]))
         # names sorted? — pairwise comparison avoids building a sorted copy; short-circuits
-        names = [name for _, __, name in found]
-        already_sorted = all(str.lower(a) <= str.lower(b) for a, b in zip(names, names[1:]))
+        already_sorted = all(a.lower() <= b.lower() for a, b in zip(names, names[1:]))
         # at correct position?
         desired_index = target_index_for_module_metadata(module)
         at_target_position = indices[0] == desired_index

@@ -1,0 +1,11 @@
+{
+  "engram_version": 1,
+  "source_key": "src/wexample_filestate_python/option/python/order_module_metadata_option.py",
+  "cache_nonce": "1c2800147ebc4367950bb7b61bd21d00",
+  "last_visited_at": "2026-06-14T16:32:23+00:00",
+  "last_rev": "b855a3267103a4ca5064c7fda57b801c24acfeac",
+  "last_decision": "edit",
+  "kinds": [],
+  "notes": "single-pass unzip of `found` and bound-method `.lower()` replacing `str.lower()` in `_apply_content_change`",
+  "in_progress": null
+}
