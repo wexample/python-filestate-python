@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+import io
+import sys
+
 
 class WithStdoutWrappingMixin:
     @classmethod
@@ -15,9 +18,6 @@ class WithStdoutWrappingMixin:
         Returns:
             The return value of the callback function
         """
-        import io
-        import sys
-
         old_stdout = sys.stdout
         old_stderr = sys.stderr
         captured_stdout = io.StringIO()
@@ -34,9 +34,9 @@ class WithStdoutWrappingMixin:
             stdout_content = captured_stdout.getvalue()
             stderr_content = captured_stderr.getvalue()
 
-            if stdout_content.strip():
+            if stdout_content and stdout_content.strip():
                 sys.stdout.write(stdout_content.rstrip() + "\n\n")
-            if stderr_content.strip():
+            if stderr_content and stderr_content.strip():
                 sys.stderr.write(stderr_content.rstrip() + "\n\n")
 
         return result

@@ -1,0 +1,11 @@
+{
+  "engram_version": 1,
+  "source_key": "src/wexample_filestate_python/config_option/mixin/with_stdout_wrapping_mixin.py",
+  "cache_nonce": "1c2800147ebc4367950bb7b61bd21d00",
+  "last_visited_at": "2026-06-14T14:31:42+00:00",
+  "last_rev": "a41e7dc6c015fe811b29cc0e909cfbfbb771b732",
+  "last_decision": "edit",
+  "kinds": [],
+  "notes": "hoisted io/sys imports to module level and short-circuited strip() in empty-buffer common case",
+  "in_progress": null
+}
