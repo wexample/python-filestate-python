@@ -17,6 +17,11 @@ if TYPE_CHECKING:
 
 @base_class
 class PythonOption(OptionMixin, AbstractNestedConfigOption):
+    # Do NOT cache results in `cls._<name>_cache` class attributes. With
+    # `@base_class`, attrs treats class-level annotations as instance fields;
+    # `PythonOption._cache` then raises AttributeError at runtime. Use
+    # module-level constants or `functools.cache` on methods if needed.
+
     @classmethod
     def get_scopes(cls) -> list[Scope]:
         return [Scope.CONTENT]

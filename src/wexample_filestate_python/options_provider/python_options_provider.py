@@ -13,6 +13,10 @@ if TYPE_CHECKING:
 
 
 class PythonOptionsProvider(AbstractOptionsProvider):
+    # Do NOT cache the returned list in a `cls._options_cache` class attribute.
+    # The cache is inherited via MRO, so a write from the base shadows what
+    # subclasses should return. Roadmap the optim instead.
+
     @classmethod
     def get_options(cls) -> list[type[AbstractConfigOption]]:
         from wexample_filestate_python.option.python_option import (
