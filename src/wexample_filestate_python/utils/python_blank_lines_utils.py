@@ -190,6 +190,8 @@ def _is_class_property(node: cst.CSTNode) -> bool:
 
 def _is_dataclass(class_node: cst.ClassDef) -> bool:
     """Check if a class has @dataclass decorator."""
+    if not class_node.decorators:
+        return False
     for decorator in class_node.decorators:
         dec = decorator.decorator
         if isinstance(dec, cst.Name) and dec.value == "dataclass":
@@ -214,8 +216,7 @@ def _is_lowercase_property(node: cst.CSTNode) -> bool:
     if _is_class_property(node):
         assign = node.body[0]
         target = assign.targets[0].target
-        if isinstance(target, cst.Name):
-            return target.value.islower()
+        return target.value.islower()  # _is_class_property already ensures cst.Name
     return False
 
 
@@ -264,8 +265,7 @@ def _is_uppercase_property(node: cst.CSTNode) -> bool:
     if _is_class_property(node):
         assign = node.body[0]
         target = assign.targets[0].target
-        if isinstance(target, cst.Name):
-            return target.value.isupper()
+        return target.value.isupper()  # _is_class_property already ensures cst.Name
     return False
 
 

@@ -2,10 +2,10 @@
   "engram_version": 1,
   "source_key": "src/wexample_filestate_python/utils/python_blank_lines_utils.py",
   "cache_nonce": "1c2800147ebc4367950bb7b61bd21d00",
-  "last_visited_at": "2026-06-14T16:42:42+00:00",
-  "last_rev": "b6731f045273efb6ae42424f405f0142eae68e7b",
+  "last_visited_at": "2026-06-15T19:04:52+00:00",
+  "last_rev": "5482e5c6e538aa606d59a4f00273b2bc2bc7cccb",
   "last_decision": "edit",
   "kinds": [],
-  "notes": "extracted _filter_blank_lines helper (9 sites), replaced blank-count sum-generators with sum(map()) (4 sites), flattened _is_dataclass nested ifs with hoisted local",
+  "notes": "removed redundant isinstance(Name) re-checks in _is_lowercase/uppercase_property and added early-exit for empty decorators in _is_dataclass",
   "in_progress": null
 }
