@@ -24,6 +24,11 @@ for gi, group in enumerate(DUnderGroups):
 
 _PROP_KINDS: tuple[str, str, str] = ("getter", "setter", "deleter")
 
+# Hoisted sort-key; avoids creating a new lambda/closure object on every
+# call to _sort_by_visibility and reorder_class_methods.
+def _KEY_BY_NAME(m: dict) -> tuple:
+    return _sort_key_alpha(m["name"])
+
 
 def ensure_order_class_methods_in_module(module: cst.Module) -> cst.Module:
     changed = False
@@ -92,7 +97,7 @@ def reorder_class_methods(classdef: cst.ClassDef) -> cst.ClassDef:
     for m in dunders:
         (unknown if m["order"][0] == 999 else known).append(m)
     dunder_ordered = [m["node"] for m in sorted(known, key=lambda m: m["order"])]
-    dunder_ordered += [m["node"] for m in sorted(unknown, key=lambda m: _sort_key_alpha(m["name"]))]
+    dunder_ordered += [m["node"] for m in sorted(unknown, key=_KEY_BY_NAME)]
 
     # Sort classmethods/staticmethods and instances: public first then private
     classmethods_ordered = _sort_by_visibility(classmethods)
@@ -199,11 +204,12 @@ def _sort_by_visibility(items: list[dict]) -> list[cst.FunctionDef]:
     priv: list[dict] = []
     for i in items:
         (priv if _is_private(i["name"]) else pub).append(i)
-    pub_sorted = [i["node"] for i in sorted(pub, key=lambda x: _sort_key_alpha(x["name"]))]
-    priv_sorted = [i["node"] for i in sorted(priv, key=lambda x: _sort_key_alpha(x["name"]))]
+    pub_sorted = [i["node"] for i in sorted(pub, key=_KEY_BY_NAME)]
+    priv_sorted = [i["node"] for i in sorted(priv, key=_KEY_BY_NAME)]
     return pub_sorted + priv_sorted
 
 
 def _sort_key_alpha(name: str) -> tuple:
-    # Case-insensitive, underscore after letters
-    return (name.lstrip("_").lower(), name.startswith("_"))
+    # Case-insensitive, underscore after letters.
+    # name[0] == "_" avoids method-dispatch overhead; safe for non-empty identifiers.
+    return (name.lstrip("_").lower(), name[0] == "_")
