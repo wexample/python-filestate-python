@@ -33,11 +33,7 @@ def _is_attrs_decorator(decorator: cst.Decorator) -> bool:
         base_decorator.value, cst.Name
     ):
         module_name = base_decorator.value.value
-        attr_name = (
-            base_decorator.attr.value
-            if isinstance(base_decorator.attr, cst.Name)
-            else None
-        )
+        attr_name = base_decorator.attr.value
         return (module_name == "attrs" and attr_name in ("define", "frozen")) or (
             module_name == "attr" and attr_name == "s"
         )
