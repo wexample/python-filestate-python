@@ -17,24 +17,17 @@ if TYPE_CHECKING:
 
 @base_class
 class PythonOption(OptionMixin, AbstractNestedConfigOption):
-    _allowed_options_cache: list[type[AbstractConfigOption]] | None = None
-    _raw_value_type_cache: Any = None
-
     @classmethod
     def get_scopes(cls) -> list[Scope]:
         return [Scope.CONTENT]
 
     @staticmethod
     def get_raw_value_allowed_type() -> Any:
-        if PythonOption._raw_value_type_cache is not None:
-            return PythonOption._raw_value_type_cache
-
         from wexample_filestate_python.config_value.python_config_value import (
             PythonConfigValue,
         )
 
-        PythonOption._raw_value_type_cache = Union[list[str], dict, PythonConfigValue]
-        return PythonOption._raw_value_type_cache
+        return Union[list[str], dict, PythonConfigValue]
 
     def create_required_operation(
         self, target: TargetFileOrDirectoryType, scopes: set[Scope]
@@ -42,9 +35,6 @@ class PythonOption(OptionMixin, AbstractNestedConfigOption):
         return self._create_child_required_operation(target=target, scopes=scopes)
 
     def get_allowed_options(self) -> list[type[AbstractConfigOption]]:
-        if PythonOption._allowed_options_cache is not None:
-            return PythonOption._allowed_options_cache
-
         # Import all the config options for each Python operation
         from wexample_filestate_python.option.python.add_future_annotations_option import (
             AddFutureAnnotationsOption,
@@ -111,7 +101,7 @@ class PythonOption(OptionMixin, AbstractNestedConfigOption):
             UnquoteAnnotationsOption,
         )
 
-        PythonOption._allowed_options_cache = [
+        return [
             # filestate: python-iterable-sort
             AddFutureAnnotationsOption,
             AddReturnTypesOption,
@@ -136,7 +126,6 @@ class PythonOption(OptionMixin, AbstractNestedConfigOption):
             SortImportsOption,
             UnquoteAnnotationsOption,
         ]
-        return PythonOption._allowed_options_cache
 
     def set_value(self, raw_value: Any) -> None:
         # Convert list form to dict form for consistency
