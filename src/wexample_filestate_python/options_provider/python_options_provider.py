@@ -13,14 +13,12 @@ if TYPE_CHECKING:
 
 
 class PythonOptionsProvider(AbstractOptionsProvider):
-    _options_cache: list[type[AbstractConfigOption]] | None = None
-
     @classmethod
     def get_options(cls) -> list[type[AbstractConfigOption]]:
-        if cls._options_cache is None:
-            from wexample_filestate_python.option.python_option import (
-                PythonOption,
-            )
+        from wexample_filestate_python.option.python_option import (
+            PythonOption,
+        )
 
-            cls._options_cache = [PythonOption]
-        return cls._options_cache
+        return [
+            PythonOption,
+        ]
