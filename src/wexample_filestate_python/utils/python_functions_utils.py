@@ -112,14 +112,13 @@ def reorder_module_functions(module: cst.Module) -> cst.Module:
         if idx in remove_indices:
             continue
         new_body.append(node)
-
+    
     # Determine insertion index using an anchor strategy:
     # - Find the index of the FIRST function definition in the original module
     # - Reinsert the whole (sorted) functions block at that original position
     #   (adjusted for removals). This avoids moving unrelated code like type
     #   aliases or sys.path mutations and preserves the developer's chosen
     #   placement of the function block.
-
     # Anchor = index of first function in original body
     first_func_index: int | None = None
     for idx, node in enumerate(module.body):
@@ -169,6 +168,21 @@ def reorder_module_functions(module: cst.Module) -> cst.Module:
     return module.with_changes(body=new_body)
 
 
+def sort_function_groups(groups: list[FunctionGroup]) -> list[FunctionGroup]:
+    """Sort groups by public (A–Z) then private (_*), each alphabetically case-insensitive."""
+    return sorted(groups, key=lambda g: (_is_private_name(g.name), g.name.lower()))
+
+
+def _func_name(fn: cst.FunctionDef) -> str:
+    return fn.name.value
+
+
+def _has_overload_decorator(fn: cst.FunctionDef) -> bool:
+    if fn.decorators:
+        return any(_is_overload_decorator(d) for d in fn.decorators)
+    return False
+
+
 def _is_main_guard(node: cst.CSTNode) -> bool:
     """Return True if *node* is an ``if __name__ == "__main__":`` guard."""
     if not isinstance(node, cst.If):
@@ -197,21 +211,6 @@ def _is_main_guard(node: cst.CSTNode) -> bool:
                         "'__main__'",
                         '"__main__"',
                     )
-    return False
-
-
-def sort_function_groups(groups: list[FunctionGroup]) -> list[FunctionGroup]:
-    """Sort groups by public (A–Z) then private (_*), each alphabetically case-insensitive."""
-    return sorted(groups, key=lambda g: (_is_private_name(g.name), g.name.lower()))
-
-
-def _func_name(fn: cst.FunctionDef) -> str:
-    return fn.name.value
-
-
-def _has_overload_decorator(fn: cst.FunctionDef) -> bool:
-    if fn.decorators:
-        return any(_is_overload_decorator(d) for d in fn.decorators)
     return False
 
 

@@ -25,21 +25,6 @@ for gi, group in enumerate(DUnderGroups):
 _PROP_KINDS: tuple[str, str, str] = ("getter", "setter", "deleter")
 
 
-def _sort_by_visibility(items: list[dict]) -> list[cst.FunctionDef]:
-    """Sort methods: public A-Z then private/protected A-Z (single-pass split)."""
-    pub: list[dict] = []
-    priv: list[dict] = []
-    for i in items:
-        (priv if _is_private(i["name"]) else pub).append(i)
-    pub_sorted = [i["node"] for i in sorted(pub, key=lambda x: _sort_key_alpha(x["name"]))]
-    priv_sorted = [i["node"] for i in sorted(priv, key=lambda x: _sort_key_alpha(x["name"]))]
-    return pub_sorted + priv_sorted
-
-
-def _prop_group_to_nodes(g: dict[str, cst.FunctionDef | None]) -> list[cst.FunctionDef]:
-    return [g[k] for k in _PROP_KINDS if g[k] is not None]  # type: ignore
-
-
 def ensure_order_class_methods_in_module(module: cst.Module) -> cst.Module:
     changed = False
     new_body = list(module.body)
@@ -202,6 +187,21 @@ def _is_dunder(name: str) -> bool:
 
 def _is_private(name: str) -> bool:
     return name.startswith("_") and not (name.startswith("__") and name.endswith("__"))
+
+
+def _prop_group_to_nodes(g: dict[str, cst.FunctionDef | None]) -> list[cst.FunctionDef]:
+    return [g[k] for k in _PROP_KINDS if g[k] is not None]  # type: ignore
+
+
+def _sort_by_visibility(items: list[dict]) -> list[cst.FunctionDef]:
+    """Sort methods: public A-Z then private/protected A-Z (single-pass split)."""
+    pub: list[dict] = []
+    priv: list[dict] = []
+    for i in items:
+        (priv if _is_private(i["name"]) else pub).append(i)
+    pub_sorted = [i["node"] for i in sorted(pub, key=lambda x: _sort_key_alpha(x["name"]))]
+    priv_sorted = [i["node"] for i in sorted(priv, key=lambda x: _sort_key_alpha(x["name"]))]
+    return pub_sorted + priv_sorted
 
 
 def _sort_key_alpha(name: str) -> tuple:

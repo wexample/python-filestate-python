@@ -56,6 +56,11 @@ def _contains_union_operator(node: cst.CSTNode) -> bool:
     return False
 
 
+def _filter_blank_lines(lines) -> list:
+    """Return only non-blank lines from a leading_lines (or header) sequence."""
+    return [line for line in lines if not _is_blank_line(line)]
+
+
 def _fix_module_docstring_spacing(module: cst.Module) -> cst.Module:
     """Fix spacing around module docstring: 0 lines before, 1 line after."""
     body_list = list(module.body)
@@ -164,11 +169,6 @@ def _has_default_value(node: cst.CSTNode) -> bool:
 def _is_blank_line(node: cst.CSTNode) -> bool:
     """Return True if node is an EmptyLine without a comment (blank line)."""
     return isinstance(node, cst.EmptyLine) and node.comment is None
-
-
-def _filter_blank_lines(lines) -> list:
-    """Return only non-blank lines from a leading_lines (or header) sequence."""
-    return [line for line in lines if not _is_blank_line(line)]
 
 
 def _is_class_definition(node: cst.CSTNode) -> bool:

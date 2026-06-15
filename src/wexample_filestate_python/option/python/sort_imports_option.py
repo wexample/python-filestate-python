@@ -12,7 +12,7 @@ if TYPE_CHECKING:
 
 
 @lru_cache(maxsize=1)
-def _isort_black_config():
+def _isort_black_config() -> Config:
     """Return a cached isort Config for the 'black' profile."""
     from isort.settings import Config
 

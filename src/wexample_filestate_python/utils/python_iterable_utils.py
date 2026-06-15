@@ -5,39 +5,6 @@ from wexample_filestate.helpers.flag import flag_exists
 FLAG_NAME = "python-iterable-sort"
 
 
-def _split_into_groups(block_lines: list[str]) -> list[list[str]]:
-    groups: list[list[str]] = []
-    pending_comments: list[str] = []
-    for ln in block_lines:
-        if ln.lstrip().startswith("#"):
-            pending_comments.append(ln)
-            continue
-        # item line
-        group = pending_comments + [ln]
-        groups.append(group)
-        pending_comments = []
-    # Any trailing comments without item are ignored for sorting and left in place
-    # (shouldn't occur in expected usage). If present, attach to last group to preserve.
-    if pending_comments:
-        if groups:
-            groups[-1].extend(pending_comments)
-        else:
-            groups.append(pending_comments)
-    return groups
-
-
-def _group_key(g: list[str]) -> str:
-    # Use the first non-comment line in group as key
-    for ln in g:
-        if not ln.lstrip().startswith("#"):
-            # Remove trailing comma for comparison but don't modify actual text
-            item = ln.strip()
-            if item.endswith(","):
-                item = item[:-1]
-            return item.lower()
-    return ""  # fallback
-
-
 def reorder_flagged_iterables(src: str) -> str:
     """Sort items of flagged iterable blocks (typically list literals) alphabetically.
 
@@ -122,3 +89,36 @@ def _collect_iterable_block(lines: list[str], flag_idx: int) -> tuple[int, int]:
 def _find_flag_line_indices(lines: list[str]) -> list[int]:
     """Return line indices where the iterable sort flag appears."""
     return [i for i, line in enumerate(lines) if flag_exists(FLAG_NAME, line)]
+
+
+def _group_key(g: list[str]) -> str:
+    # Use the first non-comment line in group as key
+    for ln in g:
+        if not ln.lstrip().startswith("#"):
+            # Remove trailing comma for comparison but don't modify actual text
+            item = ln.strip()
+            if item.endswith(","):
+                item = item[:-1]
+            return item.lower()
+    return ""  # fallback
+
+
+def _split_into_groups(block_lines: list[str]) -> list[list[str]]:
+    groups: list[list[str]] = []
+    pending_comments: list[str] = []
+    for ln in block_lines:
+        if ln.lstrip().startswith("#"):
+            pending_comments.append(ln)
+            continue
+        # item line
+        group = pending_comments + [ln]
+        groups.append(group)
+        pending_comments = []
+    # Any trailing comments without item are ignored for sorting and left in place
+    # (shouldn't occur in expected usage). If present, attach to last group to preserve.
+    if pending_comments:
+        if groups:
+            groups[-1].extend(pending_comments)
+        else:
+            groups.append(pending_comments)
+    return groups
