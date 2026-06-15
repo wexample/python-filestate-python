@@ -1,0 +1,11 @@
+{
+  "engram_version": 1,
+  "source_key": "src/wexample_filestate_python/option/python_option.py",
+  "cache_nonce": "1c2800147ebc4367950bb7b61bd21d00",
+  "last_visited_at": "2026-06-15T19:00:28+00:00",
+  "last_rev": "c88dcf2ba98899d690d338295ce8679595e3d186",
+  "last_decision": "edit",
+  "kinds": [],
+  "notes": "hoisted _SCOPES/_RAW_VALUE_ALLOWED_TYPE/_ALLOWED_OPTIONS to module-level caches; replaced dict comprehension with dict.fromkeys in set_value",
+  "in_progress": null
+}

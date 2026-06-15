@@ -14,6 +14,12 @@ from wexample_helpers.decorator.base_class import base_class
 if TYPE_CHECKING:
     from wexample_filestate.const.types_state_items import TargetFileOrDirectoryType
 
+# Module-level caches (safe per the @base_class note below; only instance-level
+# annotations become attrs fields, not plain module variables).
+_SCOPES: list[Scope] = [Scope.CONTENT]
+_RAW_VALUE_ALLOWED_TYPE: Any = None
+_ALLOWED_OPTIONS: list[type[AbstractConfigOption]] | None = None
+
 
 @base_class
 class PythonOption(OptionMixin, AbstractNestedConfigOption):
@@ -23,15 +29,18 @@ class PythonOption(OptionMixin, AbstractNestedConfigOption):
     # module-level constants or `functools.cache` on methods if needed.
     @classmethod
     def get_scopes(cls) -> list[Scope]:
-        return [Scope.CONTENT]
+        return _SCOPES
 
     @staticmethod
     def get_raw_value_allowed_type() -> Any:
-        from wexample_filestate_python.config_value.python_config_value import (
-            PythonConfigValue,
-        )
+        global _RAW_VALUE_ALLOWED_TYPE
+        if _RAW_VALUE_ALLOWED_TYPE is None:
+            from wexample_filestate_python.config_value.python_config_value import (
+                PythonConfigValue,
+            )
 
-        return Union[list[str], dict, PythonConfigValue]
+            _RAW_VALUE_ALLOWED_TYPE = Union[list[str], dict, PythonConfigValue]
+        return _RAW_VALUE_ALLOWED_TYPE
 
     def create_required_operation(
         self, target: TargetFileOrDirectoryType, scopes: set[Scope]
@@ -39,6 +48,10 @@ class PythonOption(OptionMixin, AbstractNestedConfigOption):
         return self._create_child_required_operation(target=target, scopes=scopes)
 
     def get_allowed_options(self) -> list[type[AbstractConfigOption]]:
+        global _ALLOWED_OPTIONS
+        if _ALLOWED_OPTIONS is not None:
+            return _ALLOWED_OPTIONS
+
         # Import all the config options for each Python operation
         from wexample_filestate_python.option.python.add_future_annotations_option import (
             AddFutureAnnotationsOption,
@@ -105,7 +118,7 @@ class PythonOption(OptionMixin, AbstractNestedConfigOption):
             UnquoteAnnotationsOption,
         )
 
-        return [
+        _ALLOWED_OPTIONS = [
             # filestate: python-iterable-sort
             AddFutureAnnotationsOption,
             AddReturnTypesOption,
@@ -130,10 +143,11 @@ class PythonOption(OptionMixin, AbstractNestedConfigOption):
             SortImportsOption,
             UnquoteAnnotationsOption,
         ]
+        return _ALLOWED_OPTIONS
 
     def set_value(self, raw_value: Any) -> None:
         # Convert list form to dict form for consistency
         if isinstance(raw_value, list):
-            raw_value = {option_name: True for option_name in raw_value}
+            raw_value = dict.fromkeys(raw_value, True)
 
         super().set_value(raw_value=raw_value)
