@@ -2,10 +2,10 @@
   "engram_version": 1,
   "source_key": "src/wexample_filestate_python/utils/python_functions_utils.py",
   "cache_nonce": "1c2800147ebc4367950bb7b61bd21d00",
-  "last_visited_at": "2026-06-14T16:52:20+00:00",
-  "last_rev": "8e8a564286005021023c539ee9b3e4c62102947f",
+  "last_visited_at": "2026-06-15T19:08:16+00:00",
+  "last_rev": "e5d157da609df17732c68ada08212fa8c7b0a65f",
   "last_decision": "edit",
   "kinds": [],
-  "notes": "sort_function_groups single sorted() key; zip+all name check; set comprehension for remove_indices; hoist _is_main_guard to module level; inner-loop continue→else:break",
+  "notes": "eliminated no-op with_changes on first node and enumerate+branch in reorder_module_functions inner loop",
   "in_progress": null
 }

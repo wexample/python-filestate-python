@@ -152,15 +152,9 @@ def reorder_module_functions(module: cst.Module) -> cst.Module:
     # Build function nodes preserving each group's comments/spacing on first element
     rebuilt_functions: list[cst.CSTNode] = []
     for g in sorted_groups:
-        # Preserve leading_lines of the original first node in the group
-        original_first_leading = g.nodes[0].leading_lines
-        for k, fn in enumerate(g.nodes):
-            if k == 0:
-                rebuilt_functions.append(
-                    fn.with_changes(leading_lines=original_first_leading)
-                )
-            else:
-                rebuilt_functions.append(fn.with_changes(leading_lines=[]))
+        # First node keeps its original leading_lines (no-op with_changes avoided)
+        rebuilt_functions.append(g.nodes[0])
+        rebuilt_functions.extend(fn.with_changes(leading_lines=[]) for fn in g.nodes[1:])
 
     # Insert functions as a contiguous block
     new_body[insert_at:insert_at] = rebuilt_functions
