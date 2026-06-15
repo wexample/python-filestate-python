@@ -1,0 +1,11 @@
+{
+  "engram_version": 1,
+  "source_key": "src/wexample_filestate_python/file/python_test_stub_file.py",
+  "cache_nonce": "1c2800147ebc4367950bb7b61bd21d00",
+  "last_visited_at": "2026-06-15T18:57:07+00:00",
+  "last_rev": "f740687b1e6bbe95e32b21f2279c86ba612f071f",
+  "last_decision": "edit",
+  "kinds": [],
+  "notes": "replaced 3x-append loops with extend, bare f-strings with plain strings, hasattr double-lookup with getattr, single-element tuple `in` with ==, and manual append loops with list comprehensions",
+  "in_progress": null
+}
