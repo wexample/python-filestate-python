@@ -12,11 +12,16 @@ if TYPE_CHECKING:
 
 
 @lru_cache(maxsize=1)
-def _isort_black_config() -> Config:
-    """Return a cached isort Config for the 'black' profile."""
+def _isort_setup() -> tuple:
+    """Return cached (code_fn, Config) for isort with the 'black' profile.
+
+    Both objects are imported and constructed once; subsequent calls hit
+    the LRU cache, eliminating per-file import overhead for isort.code.
+    """
+    from isort import code as _code
     from isort.settings import Config
 
-    return Config(profile="black")
+    return _code, Config(profile="black")
 
 
 @base_class
@@ -26,7 +31,6 @@ class SortImportsOption(AbstractPythonFileContentOption):
 
     def _apply_content_change(self, target: TargetFileOrDirectoryType) -> str:
         """Sort Python imports using isort."""
-        from isort import code
-
+        _code, _config = _isort_setup()
         src = target.get_local_file().read()
-        return code(src, config=_isort_black_config())
+        return _code(src, config=_config)
