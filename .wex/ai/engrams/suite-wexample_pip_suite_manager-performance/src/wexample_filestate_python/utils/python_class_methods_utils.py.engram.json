@@ -2,10 +2,10 @@
   "engram_version": 1,
   "source_key": "src/wexample_filestate_python/utils/python_class_methods_utils.py",
   "cache_nonce": "1c2800147ebc4367950bb7b61bd21d00",
-  "last_visited_at": "2026-06-15T19:06:47+00:00",
-  "last_rev": "4e50ace1a62124fe8b644c37f16c47d1f5519716",
-  "last_decision": "edit",
+  "last_visited_at": "2026-06-16T17:46:24+00:00",
+  "last_rev": "93e134cea3a2c0959c0aaacdbd89917ffd98709e",
+  "last_decision": "skip",
   "kinds": [],
-  "notes": "hoisted _KEY_BY_NAME to module level (3 lambda allocations eliminated) and replaced startswith in sort key with index access",
+  "notes": "no reason given",
   "in_progress": null
 }
