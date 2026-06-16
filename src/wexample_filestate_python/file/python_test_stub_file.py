@@ -5,9 +5,7 @@ from wexample_helpers.decorator.base_class import base_class
 from wexample_filestate_python.file.python_file import PythonFile
 
 
-def _is_skippable_class(class_name: str, class_node) -> bool:
-    import libcst as cst
-
+def _is_skippable_class(class_name: str, class_node, cst) -> bool:
     if class_name.startswith("Abstract"):
         return True
     for decorator in class_node.decorators:
@@ -23,9 +21,7 @@ def _is_skippable_class(class_name: str, class_node) -> bool:
     return False
 
 
-def _public_function_names(module) -> list[str]:
-    import libcst as cst
-
+def _public_function_names(module, cst) -> list[str]:
     return [
         node.name.value
         for node in module.body
@@ -33,9 +29,7 @@ def _public_function_names(module) -> list[str]:
     ]
 
 
-def _public_method_names(class_node) -> list[str]:
-    import libcst as cst
-
+def _public_method_names(class_node, cst) -> list[str]:
     statements = getattr(class_node.body, "body", ())
     return [
         stmt.name.value
@@ -56,30 +50,26 @@ def _render_stub(primary_module_name: str, module) -> str:
     for node in module.body:
         if isinstance(node, cst.ClassDef):
             class_name = node.name.value
-            if _is_skippable_class(class_name, node):
+            if _is_skippable_class(class_name, node, cst):
                 continue
-            methods = _public_method_names(node)
+            methods = _public_method_names(node, cst)
             if not methods:
                 continue
             lines.append(f"class Test{class_name}:")
             for method_name in methods:
-                lines.extend([
-                    f"    def test_{method_name}(self) -> None:",
-                    "        pass",
-                    "",
-                ])
+                lines.append(f"    def test_{method_name}(self) -> None:")
+                lines.append("        pass")
+                lines.append("")
             classes_emitted = True
 
-    func_names = _public_function_names(module)
+    func_names = _public_function_names(module, cst)
     if func_names:
         if classes_emitted:
             lines.append("")
         for func_name in func_names:
-            lines.extend([
-                f"def test_{func_name}() -> None:",
-                "    pass",
-                "",
-            ])
+            lines.append(f"def test_{func_name}() -> None:")
+            lines.append("    pass")
+            lines.append("")
 
     if not classes_emitted and not func_names:
         # No public surface — emit a placeholder so the file is valid pytest

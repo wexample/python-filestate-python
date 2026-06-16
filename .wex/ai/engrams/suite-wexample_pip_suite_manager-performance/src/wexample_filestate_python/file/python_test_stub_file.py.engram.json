@@ -2,10 +2,10 @@
   "engram_version": 1,
   "source_key": "src/wexample_filestate_python/file/python_test_stub_file.py",
   "cache_nonce": "1c2800147ebc4367950bb7b61bd21d00",
-  "last_visited_at": "2026-06-15T18:57:07+00:00",
-  "last_rev": "f740687b1e6bbe95e32b21f2279c86ba612f071f",
+  "last_visited_at": "2026-06-16T17:44:59+00:00",
+  "last_rev": "7de7829cb44f1d04bdfa6b2f5830ccc9b1ecf05b",
   "last_decision": "edit",
   "kinds": [],
-  "notes": "replaced 3x-append loops with extend, bare f-strings with plain strings, hasattr double-lookup with getattr, single-element tuple `in` with ==, and manual append loops with list comprehensions",
+  "notes": "eliminated 3 redundant libcst imports by threading cst param; replaced extend([a,b,c]) with 3 appends in inner loops",
   "in_progress": null
 }
