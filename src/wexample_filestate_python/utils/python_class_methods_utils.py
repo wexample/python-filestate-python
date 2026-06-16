@@ -24,11 +24,6 @@ for gi, group in enumerate(DUnderGroups):
 
 _PROP_KINDS: tuple[str, str, str] = ("getter", "setter", "deleter")
 
-# Hoisted sort-key; avoids creating a new lambda/closure object on every
-# call to _sort_by_visibility and reorder_class_methods.
-def _KEY_BY_NAME(m: dict) -> tuple:
-    return _sort_key_alpha(m["name"])
-
 
 def ensure_order_class_methods_in_module(module: cst.Module) -> cst.Module:
     changed = False
@@ -192,6 +187,11 @@ def _is_dunder(name: str) -> bool:
 
 def _is_private(name: str) -> bool:
     return name.startswith("_") and not (name.startswith("__") and name.endswith("__"))
+
+# Hoisted sort-key; avoids creating a new lambda/closure object on every
+# call to _sort_by_visibility and reorder_class_methods.
+def _KEY_BY_NAME(m: dict) -> tuple:
+    return _sort_key_alpha(m["name"])
 
 
 def _prop_group_to_nodes(g: dict[str, cst.FunctionDef | None]) -> list[cst.FunctionDef]:
