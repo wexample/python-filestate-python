@@ -35,9 +35,10 @@ def reorder_flagged_iterables(src: str) -> str:
         groups = _split_into_groups(block)
         # Compute keys once; reuse for both no-op check and sort order
         keys = [_group_key(g) for g in groups]
-        sorted_keys = sorted(keys)
 
-        if sorted_keys == keys:
+        # O(n) pairwise check instead of O(n log n) sorted(); short-circuits on first
+        # out-of-order pair so the already-sorted case is also fast.
+        if len(keys) < 2 or all(keys[i] <= keys[i + 1] for i in range(len(keys) - 1)):
             continue
 
         order = sorted(range(len(groups)), key=lambda i: keys[i])
@@ -110,9 +111,9 @@ def _split_into_groups(block_lines: list[str]) -> list[list[str]]:
         if ln.lstrip().startswith("#"):
             pending_comments.append(ln)
             continue
-        # item line
-        group = pending_comments + [ln]
-        groups.append(group)
+        # item line: append in-place to avoid pending_comments + [ln] allocation
+        pending_comments.append(ln)
+        groups.append(pending_comments)
         pending_comments = []
     # Any trailing comments without item are ignored for sorting and left in place
     # (shouldn't occur in expected usage). If present, attach to last group to preserve.

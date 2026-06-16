@@ -2,10 +2,10 @@
   "engram_version": 1,
   "source_key": "src/wexample_filestate_python/utils/python_iterable_utils.py",
   "cache_nonce": "1c2800147ebc4367950bb7b61bd21d00",
-  "last_visited_at": "2026-06-14T16:53:56+00:00",
-  "last_rev": "e27d1a4b722aaf8947ac3653f90ae0b36116de9d",
+  "last_visited_at": "2026-06-16T07:04:47+00:00",
+  "last_rev": "0de48186fe2886bcec9d764e044db3bc8dc5a464",
   "last_decision": "edit",
   "kinds": [],
-  "notes": "hoisted flag_exists import + moved nested fns to module level + reduced group_key calls from 3N→N + reused lstripped in inner loop",
+  "notes": "replace O(n log n) sorted() no-op guard with O(n) pairwise all() check; eliminate list concat in _split_into_groups",
   "in_progress": null
 }
