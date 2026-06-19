@@ -21,7 +21,7 @@ setup(
 
 
 def test_package_get_dependencies_keeps_only_local(tmp_path: Path) -> None:
-    from wexample_filestate_python.helpers.package import package_get_dependencies
+    from wexample_filestate_python.helper.package import package_get_dependencies
 
     pkg_a = tmp_path / "a"
     pkg_b = tmp_path / "b"
@@ -37,14 +37,14 @@ def test_package_get_dependencies_keeps_only_local(tmp_path: Path) -> None:
 
 
 def test_package_get_dependencies_raises_on_missing_dir(tmp_path: Path) -> None:
-    from wexample_filestate_python.helpers.package import package_get_dependencies
+    from wexample_filestate_python.helper.package import package_get_dependencies
 
     with pytest.raises(ValueError, match=r"does not exist or is not a directory"):
         package_get_dependencies(tmp_path / "nope")
 
 
 def test_package_get_info_prefers_pyproject(tmp_path: Path) -> None:
-    from wexample_filestate_python.helpers.package import package_get_info
+    from wexample_filestate_python.helper.package import package_get_info
 
     (tmp_path / "pyproject.toml").write_text(_PYPROJECT)
     name, deps = package_get_info(tmp_path)
@@ -53,13 +53,13 @@ def test_package_get_info_prefers_pyproject(tmp_path: Path) -> None:
 
 
 def test_package_get_info_returns_none_without_metadata(tmp_path: Path) -> None:
-    from wexample_filestate_python.helpers.package import package_get_info
+    from wexample_filestate_python.helper.package import package_get_info
 
     assert package_get_info(tmp_path) is None
 
 
 def test_package_normalize_name_strips_version_and_extras() -> None:
-    from wexample_filestate_python.helpers.package import package_normalize_name
+    from wexample_filestate_python.helper.package import package_normalize_name
 
     assert package_normalize_name("My-Package>=1.0") == "my-package"
     assert package_normalize_name("pkg[extra]") == "pkg"
@@ -67,7 +67,7 @@ def test_package_normalize_name_strips_version_and_extras() -> None:
 
 
 def test_package_parse_setup_extracts_name_and_deps(tmp_path: Path) -> None:
-    from wexample_filestate_python.helpers.package import package_parse_setup
+    from wexample_filestate_python.helper.package import package_parse_setup
 
     setup_path = tmp_path / "setup.py"
     setup_path.write_text(_SETUP_PY)
@@ -77,7 +77,7 @@ def test_package_parse_setup_extracts_name_and_deps(tmp_path: Path) -> None:
 
 
 def test_package_parse_toml_extracts_name_and_deps(tmp_path: Path) -> None:
-    from wexample_filestate_python.helpers.package import package_parse_toml
+    from wexample_filestate_python.helper.package import package_parse_toml
 
     toml_path = tmp_path / "pyproject.toml"
     toml_path.write_text(_PYPROJECT)
@@ -87,7 +87,7 @@ def test_package_parse_toml_extracts_name_and_deps(tmp_path: Path) -> None:
 
 
 def test_package_parse_toml_returns_empty_on_invalid(tmp_path: Path) -> None:
-    from wexample_filestate_python.helpers.package import package_parse_toml
+    from wexample_filestate_python.helper.package import package_parse_toml
 
     toml_path = tmp_path / "pyproject.toml"
     toml_path.write_text("not valid toml = =")
