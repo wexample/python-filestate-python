@@ -161,7 +161,7 @@ def sort_constants_block(
     sorted block (even if a different node becomes first after sorting),
     and clear leading_lines of subsequent nodes to avoid extra blank lines.
     """
-    from wexample_filestate.helpers.flag import flag_exists
+    from wexample_filestate.helper.flag import flag_exists
 
     # Preserve the entire leading_lines per node; additionally, capture the flag
     # comment lines from whichever node currently holds them so we can keep the flag
@@ -269,7 +269,7 @@ def _is_upper_name(name: str) -> bool:
 
 def _prev_line_has_flag(body_list: list[cst.CSTNode], index: int) -> bool:
     """Return True if the previous sibling is an EmptyLine whose comment contains the flag."""
-    from wexample_filestate.helpers.flag import flag_exists
+    from wexample_filestate.helper.flag import flag_exists
 
     if index - 1 < 0:
         return False
@@ -285,7 +285,7 @@ def _stmt_has_flag(stmt: cst.SimpleStatementLine, src: str) -> bool:
     We look into leading_lines comments, else fallback to searching raw src segment
     of the statement's leading trivia.
     """
-    from wexample_filestate.helpers.flag import flag_exists
+    from wexample_filestate.helper.flag import flag_exists
 
     # Check libcst leading_lines comments
     for el in stmt.leading_lines:

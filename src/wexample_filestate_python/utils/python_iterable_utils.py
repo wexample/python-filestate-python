@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from wexample_filestate.helpers.flag import flag_exists
+from wexample_filestate.helper.flag import flag_exists
 
 FLAG_NAME = "python-iterable-sort"
 
