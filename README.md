@@ -1,6 +1,6 @@
 # filestate_python
 
-Version: 8.2.2
+Version: 9.0.0
 
 Helpers for Python.
 
@@ -89,8 +89,8 @@ Visit the [Wexample Suite documentation](https://docs.wexample.com) for the comp
 - libcst: 
 - packaging: 
 - tomli: 
-- wexample-api: >=6.7.0
-- wexample-filestate: >=15.0.0
+- wexample-api: >=6.8.0
+- wexample-filestate: >=16.0.0
 
 ## Versioning & Compatibility Policy
 
